@@ -775,7 +775,7 @@ var CATS = {
 };
 
 /* ================= 状态 ================= */
-var algoIdx = 2;      /* 默认快速排序 */
+var algoIdx = 4;      /* 默认快速排序 */
 var srcArr = [];      /* 原始序列 */
 var steps = [];       /* 步骤列表 */
 var cur = 0;          /* 当前步 */
@@ -1125,7 +1125,11 @@ function applyLang(){
   buildSummary();
   updateAlgoUI();
   updateIdea();
-  if(srcArr.length) render();
+  if(srcArr.length){
+    var alNow=ALGOS[algoIdx];
+    $('stageNote').textContent=(LANG==='zh'?alNow.name.zh:alNow.name.en)+' · n = '+srcArr.length;
+    render();
+  }
   else {
     $('stepTotal').textContent='0'; $('stepNow').textContent='0';
     $('narrTitle').textContent=(LANG==='zh'?ALGOS[algoIdx].name.zh:ALGOS[algoIdx].name.en);
