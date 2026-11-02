@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 数据结构 · 排序算法可视化（9 种全覆盖）</title>
+<style>
+  :root{
+    --bg:#f3f4fa; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
+    --indigo:#4f46e5; --indigo-soft:#eef0ff; --indigo-line:#c7cbe8;
+    --rose:#e11d48; --blue:#2563eb;
+    --amber:#b45309; --amber-line:#d97706; --amber-soft:#fef3e2;
+    --green:#059669; --green-soft:#e7f7f1;
+    --purple:#7c3aed; --purple-soft:#f3eeff;
+    --line:#e6e8f2;
+    --shadow:0 10px 30px rgba(31,36,48,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 10% -12%, #e9eaff 0%, transparent 60%),
+      radial-gradient(820px 500px at 105% 6%, #e6f4ff 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); line-height:1.78; font-size:16.5px; padding:30px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    background:#f1f2fb;border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font-size:.92em;color:#3d3fb8;white-space:nowrap;
+  }
+  /* ---------- 语言切换 ---------- */
+  .lang-switch{
+    display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;
+    padding:3px;box-shadow:0 3px 10px rgba(20,24,40,.08);
+  }
+  .lang-btn{
+    border:none;background:transparent;border-radius:999px;padding:6px 18px;
+    font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;
+    font-family:inherit;
+  }
+  .lang-btn.active{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  /* ---------- 头部 ---------- */
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{
+    font-size:13.5px;font-weight:700;color:var(--indigo);
+    background:var(--indigo-soft);border:1px solid #dcdffb;
+    border-radius:999px;padding:4px 14px;
+  }
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.4;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  /* ---------- 卡片 ---------- */
+  .card{
+    background:var(--card);border-radius:18px;box-shadow:var(--shadow);
+    border:1px solid rgba(230,232,242,.9);
+    padding:24px 26px;margin-bottom:22px;
+  }
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 算法选择 ---------- */
+  .algo-cat{font-size:13.5px;font-weight:800;color:var(--muted);margin:12px 0 6px;letter-spacing:.5px}
+  .algo-cat:first-child{margin-top:0}
+  .algo-row{display:flex;gap:9px;flex-wrap:wrap}
+  .algo-btn{
+    border:1.5px solid var(--line);background:#fbfbff;border-radius:11px;
+    padding:8px 15px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:all .2s;font-family:inherit;
+  }
+  .algo-btn:hover{border-color:var(--indigo);color:var(--indigo)}
+  .algo-btn.active{
+    background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;
+    box-shadow:0 5px 14px rgba(79,70,229,.32);
+  }
+  .opt-row{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .opt-item{display:none;align-items:center;gap:8px;font-size:15px;font-weight:700}
+  .opt-item.show{display:inline-flex}
+  .opt-item select{
+    border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;
+    font-size:15px;font-weight:700;font-family:inherit;background:#fff;outline:none;cursor:pointer;
+  }
+  .opt-item select:focus{border-color:var(--indigo)}
+  .algo-idea{
+    margin-top:16px;border-radius:12px;border:1.5px dashed var(--indigo-line);
+    background:var(--indigo-soft);padding:12px 16px;font-size:15px;
+  }
+  .algo-idea b{color:var(--indigo)}
+  /* ---------- 输入区 ---------- */
+  .input-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .seq-input{
+    flex:1;min-width:260px;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 14px;font-size:17px;font-weight:700;font-family:inherit;outline:none;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1px;
+  }
+  .seq-input:focus{border-color:var(--indigo)}
+  .input-msg{margin-top:12px;font-size:14.5px;font-weight:700;min-height:24px}
+  .input-msg.ok{color:var(--green)} .input-msg.no{color:#b91c1c}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+  .stat{
+    border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;
+    background:#fbfbff;text-align:center;
+  }
+  .stat-k{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .stat-v{display:block;font-size:24px;font-weight:800;line-height:1.3}
+  .c-rose{color:var(--rose)} .c-blue{color:var(--blue)}
+  .badge{display:inline-block;font-size:16px;font-weight:800;border-radius:999px;padding:3px 16px;margin-top:2px}
+  .b-gray{background:#eef0f4;color:#4b5563}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}
+  .b-green{background:var(--green-soft);color:var(--green)}
+  .b-purple{background:var(--purple-soft);color:var(--purple)}
+  /* ---------- 柱状舞台 ---------- */
+  .bars{
+    display:flex;align-items:flex-end;justify-content:center;gap:8px;
+    height:300px;margin:20px auto 4px;padding:0 6px;
+    border-bottom:2px solid #d5d8ea;max-width:920px;
+  }
+  .bar-wrap{position:relative;flex:1;max-width:72px;height:100%;display:flex;align-items:flex-end}
+  .bar{
+    width:100%;border-radius:9px 9px 0 0;
+    background:linear-gradient(180deg,#8b83f4,var(--indigo));
+    transition:height .4s cubic-bezier(.22,.9,.32,1),background .3s,box-shadow .3s;
+    position:relative;box-shadow:0 3px 10px rgba(79,70,229,.18);
+  }
+  .bar-val{
+    position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+    font-size:15.5px;font-weight:800;color:var(--indigo);white-space:nowrap;
+  }
+  .bar-idx{
+    position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);
+    font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap;
+  }
+  .bar-wrap.dim .bar{opacity:.22}
+  .bar.is-cmp{background:linear-gradient(180deg,#f7b733,var(--amber-line));box-shadow:0 3px 12px rgba(217,119,6,.35)}
+  .bar.is-cmp .bar-val{color:var(--amber)}
+  .bar.is-swap{background:linear-gradient(180deg,#fb7185,var(--rose));box-shadow:0 3px 12px rgba(225,29,72,.4);animation:wiggle .4s}
+  .bar.is-swap .bar-val{color:var(--rose)}
+  .bar.is-pivot{background:linear-gradient(180deg,#a78bfa,var(--purple));box-shadow:0 0 0 3px var(--purple-soft),0 3px 12px rgba(124,58,237,.4)}
+  .bar.is-pivot .bar-val{color:var(--purple)}
+  .bar.is-key{box-shadow:0 0 0 3px var(--amber-line)}
+  .bar.is-sorted{background:linear-gradient(180deg,#34d399,var(--green));box-shadow:0 3px 10px rgba(5,150,105,.25)}
+  .bar.is-sorted .bar-val{color:var(--green)}
+  .bar.is-head{outline:3px solid var(--blue);outline-offset:2px}
+  .bar.is-min{background:linear-gradient(180deg,#60a5fa,var(--blue))}
+  .bar.is-min .bar-val{color:var(--blue)}
+  @keyframes wiggle{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}60%{transform:translateX(5px)}}
+  .legend{
+    display:flex;gap:18px;justify-content:center;flex-wrap:wrap;
+    margin-top:30px;font-size:13.5px;color:var(--muted);font-weight:600;
+  }
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dot-indigo{background:var(--indigo)} .dot-amber{background:var(--amber-line)}
+  .dot-rose{background:var(--rose)} .dot-green{background:var(--green)}
+  .dot-purple{background:var(--purple)} .dot-blue{background:var(--blue)}
+  /* ---------- 桶面板（基数排序） ---------- */
+  .bucket-panel{display:none;margin-top:18px}
+  .bucket-panel.show{display:block}
+  .bucket-title{font-size:14px;font-weight:800;color:var(--muted);margin-bottom:8px}
+  .bucket-row{display:flex;gap:8px;flex-wrap:wrap}
+  .bucket{
+    border:2px dashed #c9cde0;border-radius:12px;background:#fbfbff;
+    min-width:64px;padding:6px 8px;text-align:center;transition:border-color .3s,background .3s;
+  }
+  .bucket.hot{border-color:var(--amber-line);background:var(--amber-soft)}
+  .bucket-b{display:block;font-size:12px;font-weight:800;color:var(--muted)}
+  .bucket-c{display:block;font-size:15px;font-weight:800;color:var(--indigo);min-height:22px;line-height:1.4}
+  /* ---------- 控制区 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:22px}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;
+    padding:11px 20px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,36,48,.14)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(79,70,229,.35)}
+  .btn-play{background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;border-color:transparent}
+  .btn-sm{padding:8px 14px;font-size:14.5px;border-radius:10px}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--indigo);cursor:pointer}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--indigo);font-size:18px}
+  .progress{height:9px;background:#eceef7;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{
+    height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--indigo),#8b7ff5);
+    transition:width .45s cubic-bezier(.22,.9,.32,1);
+  }
+  .narr{border-radius:16px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fbfbff,#f5f6fd);padding:18px 22px}
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{background:var(--indigo);color:#fff;font-size:13px;font-weight:800;border-radius:999px;padding:3px 13px;white-space:nowrap}
+  .narr-badge.free{background:var(--amber-line)}
+  .narr-title{font-size:18.5px;font-weight:800}
+  .narr-body{font-size:16.5px}
+  .narr-body b{color:#000}
+  .narr-formula{
+    margin-top:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    background:#fff;border:1.5px dashed var(--indigo-line);border-radius:10px;
+    padding:8px 14px;display:inline-block;color:var(--indigo);font-weight:700;font-size:15px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 表格 ---------- */
+  .tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px}
+  .tbl th,.tbl td{border:1px solid var(--line);padding:8px 10px;text-align:center}
+  .tbl th{background:var(--indigo-soft);color:var(--indigo);font-weight:800}
+  .tbl td:first-child{font-weight:700;text-align:left;padding-left:14px}
+  .tbl tr.cur{background:var(--green-soft);box-shadow:inset 0 0 0 2px #6ecfaa}
+  .yes{color:var(--green);font-weight:800}
+  .no{color:#b91c1c;font-weight:800}
+  /* ---------- 小结 ---------- */
+  .summary li{margin:8px 0 8px 22px;font-size:15.5px}
+  .summary b{color:var(--indigo)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--indigo);font-weight:700;text-decoration:none}
+  @media (max-width:640px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 16px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .step-info{margin-left:0;width:100%}
+    .bars{height:230px;gap:5px}
+    .bar-val{font-size:12.5px;top:-24px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">数据结构 · 知识点</span>
+        <span class="tag" data-i18n="tag.scope">408 考纲排序算法 · 9 种全覆盖</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">可自定义序列 · 分步演示</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">排序算法可视化：把每一趟、每一次比较和移动都「演」给你看</h1>
+    <p class="sub" data-i18n="hero.sub">插入、希尔、冒泡、快速、选择、堆、归并、基数 —— 408 考纲里的排序一个不落。输入自己的数列或随机生成，逐步播放，复杂度和稳定性一目了然。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="algo.title">选择算法</span> <span class="title-note" data-i18n="algo.note">按 408 教材（严蔚敏版）的处理方式实现</span></h2>
+    <div id="algoGroups"></div>
+    <div class="opt-row">
+      <div class="opt-item" id="optShell">
+        <span data-i18n="opt.shell">增量序列</span>
+        <select id="selShellGap">
+          <option value="shell" data-i18n="opt.shellStd">标准希尔增量 ⌊n/2⌋, ⌊n/4⌋, …, 1</option>
+          <option value="hibbard" data-i18n="opt.shellHib">Hibbard 增量 2^k−1 (…, 7, 3, 1)</option>
+        </select>
+      </div>
+      <div class="opt-item" id="optQuick">
+        <span data-i18n="opt.pivot">枢轴选择</span>
+        <select id="selPivot">
+          <option value="first" data-i18n="opt.pivotFirst">首元素（408 教材标准）</option>
+          <option value="median3" data-i18n="opt.pivotMedian">三者取中</option>
+          <option value="random" data-i18n="opt.pivotRandom">随机选取</option>
+        </select>
+      </div>
+      <div class="opt-item" id="optMerge">
+        <span data-i18n="opt.mergeWay">归并路数 k</span>
+        <select id="selMergeK">
+          <option value="2">2 路（408 重点）</option>
+          <option value="3">3 路</option>
+          <option value="4">4 路</option>
+        </select>
+      </div>
+      <div class="opt-item" id="optRadix">
+        <span data-i18n="opt.radixR">基数 r</span>
+        <select id="selRadixR">
+          <option value="10">r = 10（十进制，408 最常见）</option>
+          <option value="2">r = 2（二进制）</option>
+        </select>
+      </div>
+    </div>
+    <div class="algo-idea" id="algoIdea"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="input.title">待排序序列</span> <span class="title-note" data-i18n="input.note">2～16 个非负整数，空格或逗号分隔</span></h2>
+    <div class="input-row">
+      <input class="seq-input" id="seqInput" placeholder="49 38 65 97 76 13 27 49" spellcheck="false" type="text">
+      <button class="btn btn-sm" id="btnRandom" type="button" data-i18n="input.random">🎲 随机生成</button>
+      <button class="btn btn-sm" id="btnClassic" type="button" data-i18n="input.classic">📖 经典序列</button>
+      <button class="btn btn-primary" id="btnStart" type="button" data-i18n="input.start">开始演示</button>
+    </div>
+    <div class="input-msg" id="inputMsg"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="stage.title">动画演示</span> <span class="title-note" id="stageNote"></span></h2>
+
+    <div class="stat-row">
+      <div class="stat"><span class="stat-k" data-i18n="stat.cmp">比较次数</span><span class="stat-v c-amber" id="statCmp" style="color:var(--amber)">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.move">移动/交换次数</span><span class="stat-v c-rose" id="statMove">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.round">当前进度（趟）</span><span class="stat-v" id="statRound" style="color:var(--blue)">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.state">当前状态</span><span class="badge b-gray" id="statState">—</span></div>
+    </div>
+
+    <div class="bars" id="bars"></div>
+
+    <div class="bucket-panel" id="bucketPanel">
+      <div class="bucket-title" data-i18n="stage.buckets">桶（队列）状态 —— 分配 / 收集</div>
+      <div class="bucket-row" id="bucketRow"></div>
+    </div>
+
+    <div class="legend">
+      <span><i class="dot dot-indigo"></i><span data-i18n="legend.normal">待排序</span></span>
+      <span><i class="dot dot-amber"></i><span data-i18n="legend.cmp">正在比较</span></span>
+      <span><i class="dot dot-rose"></i><span data-i18n="legend.swap">交换/写入</span></span>
+      <span><i class="dot dot-purple"></i><span data-i18n="legend.pivot">枢轴 / 基准</span></span>
+      <span><i class="dot dot-blue"></i><span data-i18n="legend.head">段首/最值标记</span></span>
+      <span><i class="dot dot-green"></i><span data-i18n="legend.sorted">已就位</span></span>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">⟲ 重置</button>
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-play" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <div class="speed-box">
+        <span data-i18n="ctrl.speed">速度</span>
+        <input id="speedSlider" max="10" min="1" type="range" value="5">
+      </div>
+      <div class="step-info"><span data-i18n="ctrl.step">步数</span> <b id="stepNow">0</b>/<span id="stepTotal">0</span></div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="narr">
+      <div class="narr-head">
+        <span class="narr-badge" id="narrBadge">—</span>
+        <span class="narr-title" id="narrTitle">—</span>
+      </div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="tbl.title">九大排序复杂度对比</span> <span class="title-note" data-i18n="tbl.note">408 选择题高频考点 —— 选中哪个算法就高亮哪一行</span></h2>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th data-i18n="tbl.algo">算法</th>
+          <th data-i18n="tbl.best">最好时间</th>
+          <th data-i18n="tbl.avg">平均时间</th>
+          <th data-i18n="tbl.worst">最坏时间</th>
+          <th data-i18n="tbl.space">空间</th>
+          <th data-i18n="tbl.stable">稳定性</th>
+        </tr>
+      </thead>
+      <tbody id="tblBody"></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title" data-i18n="sum.title">408 考点速记</h2>
+    <ul class="summary" id="summaryList"></ul>
+  </section>
+
+  <p class="footer">
+    <span data-i18n="footer.text">408 Visual Lab · 用动画讲透考研 408 重难点</span> ·
+    <a href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener">GitHub</a>
+  </p>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= 语言 ================= */
+var LANG = 'zh';
+try { LANG = localStorage.getItem('408lab-lang') || 'zh'; } catch(e) {}
+
+var T = {
+  'tag.subj':{zh:'数据结构 · 知识点', en:'Data Structures · Topic'},
+  'tag.scope':{zh:'408 考纲排序算法 · 9 种全覆盖', en:'All 9 sorting algorithms in the CS 408 syllabus'},
+  'tag.inter':{zh:'可自定义序列 · 分步演示', en:'Custom sequences · Step-by-step'},
+  'hero.h1':{zh:'排序算法可视化：把每一趟、每一次比较和移动都「演」给你看', en:'Sorting Algorithms, Visualized: every pass, every comparison and move, animated'},
+  'hero.sub':{zh:'插入、希尔、冒泡、快速、选择、堆、归并、基数 —— 408 考纲里的排序一个不落。输入自己的数列或随机生成，逐步播放，复杂度和稳定性一目了然。', en:'Insertion, Shell, Bubble, Quick, Selection, Heap, Merge, Radix — every sort in the 408 syllabus. Type your own sequence or generate one, then play it step by step.'},
+  'algo.title':{zh:'选择算法', en:'Choose an algorithm'},
+  'algo.note':{zh:'按 408 教材（严蔚敏版）的处理方式实现', en:'Implemented the way the standard 408 textbook does it'},
+  'opt.shell':{zh:'增量序列', en:'Gap sequence'},
+  'opt.shellStd':{zh:'标准希尔增量 ⌊n/2⌋, ⌊n/4⌋, …, 1', en:'Standard Shell gaps ⌊n/2⌋, ⌊n/4⌋, …, 1'},
+  'opt.shellHib':{zh:'Hibbard 增量 2^k−1 (…, 7, 3, 1)', en:'Hibbard gaps 2^k−1 (…, 7, 3, 1)'},
+  'opt.pivot':{zh:'枢轴选择', en:'Pivot choice'},
+  'opt.pivotFirst':{zh:'首元素（408 教材标准）', en:'First element (standard textbook)'},
+  'opt.pivotMedian':{zh:'三者取中', en:'Median of three'},
+  'opt.pivotRandom':{zh:'随机选取', en:'Random'},
+  'opt.mergeWay':{zh:'归并路数 k', en:'Merge way k'},
+  'opt.radixR':{zh:'基数 r', en:'Radix r'},
+  'input.title':{zh:'待排序序列', en:'Sequence to sort'},
+  'input.note':{zh:'2～16 个非负整数，空格或逗号分隔', en:'2–16 non-negative integers, separated by spaces or commas'},
+  'input.random':{zh:'🎲 随机生成', en:'🎲 Random'},
+  'input.classic':{zh:'📖 经典序列', en:'📖 Classic seq.'},
+  'input.start':{zh:'开始演示', en:'Start'},
+  'input.errFew':{zh:'至少需要 2 个元素（最多 16 个）', en:'Need 2 to 16 elements'},
+  'input.errInt':{zh:'请输入非负整数（0～999），用空格或逗号分隔', en:'Enter non-negative integers (0–999), separated by spaces or commas'},
+  'input.errRadix':{zh:'基数排序要求元素为非负整数（当前包含负数？请检查）', en:'Radix sort needs non-negative integers (check your input)'},
+  'input.ok':{zh:'序列有效，共 n 个元素：', en:'Valid sequence, n elements:'},
+  'stage.title':{zh:'动画演示', en:'Animation'},
+  'stage.buckets':{zh:'桶（队列）状态 —— 分配 / 收集', en:'Buckets (queues) — distribute / collect'},
+  'stat.cmp':{zh:'比较次数', en:'Comparisons'},
+  'stat.move':{zh:'移动/交换次数', en:'Moves / swaps'},
+  'stat.round':{zh:'当前进度（趟）', en:'Pass'},
+  'stat.state':{zh:'当前状态', en:'Status'},
+  'legend.normal':{zh:'待排序', en:'Unsorted'},
+  'legend.cmp':{zh:'正在比较', en:'Comparing'},
+  'legend.swap':{zh:'交换/写入', en:'Swap / write'},
+  'legend.pivot':{zh:'枢轴 / 基准', en:'Pivot'},
+  'legend.head':{zh:'段首/最值标记', en:'Run head / min'},
+  'legend.sorted':{zh:'已就位', en:'In final place'},
+  'ctrl.reset':{zh:'⟲ 重置', en:'⟲ Reset'},
+  'ctrl.prev':{zh:'← 上一步', en:'← Prev'},
+  'ctrl.next':{zh:'下一步 →', en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放', en:'▶ Auto play'},
+  'ctrl.pause':{zh:'⏸ 暂停', en:'⏸ Pause'},
+  'ctrl.speed':{zh:'速度', en:'Speed'},
+  'ctrl.step':{zh:'步数', en:'Step'},
+  'tbl.title':{zh:'九大排序复杂度对比', en:'Complexity of the 9 sorts'},
+  'tbl.note':{zh:'408 选择题高频考点 —— 选中哪个算法就高亮哪一行', en:'A top exam topic — the selected algorithm is highlighted'},
+  'tbl.algo':{zh:'算法', en:'Algorithm'},
+  'tbl.best':{zh:'最好时间', en:'Best'},
+  'tbl.avg':{zh:'平均时间', en:'Average'},
+  'tbl.worst':{zh:'最坏时间', en:'Worst'},
+  'tbl.space':{zh:'空间', en:'Space'},
+  'tbl.stable':{zh:'稳定性', en:'Stable'},
+  'tbl.yes':{zh:'稳定 ✓', en:'Stable ✓'},
+  'tbl.no':{zh:'不稳定 ✗', en:'Unstable ✗'},
+  'sum.title':{zh:'408 考点速记', en:'Key exam takeaways'},
+  'state.init':{zh:'待开始', en:'Ready'},
+  'state.playing':{zh:'演示中', en:'Playing'},
+  'state.done':{zh:'排序完成 ✓', en:'Sorted ✓'},
+  'state.pause':{zh:'已暂停', en:'Paused'},
+  'footer.text':{zh:'408 Visual Lab · 用动画讲透考研 408 重难点', en:'408 Visual Lab · Animated explanations for the CS 408 exam'}
+};
+
+function t(key){ var e = T[key]; return e ? (LANG==='zh' ? e.zh : e.en) : key; }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ================= 算法定义 ================= */
+/* 每个 gen 函数：输入数组 a（会被复制），输出 steps[]
+   step = {t:类型, ..., zh, en}  渲染器从初始数组重放 steps 到第 k 步 */
+
+var ALGOS = [
+  /* ---------- 1. 直接插入 ---------- */
+  { id:'insertion', cat:'insert', name:{zh:'直接插入排序',en:'Straight Insertion Sort'},
+    idea:{zh:'把第 i 个元素插入到前面已有序的子表中：从后往前边比较边后移，找到位置后放入。n−1 趟完成，越有序越快。',
+          en:'Insert element i into the sorted prefix: scan backward, shift larger elements right, then drop the key in place. n−1 passes; faster when nearly sorted.'},
+    cx:{best:'O(n)',avg:'O(n²)',worst:'O(n²)',space:'O(1)',stable:true},
+    gen:function(a){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      S({t:'phase',pass:1}, '第 1 趟：默认 a[0] 自成有序子表', 'Pass 1: a[0] alone is a sorted run');
+      for(var i=1;i<n;i++){
+        var key=a[i];
+        S({t:'key',i:i,v:key},'取出 key = a['+i+'] = '+key+'，准备向前比较插入','Take key = a['+i+'] = '+key+', compare backward');
+        var j=i-1, moved=false;
+        while(j>=0){
+          S({t:'cmp',i:j,v:key},'比较 a['+j+'] = '+a[j]+' 与 key = '+key,'Compare a['+j+'] = '+a[j]+' with key = '+key);
+          if(a[j]>key){ S({t:'set',i:j+1,v:a[j],mv:1},'a['+j+'] = '+a[j]+' > key，后移一位到 a['+(j+1)+']',a[j]+' > key, shift a['+j+'] right to slot '+(j+1)); a[j+1]=a[j]; j--; moved=true; }
+          else { S({t:'info'},'a['+j+'] = '+a[j]+' ≤ key，停止后移','a['+j+'] = '+a[j]+' ≤ key, stop shifting'); break; }
+        }
+        if(moved||j+1!==i){ a[j+1]=key; S({t:'set',i:j+1,v:key,mv:1},'key = '+key+' 插入到位置 '+(j+1),'Insert key = '+key+' at slot '+(j+1)); }
+        S({t:'sorted',i:i},'a[0…'+i+'] 已有序','a[0…'+i+'] is sorted');
+      }
+      S({t:'alldone'},'全部元素已就位，排序完成','All elements in place — done');
+      return st;
+    }},
+  /* ---------- 2. 折半插入 ---------- */
+  { id:'binsertion', cat:'insert', name:{zh:'折半插入排序',en:'Binary Insertion Sort'},
+    idea:{zh:'与直接插入相同，但用「折半查找」定位插入位置：比较次数降到 O(n log n)，但移动次数不变，整体仍为 O(n²)。',
+          en:'Same as insertion sort, but the position is found by binary search: comparisons drop to O(n log n) while moves stay the same — still O(n²) overall.'},
+    cx:{best:'O(n log n)',avg:'O(n²)',worst:'O(n²)',space:'O(1)',stable:true},
+    gen:function(a){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      for(var i=1;i<n;i++){
+        var key=a[i];
+        S({t:'key',i:i,v:key},'取出 key = a['+i+'] = '+key+'，在 a[0…'+(i-1)+'] 中折半查找插入位置','Take key = a['+i+'] = '+key+', binary-search its slot in a[0…'+(i-1)+']');
+        var lo=0, hi=i-1;
+        while(lo<=hi){
+          var m=(lo+hi)>>1;
+          S({t:'cmp',i:m,v:key,sub:'['+lo+'…'+hi+']'},'mid = '+m+'：比较 a['+m+'] = '+a[m]+' 与 key = '+key,'mid = '+m+': compare a['+m+'] = '+a[m]+' with key = '+key);
+          if(a[m]>key){ hi=m-1; S({t:'info'},'a[mid] > key，插入位置在左半段 → hi = '+hi,'a[mid] > key, go left → hi = '+hi); }
+          else { lo=m+1; S({t:'info'},'a[mid] ≤ key，插入位置在右半段 → lo = '+lo,'a[mid] ≤ key, go right → lo = '+lo); }
+        }
+        for(var j=i-1;j>=lo;j--){ S({t:'set',i:j+1,v:a[j],mv:1},'a['+j+'] = '+a[j]+' 后移一位',a[j]+' shifts right to slot '+(j+1)); a[j+1]=a[j]; }
+        a[lo]=key; S({t:'set',i:lo,v:key,mv:1},'key = '+key+' 插入到位置 '+lo,'Insert key = '+key+' at slot '+lo);
+        S({t:'sorted',i:i},'a[0…'+i+'] 已有序','a[0…'+i+'] is sorted');
+      }
+      S({t:'alldone'},'全部元素已就位，排序完成','All elements in place — done');
+      return st;
+    }},
+  /* ---------- 3. 希尔 ---------- */
+  { id:'shell', cat:'insert', name:{zh:'希尔排序',en:'Shell Sort'},
+    idea:{zh:'按增量 g 把序列分成 g 组，组内做直接插入；g 逐趟缩小到 1。前几趟「粗排」使序列基本有序，最后一趟 1-增量时移动大幅减少。',
+          en:'Split the array into g gap-subsequences and insertion-sort each; shrink g each pass down to 1. Early passes make the array nearly sorted, so the final pass moves little.'},
+    cx:{best:'O(n log²n)',avg:'依赖增量序列',worst:'O(n²)（标准增量）',space:'O(1)',stable:false},
+    gen:function(a,opts){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      var gaps=[];
+      if(opts.shellGap==='hibbard'){ for(var h=1;h<n;h=h*2+1) gaps.push(h); gaps.reverse(); }
+      else { for(var g=n>>1; g>0; g=g>>1) gaps.push(g); }
+      S({t:'info'},'增量序列：'+gaps.join(' → '),'Gap sequence: '+gaps.join(' → '));
+      var pass=0;
+      gaps.forEach(function(gap){
+        pass++;
+        S({t:'gap',g:gap,pass:pass},'第 '+pass+' 趟：增量 g = '+gap+'，分成 '+gap+' 组分别做直接插入','Pass '+pass+': gap g = '+gap+', insertion-sort each of the '+gap+' groups');
+        for(var i=gap;i<n;i++){
+          var key=a[i]; var j=i-gap; var moved=false;
+          S({t:'key',i:i,v:key},'取出 key = a['+i+'] = '+key+'（组内向前比较）','Take key = a['+i+'] = '+key+' (compare within its group)');
+          while(j>=0){
+            S({t:'cmp',i:j,v:key},'比较 a['+j+'] = '+a[j]+' 与 key = '+key+'（同组，相距 '+gap+'）','Compare a['+j+'] = '+a[j]+' with key = '+key+' (same group, distance '+gap+')');
+            if(a[j]>key){ S({t:'set',i:j+gap,v:a[j],mv:1},'a['+j+'] 后移一个组距到 a['+(j+gap)+']','Shift a['+j+'] right by one gap to slot '+(j+gap)); a[j+gap]=a[j]; j-=gap; moved=true; }
+            else { S({t:'info'},'a['+j+'] = '+a[j]+' ≤ key，停止','a['+j+'] = '+a[j]+' ≤ key, stop'); break; }
+          }
+          if(moved){ a[j+gap]=key; S({t:'set',i:j+gap,v:key,mv:1},'key = '+key+' 插入到位置 '+(j+gap),'Insert key = '+key+' at slot '+(j+gap)); }
+        }
+      });
+      S({t:'alldone'},'增量为 1 的这一趟结束后序列完全有序','After the g = 1 pass the array is fully sorted');
+      return st;
+    }},
+  /* ---------- 4. 冒泡 ---------- */
+  { id:'bubble', cat:'exchange', name:{zh:'冒泡排序',en:'Bubble Sort'},
+    idea:{zh:'从前往后两两比较相邻元素，逆序就交换；每一趟把当前未排序部分的最大值「冒」到末尾。某趟无交换即可提前结束。',
+          en:'Compare adjacent pairs left to right, swapping when out of order; each pass bubbles the largest remaining element to the end. Stop early if a pass makes no swap.'},
+    cx:{best:'O(n)（已有序）',avg:'O(n²)',worst:'O(n²)',space:'O(1)',stable:true},
+    gen:function(a){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      for(var pass=1; pass<=n-1; pass++){
+        var swapped=false;
+        S({t:'pass',pass:pass},'第 '+pass+' 趟：从 a[0] 到 a['+(n-pass)+'] 两两比较','Pass '+pass+': sweep a[0] … a['+(n-pass)+']');
+        for(var j=0;j<n-pass;j++){
+          S({t:'cmp',i:j,j:j+1},'比较相邻元素 a['+j+'] = '+a[j]+' 与 a['+(j+1)+'] = '+a[j+1],'Compare neighbors a['+j+'] = '+a[j]+' and a['+(j+1)+'] = '+a[j+1]);
+          if(a[j]>a[j+1]){ var tmp=a[j]; a[j]=a[j+1]; a[j+1]=tmp; swapped=true; S({t:'swap',i:j,j:j+1,mv:1},'逆序 → 交换，大值 '+(a[j])+' 往后冒','Out of order → swap; larger value '+a[j]+' bubbles right'); }
+        }
+        S({t:'sorted',i:n-pass},'a['+(n-pass)+'] = '+a[n-pass]+' 已就位（本趟最大值）','a['+(n-pass)+'] = '+a[n-pass]+' is in final place (largest of this pass)');
+        if(!swapped){
+          for(var k=n-pass-1;k>=0;k--) S({t:'sorted',i:k},'a['+k+'] 也已就位','a['+k+'] is also in place');
+          S({t:'info'},'本趟没有发生任何交换 → 序列已经整体有序，提前结束','No swap in this pass → already sorted, stop early');
+          break;
+        }
+      }
+      S({t:'alldone'},'全部元素已就位，排序完成','All elements in place — done');
+      return st;
+    }},
+  /* ---------- 5. 快速 ---------- */
+  { id:'quick', cat:'exchange', name:{zh:'快速排序',en:'Quick Sort'},
+    idea:{zh:'每趟选一个枢轴 pivot，通过 low/high 指针交替扫描把比它小的放左边、大的放右边，枢轴一次就位；再对左右两个子表递归。平均 O(n log₂n)，是内部排序平均最快的一种。',
+          en:'Pick a pivot; alternating low/high scans move smaller elements left and larger right so the pivot lands in its final spot in one pass; recurse on both sides. O(n log₂n) on average — the fastest general internal sort.'},
+    cx:{best:'O(n log₂n)',avg:'O(n log₂n)',worst:'O(n²)（基本有序时）',space:'O(log₂n)（递归栈，最坏 O(n)）',stable:false},
+    gen:function(a,opts){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      function pickPivot(lo,hi){
+        if(opts.pivot==='median3'){
+          var m=(lo+hi)>>1;
+          S({t:'info'},'三者取中：a['+lo+']='+a[lo]+'，a['+m+']='+a[m]+'，a['+hi+']='+a[hi],'Median of three: a['+lo+']='+a[lo]+', a['+m+']='+a[m]+', a['+hi+']='+a[hi]);
+          var x=a[lo],y=a[m],z=a[hi];
+          if((y<=x&&x<=z)||(z<=x&&x<=y)) return lo;
+          if((x<=y&&y<=z)||(z<=y&&y<=x)) return m;
+          return hi;
+        }
+        if(opts.pivot==='random'){
+          var r=lo+Math.floor(Math.random()*(hi-lo+1));
+          S({t:'info'},'随机选取枢轴：a['+r+'] = '+a[r],'Random pivot: a['+r+'] = '+a[r]);
+          return r;
+        }
+        return lo;
+      }
+      function qs(lo,hi){
+        if(lo>hi) return;
+        if(lo===hi){ S({t:'sorted',i:lo},'子表只剩 1 个元素，a['+lo+'] = '+a[lo]+' 自然就位','Subarray of size 1: a['+lo+'] = '+a[lo]+' is trivially placed'); return; }
+        S({t:'range',lo:lo,hi:hi},'对子表 a['+lo+'…'+hi+'] 做一趟快速排序','One quick-sort pass on a['+lo+'…'+hi+']');
+        var p=pickPivot(lo,hi);
+        if(p!==lo){ var tv=a[lo]; a[lo]=a[p]; a[p]=tv; S({t:'swap',i:lo,j:p,mv:1},'把枢轴换到子表第一个位置：a['+lo+'] = '+a[lo],'Move pivot to the front: a['+lo+'] = '+a[lo]); }
+        var piv=a[lo];
+        S({t:'pivot',i:lo,v:piv},'枢轴 pivot = '+piv+'（暂存，a['+lo+'] 视作空坑）','Pivot = '+piv+' (saved aside; slot '+lo+' is now a "hole")');
+        var i=lo, j=hi;
+        while(i<j){
+          while(i<j){
+            S({t:'cmp',i:j,v:piv},'high 指针：比较 a['+j+'] = '+a[j]+' 与 pivot = '+piv,'high pointer: compare a['+j+'] = '+a[j]+' with pivot = '+piv);
+            if(a[j]>piv){ j--; S({t:'info'},'a['+j+']（新）= '+a[j]+'？继续左移','a[j] > pivot, keep moving left'); }
+            else break;
+          }
+          if(i<j){ S({t:'set',i:i,v:a[j],mv:1},'a['+j+'] = '+a[j]+' ≤ pivot，填入左边的坑 a['+i+']',a[j]+' ≤ pivot, fill the left hole at slot '+i); a[i]=a[j]; i++; }
+          while(i<j){
+            S({t:'cmp',i:i,v:piv},'low 指针：比较 a['+i+'] = '+a[i]+' 与 pivot = '+piv,'low pointer: compare a['+i+'] = '+a[i]+' with pivot = '+piv);
+            if(a[i]<piv){ i++; S({t:'info'},'a['+i+']（新）= '+a[i]+'？继续右移','a[i] < pivot, keep moving right'); }
+            else break;
+          }
+          if(i<j){ S({t:'set',i:j,v:a[i],mv:1},'a['+i+'] = '+a[i]+' ≥ pivot，填入右边的坑 a['+j+']',a[i]+' ≥ pivot, fill the right hole at slot '+j); a[j]=a[i]; j--; }
+        }
+        a[i]=piv; S({t:'set',i:i,v:piv,pv:1},'枢轴 '+piv+' 就位：a['+i+'] —— 左边都 ≤ 它，右边都 ≥ 它','Pivot '+piv+' lands at slot '+i+' — left side ≤ it, right side ≥ it');
+        S({t:'sorted',i:i},'a['+i+'] 全局就位，无需再动','a['+i+'] is globally final');
+        S({t:'info'},'递归处理左子表 a['+lo+'…'+(i-1)+'] 和右子表 a['+(i+1)+'…'+hi+']','Recurse on left a['+lo+'…'+(i-1)+'] and right a['+(i+1)+'…'+hi+']');
+        qs(lo,i-1); qs(i+1,hi);
+      }
+      qs(0,n-1);
+      S({t:'alldone'},'所有子表都已处理完，排序完成','All subarrays processed — done');
+      return st;
+    }},
+  /* ---------- 6. 简单选择 ---------- */
+  { id:'selection', cat:'select', name:{zh:'简单选择排序',en:'Simple Selection Sort'},
+    idea:{zh:'第 i 趟从未排序区间 [i…n−1] 中挑出最小的元素，与 a[i] 交换。比较次数固定 n(n−1)/2，与初始状态无关；移动次数最多 3(n−1)。',
+          en:'Each pass selects the minimum of the unsorted part [i…n−1] and swaps it with a[i]. Comparisons are always n(n−1)/2 regardless of input; moves are at most 3(n−1).'},
+    cx:{best:'O(n²)',avg:'O(n²)',worst:'O(n²)',space:'O(1)',stable:false},
+    gen:function(a){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      for(var i=0;i<n-1;i++){
+        var mn=i;
+        S({t:'pass',pass:i+1},'第 '+(i+1)+' 趟：在 a['+i+'…'+(n-1)+'] 中找最小值','Pass '+(i+1)+': find the minimum of a['+i+'…'+(n-1)+']');
+        S({t:'min',i:i},'先假设最小值是 a['+i+'] = '+a[i],'Assume the minimum is a['+i+'] = '+a[i]);
+        for(var j=i+1;j<n;j++){
+          S({t:'cmp',i:j,j:mn},'比较 a['+j+'] = '+a[j]+' 与当前最小 a['+mn+'] = '+a[mn],'Compare a['+j+'] = '+a[j]+' with current min a['+mn+'] = '+a[mn]);
+          if(a[j]<a[mn]){ mn=j; S({t:'min',i:j},'发现更小的：a['+j+'] = '+a[j]+'，更新最小值下标','Found smaller: a['+j+'] = '+a[j]+', update min index'); }
+        }
+        if(mn!==i){ var tv=a[i]; a[i]=a[mn]; a[mn]=tv; S({t:'swap',i:i,j:mn,mv:1},'把最小值 '+a[i]+' 交换到 a['+i+']','Swap the minimum '+a[i]+' into slot '+i); }
+        else S({t:'info'},'最小值本来就在 a['+i+']，无需交换','The minimum is already at a['+i+'], no swap');
+        S({t:'sorted',i:i},'a['+i+'] = '+a[i]+' 就位','a['+i+'] = '+a[i]+' is final');
+      }
+      S({t:'sorted',i:n-1});
+      S({t:'alldone'},'全部元素已就位，排序完成','All elements in place — done');
+      return st;
+    }},
+  /* ---------- 7. 堆排序 ---------- */
+  { id:'heap', cat:'select', name:{zh:'堆排序',en:'Heap Sort'},
+    idea:{zh:'先把序列建成大根堆（n−1 次下滤），再反复「取堆顶与堆尾交换、堆规模减 1、重新下滤」。建堆 O(n)，每次调整 O(log₂n)，整体 O(nlog₂n) 且只需 O(1) 辅助空间。',
+          en:'Build a max-heap (sift-down each internal node), then repeatedly swap the root with the last heap element, shrink the heap and sift down. Build is O(n), each fix O(log₂n): O(n log n) total in O(1) space.'},
+    cx:{best:'O(n log₂n)',avg:'O(n log₂n)',worst:'O(n log₂n)',space:'O(1)',stable:false},
+    gen:function(a){
+      var st=[], n=a.length;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      function sift(i,size){
+        while(true){
+          var l=2*i+1; if(l>=size) break;
+          var big=l;
+          if(l+1<size){
+            S({t:'cmp',i:l,j:l+1},'比较左右孩子 a['+l+'] = '+a[l]+' 与 a['+(l+1)+'] = '+a[(l+1)],'Compare children a['+l+'] = '+a[l]+' and a['+(l+1)+'] = '+a[(l+1)]);
+            if(a[l+1]>a[l]) big=l+1;
+          }
+          S({t:'cmp',i:big,j:i},'较大孩子 a['+big+'] = '+a[big]+' 与父结点 a['+i+'] = '+a[i]+' 比较','Compare larger child a['+big+'] = '+a[big]+' with parent a['+i+'] = '+a[i]);
+          if(a[big]>a[i]){ S({t:'swap',i:i,j:big,mv:1},'孩子更大 → 交换，继续向下调整','Child is larger → swap, keep sifting down'); var tv=a[i]; a[i]=a[big]; a[big]=tv; i=big; }
+          else { S({t:'info'},'父结点已不小于孩子，调整结束','Parent ≥ children, stop'); break; }
+        }
+      }
+      S({t:'heap',size:n},'阶段一：自底向上建立大根堆（从最后一个非叶结点 ⌊n/2⌋−1 开始下滤）','Phase 1: build a max-heap bottom-up (sift down from node ⌊n/2⌋−1)');
+      for(var i=Math.floor(n/2)-1;i>=0;i--){
+        S({t:'info'},'下滤结点 a['+i+'] = '+a[i],'Sift down node a['+i+'] = '+a[i]);
+        sift(i,n);
+      }
+      S({t:'info'},'大根堆建好：堆顶 a[0] = '+a[0]+' 是当前最大值','Max-heap ready: the root a[0] = '+a[0]+' is the maximum');
+      for(var end=n-1; end>0; end--){
+        S({t:'heap',size:end+1},'堆规模 = '+(end+1),'Heap size = '+(end+1));
+        S({t:'info'},'堆顶 a[0] = '+a[0]+' 与堆尾 a['+end+'] = '+a[end]+' 交换','Swap root a[0] = '+a[0]+' with last heap element a['+end+'] = '+a[end]);
+        var tv=a[0]; a[0]=a[end]; a[end]=tv;
+        S({t:'swap',i:0,j:end,mv:1},'最大值 '+a[end]+' 沉底','The maximum '+a[end]+' sinks into place');
+        S({t:'sorted',i:end},'a['+end+'] = '+a[end]+' 就位（脱离堆）','a['+end+'] = '+a[end]+' is final (out of the heap)');
+        if(end>1){ S({t:'info'},'新堆顶 a[0] = '+a[0]+' 可能违反堆性质，下滤调整','New root a[0] = '+a[0]+' may violate the heap — sift down'); sift(0,end); }
+      }
+      S({t:'sorted',i:0});
+      S({t:'alldone'},'全部元素已就位，排序完成','All elements in place — done');
+      return st;
+    }},
+  /* ---------- 8. 归并（k 路） ---------- */
+  { id:'merge', cat:'merge', name:{zh:'归并排序（k 路）',en:'Merge Sort (k-way)'},
+    idea:{zh:'把序列看成 n 个长度为 1 的有序段，每趟把相邻 k 段归并成 1 段，段长逐趟 ×k，直到只剩 1 段。2 路归并：时间稳定 O(nlog₂n)，空间 O(n)，稳定。',
+          en:'View the array as n sorted runs of length 1; each pass merges groups of k adjacent runs into one, multiplying run length by k until one run remains. 2-way: stable O(n log₂n) time, O(n) space.'},
+    cx:{best:'O(n log₂n)',avg:'O(n log₂n)',worst:'O(n log₂n)',space:'O(n)',stable:true},
+    gen:function(a,opts){
+      var st=[], n=a.length, k=opts.mergeK||2;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      S({t:'info'},'开始 '+k+' 路归并（自底向上）：初始每个元素都是长度 1 的有序段','Start '+k+'-way merge (bottom-up): every element is a sorted run of length 1');
+      var w=1, pass=0;
+      while(w<n){
+        pass++;
+        S({t:'width',w:w,pass:pass},'第 '+pass+' 趟：有序段长度 = '+w+'，每组 '+k+' 段归并成 1 段','Pass '+pass+': run length = '+w+', merge each group of '+k+' runs into one');
+        for(var lo=0; lo<n; lo+=k*w){
+          var hi=Math.min(lo+k*w,n)-1;
+          var runs=[];
+          for(var m=0;m<k;m++){
+            var s=lo+m*w; if(s>=n) break;
+            var e=Math.min(s+w,n)-1;
+            runs.push([s,e]);
+          }
+          if(runs.length===1){ S({t:'info'},'a['+lo+'…'+hi+'] 只剩 1 段，直接进入下一组','a['+lo+'…'+hi+'] has a single run, nothing to merge'); continue; }
+          var runDesc=runs.map(function(r,idx){return '段'+(idx+1)+' a['+r[0]+'…'+r[1]+']';}).join('，');
+          var runDescEn=runs.map(function(r,idx){return 'run '+(idx+1)+' a['+r[0]+'…'+r[1]+']';}).join(', ');
+          S({t:'range',lo:lo,hi:hi,runs:runs},'归并组：'+runDesc,'Merging group: '+runDescEn);
+          var heads=runs.map(function(r){return r[0];});
+          var tmp=[], out=lo;
+          while(true){
+            var alive=[];
+            for(var q=0;q<k;q++) if(heads[q]>=0&&heads[q]<=runs[q][1]) alive.push(q);
+            if(alive.length===0) break;
+            var best=alive[0];
+            for(var q2=1;q2<alive.length;q2++){
+              S({t:'cmp',i:heads[best],j:heads[q2],runs:runs},'比较段首：a['+heads[best]+'] = '+a[heads[best]]+' 与 a['+heads[q2]+'] = '+a[heads[q2]],'Compare run heads: a['+heads[best]+'] = '+a[heads[best]]+' vs a['+heads[q2]+'] = '+a[heads[q2]]);
+              if(a[heads[q2]]<a[heads[best]]) best=q2;
+            }
+            tmp.push(a[heads[best]]);
+            S({t:'set',i:out,v:a[heads[best]],mv:1,out:1},'段首最小者 '+a[heads[best]]+'（来自 a['+heads[best]+']）进入输出位置 '+out,'Smallest head '+a[heads[best]]+' (from a['+heads[best]+']) goes to output slot '+out);
+            heads[best]++;
+            out++;
+          }
+          for(var c=0;c<tmp.length;c++){ a[lo+c]=tmp[c]; S({t:'set',i:lo+c,v:tmp[c],mv:1},'写回归并结果：a['+(lo+c)+'] = '+tmp[c],'Write result back: a['+(lo+c)+'] = '+tmp[c]); }
+          S({t:'info'},'归并完成：a['+lo+'…'+hi+'] 成为长度 '+(hi-lo+1)+' 的有序段','Merge complete: a['+lo+'…'+hi+'] is now one sorted run of length '+(hi-lo+1));
+        }
+        w*=k;
+      }
+      S({t:'alldone'},'只剩 1 个有序段，排序完成','One sorted run remains — done');
+      return st;
+    }},
+  /* ---------- 9. 基数 ---------- */
+  { id:'radix', cat:'radix', name:{zh:'基数排序（LSD）',en:'Radix Sort (LSD)'},
+    idea:{zh:'最低位优先：按个位、十位……逐「位」分配到 r 个队列（桶）再依次收集。d 趟分配/收集，每趟 O(n+r)，共 O(d(n+r))；不比较、不交换，靠「位」的大小关系排序。',
+          en:'Least-significant-digit first: for each digit position, distribute elements into r bucket queues and collect them in order. d passes of O(n+r): O(d(n+r)) total — no comparisons, no swaps.'},
+    cx:{best:'O(d(n+r))',avg:'O(d(n+r))',worst:'O(d(n+r))',space:'O(r)（d 趟队列）',stable:true},
+    gen:function(a,opts){
+      var st=[], n=a.length, r=opts.radixR||10;
+      function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+      var mx=0; for(var i=0;i<n;i++) if(a[i]>mx) mx=a[i];
+      var d=0, m=mx; while(m>0){ m=Math.floor(m/r); d++; }
+      if(d===0) d=1;
+      S({t:'info'},'基数 r = '+r+'，最大值 '+mx+' 共 '+d+' 位 → 需要 '+d+' 趟「分配 + 收集」（LSD：从最低位开始）','Radix r = '+r+', max '+mx+' has '+d+' digits → '+d+' distribute/collect passes (LSD: lowest digit first)');
+      var bkt=[];
+      for(var p=0;p<d;p++){
+        var exp=Math.pow(r,p);
+        var bitName=(r===10)?(['个位','十位','百位'][p]||('10^'+p)):('r^'+p);
+        var bitNameEn=(r===10)?(['1s digit','10s digit','100s digit'][p]||('10^'+p)):('r^'+p);
+        S({t:'pass',pass:p+1,rpass:d},'第 '+(p+1)+' 趟：按 '+bitName+'（位权 '+exp+'）分配到 '+r+' 个桶','Pass '+(p+1)+': distribute by the '+bitNameEn+' (weight '+exp+') into '+r+' buckets');
+        bkt=[]; for(var b=0;b<r;b++) bkt.push([]);
+        S({t:'breset',r:r},'清空所有桶','Clear all buckets');
+        for(var i2=0;i2<n;i2++){
+          var dg=Math.floor(a[i2]/exp)%r;
+          bkt[dg].push(a[i2]);
+          S({t:'bput',b:dg,v:a[i2],i:i2,mv:1},'a['+i2+'] = '+a[i2]+' 的当前位 = '+dg+' → 挂到桶 '+dg+' 队尾','a['+i2+'] = '+a[i2]+': current digit = '+dg+' → append to bucket '+dg);
+        }
+        S({t:'info'},'分配完毕，按桶号 0 → '+(r-1)+' 依次收集','All distributed; collect buckets 0 → '+(r-1)+' in order');
+        var pos=0;
+        for(var b2=0;b2<r;b2++){
+          while(bkt[b2].length>0){
+            var v=bkt[b2].shift();
+            a[pos]=v;
+            S({t:'bcollect',b:b2,v:v,i:pos,mv:1},'桶 '+b2+' 队头出队：'+v+' 放到 a['+pos+']','Dequeue bucket '+b2+': '+v+' goes to a['+pos+']');
+            pos++;
+          }
+        }
+        S({t:'info'},'第 '+(p+1)+' 趟收集完成：'+(p===d-1?'全部位处理过，序列有序':'序列已按低 '+(p+1)+' 位有序'),'Pass '+(p+1)+' collected: '+(p===d-1?'all digits processed — sorted':'sorted by the lowest '+(p+1)+' digits'));
+      }
+      S({t:'alldone'},'d 趟分配收集完成，排序完成','All d passes done — sorted');
+      return st;
+    }}
+];
+
+var CATS = {
+  insert:{zh:'插入排序',en:'Insertion sorts'},
+  exchange:{zh:'交换排序',en:'Exchange sorts'},
+  select:{zh:'选择排序',en:'Selection sorts'},
+  merge:{zh:'归并排序',en:'Merge sort'},
+  radix:{zh:'基数排序',en:'Radix sort'}
+};
+
+/* ================= 状态 ================= */
+var algoIdx = 2;      /* 默认快速排序 */
+var srcArr = [];      /* 原始序列 */
+var steps = [];       /* 步骤列表 */
+var cur = 0;          /* 当前步 */
+var playing = false;
+var timer = null;
+
+/* ================= 静态 UI 构建 ================= */
+function buildAlgoButtons(){
+  var host=$('algoGroups'); host.innerHTML='';
+  Object.keys(CATS).forEach(function(cat){
+    var list=ALGOS.filter(function(al){return al.cat===cat;});
+    if(!list.length) return;
+    var h=document.createElement('div'); h.className='algo-cat';
+    h.textContent=(LANG==='zh'?CATS[cat].zh:CATS[cat].en);
+    host.appendChild(h);
+    var row=document.createElement('div'); row.className='algo-row';
+    list.forEach(function(al){
+      var b=document.createElement('button'); b.type='button'; b.className='algo-btn';
+      b.setAttribute('data-algo',al.id);
+      b.textContent=(LANG==='zh'?al.name.zh:al.name.en);
+      b.addEventListener('click',function(){
+        algoIdx=ALGOS.indexOf(al);
+        updateAlgoUI(); updateIdea(); updateTableHighlight();
+        resetPlay();
+      });
+      row.appendChild(b);
+    });
+    host.appendChild(row);
+  });
+  markActiveAlgo();
+}
+function markActiveAlgo(){
+  var btns=document.querySelectorAll('.algo-btn');
+  for(var i=0;i<btns.length;i++){
+    btns[i].classList.toggle('active', ALGOS[algoIdx].id===btns[i].getAttribute('data-algo'));
+  }
+}
+function updateAlgoUI(){
+  var id=ALGOS[algoIdx].id;
+  $('optShell').classList.toggle('show', id==='shell');
+  $('optQuick').classList.toggle('show', id==='quick');
+  $('optMerge').classList.toggle('show', id==='merge');
+  $('optRadix').classList.toggle('show', id==='radix');
+  markActiveAlgo();
+}
+function updateIdea(){
+  var al=ALGOS[algoIdx];
+  $('algoIdea').innerHTML='<b>'+(LANG==='zh'?'核心思想 / ':'Core idea: ')+ '</b>' + esc(LANG==='zh'?al.idea.zh:al.idea.en);
+}
+function updateTableHighlight(){
+  var rows=$('tblBody').children;
+  for(var i=0;i<rows.length;i++) rows[i].classList.toggle('cur', i===algoIdx);
+}
+function buildTable(){
+  var tb=$('tblBody'); tb.innerHTML='';
+  ALGOS.forEach(function(al){
+    var tr=document.createElement('tr');
+    var cxa=al.cx;
+    tr.innerHTML='<td></td><td>'+esc(cxa.best)+'</td><td>'+esc(cxa.avg)+'</td><td>'+esc(cxa.worst)+'</td><td>'+esc(cxa.space)+'</td>'+
+      '<td class="'+(cxa.stable?'yes':'no')+'">'+(LANG==='zh'?(cxa.stable?'稳定 ✓':'不稳定 ✗'):(cxa.stable?'Stable ✓':'Unstable ✗'))+'</td>';
+    tr.children[0].textContent=(LANG==='zh'?al.name.zh:al.name.en);
+    tb.appendChild(tr);
+  });
+  updateTableHighlight();
+}
+var SUMMARY=[
+  {zh:'<b>稳定的</b>：直接插入、折半插入、冒泡、归并、基数；<b>不稳定的</b>：希尔、快速、简单选择、堆。口诀「快选堆希不稳定」。',
+   en:'<b>Stable</b>: straight/binary insertion, bubble, merge, radix. <b>Unstable</b>: Shell, quick, selection, heap — remember "QSSh-SHi" unstable.'},
+  {zh:'<b>比较次数与初始序列无关</b>的：简单选择（固定 n(n−1)/2）、折半插入（比较 O(nlog n) 但移动不变）。',
+   en:'<b>Comparison count independent of input</b>: simple selection (always n(n−1)/2) and binary insertion (O(n log n) compares, moves unchanged).'},
+  {zh:'<b>趟数与初始序列有关</b>的：冒泡（有序则 1 趟提前结束）、快速（每趟枢轴位置影响递归深度）。',
+   en:'<b>Pass count depends on input</b>: bubble (1 pass if already sorted), quick (pivot positions change recursion depth).'},
+  {zh:'<b>快排</b>：基本有序时最坏 O(n²)（枢轴总取到最值）；枢轴一次就位；空间是递归栈 O(log₂n)。',
+   en:'<b>Quick sort</b>: worst O(n²) on nearly-sorted input (pivot always extremes); each pivot lands once; space is the recursion stack O(log₂n).'},
+  {zh:'<b>堆排序</b>：建堆 O(n)（自底向上），取 extremum 后下滤 O(log₂n)；适合只求前 k 大/小元素的场景。',
+   en:'<b>Heap sort</b>: build O(n) bottom-up, each sift-down O(log₂n); great for "top-k" style problems.'},
+  {zh:'<b>归并排序</b>：n 个元素 2 路归并需 ⌈log₂n⌉ 趟；k 路归并 s 段需 ⌈s/k⌉ 次两两归并的推导也常考。',
+   en:'<b>Merge sort</b>: 2-way needs ⌈log₂n⌉ passes for n elements; merging s runs k at a time is also a common question.'},
+  {zh:'<b>基数排序</b>：d 趟分配+收集，O(d(n+r))；不进行关键字比较；位数少、n 大时占优。',
+   en:'<b>Radix sort</b>: d passes of distribute+collect, O(d(n+r)); never compares keys; best when digits are few and n is large.'},
+  {zh:'<b>折半插入 vs 直接插入</b>：元素移动次数完全相同，只减少比较次数。',
+   en:'<b>Binary vs straight insertion</b>: identical number of moves — only comparisons are reduced.'}
+];
+function buildSummary(){
+  var ul=$('summaryList'); ul.innerHTML='';
+  SUMMARY.forEach(function(it){
+    var li=document.createElement('li');
+    li.innerHTML=(LANG==='zh'?it.zh:it.en);
+    ul.appendChild(li);
+  });
+}
+
+/* ================= 输入与步骤构建 ================= */
+function parseInput(){
+  var raw=$('seqInput').value.trim();
+  var parts=raw.split(/[\s,，、]+/).filter(function(s){return s.length;});
+  if(parts.length<2||parts.length>16) return {err:'input.errFew'};
+  var arr=[];
+  for(var i=0;i<parts.length;i++){
+    if(!/^\d{1,3}$/.test(parts[i])) return {err:'input.errInt'};
+    arr.push(parseInt(parts[i],10));
+  }
+  var al=ALGOS[algoIdx];
+  if(al.id==='radix'){
+    for(var j=0;j<arr.length;j++){ if(arr[j]<0) return {err:'input.errRadix'}; }
+  }
+  return {arr:arr};
+}
+function startDemo(){
+  var msg=$('inputMsg');
+  var res=parseInput();
+  if(res.err){ msg.className='input-msg no'; msg.textContent=t(res.err); return; }
+  srcArr=res.arr.slice();
+  var al=ALGOS[algoIdx];
+  var opts={
+    shellGap:$('selShellGap').value,
+    pivot:$('selPivot').value,
+    mergeK:parseInt($('selMergeK').value,10),
+    radixR:parseInt($('selRadixR').value,10)
+  };
+  steps=al.gen(srcArr.slice(),opts);
+  cur=0;
+  msg.className='input-msg ok';
+  msg.textContent=t('input.ok')+' '+srcArr.length+'：'+srcArr.join('  ');
+  $('stepTotal').textContent=steps.length;
+  $('stageNote').textContent=(LANG==='zh'?al.name.zh:al.name.en)+' · n = '+srcArr.length;
+  buildBars();
+  render();
+}
+function randomSeq(){
+  var n=6+Math.floor(Math.random()*6); /* 6~11 */
+  var arr=[];
+  for(var i=0;i<n;i++) arr.push(5+Math.floor(Math.random()*95));
+  $('seqInput').value=arr.join(' ');
+  inputMsgClear();
+}
+function classicSeq(){ $('seqInput').value='49 38 65 97 76 13 27 49'; inputMsgClear(); }
+function inputMsgClear(){ var m=$('inputMsg'); m.className='input-msg'; m.textContent=''; }
+
+/* ================= 柱状图渲染 ================= */
+var barEls=[];
+function buildBars(){
+  var host=$('bars'); host.innerHTML=''; barEls=[];
+  var n=srcArr.length;
+  var maxV=1; for(var i=0;i<n;i++) if(srcArr[i]>maxV) maxV=srcArr[i];
+  for(var j=0;j<n;j++){
+    var w=document.createElement('div'); w.className='bar-wrap';
+    var b=document.createElement('div'); b.className='bar';
+    var v=document.createElement('span'); v.className='bar-val';
+    var ix=document.createElement('span'); ix.className='bar-idx'; ix.textContent=j;
+    b.appendChild(v); w.appendChild(b); w.appendChild(ix);
+    host.appendChild(w);
+    barEls.push({wrap:w,bar:b,val:v,maxV:maxV});
+  }
+}
+function bucketPanelShow(show){ $('bucketPanel').classList.toggle('show',!!show); }
+function renderBuckets(state){
+  var row=$('bucketRow'); row.innerHTML='';
+  if(!state||!state.length) return;
+  state.forEach(function(list,b){
+    var d=document.createElement('div'); d.className='bucket'+(list.hot?' hot':'');
+    var bb=document.createElement('span'); bb.className='bucket-b'; bb.textContent=b;
+    var bc=document.createElement('span'); bc.className='bucket-c';
+    bc.textContent=list.items.length?list.items.join(' '):'·';
+    d.appendChild(bb); d.appendChild(bc);
+    row.appendChild(d);
+  });
+}
+
+/* ================= 重放与渲染 ================= */
+/* 重放 steps[0..k-1] 到干净副本上，返回渲染状态 */
+function replay(k){
+  var a=srcArr.slice();
+  var st={arr:a,sorted:{},cmpI:-1,cmpJ:-1,keyI:-1,pivotI:-1,minI:-1,
+          rangeLo:-1,rangeHi:-1,rangeRuns:null,gap:0,heapSize:-1,
+          breset:false,buckets:null,widthW:0,passNum:0,outI:-1};
+  var i,op;
+  for(i=0;i<k;i++){
+    op=steps[i];
+    switch(op.t){
+      case 'set': if(op.i>=0&&op.i<a.length) a[op.i]=op.v; break;
+      case 'swap': { var tv=a[op.i]; a[op.i]=a[op.j]; a[op.j]=tv; break; }
+      case 'sorted': st.sorted[op.i]=true; break;
+      case 'key': st.keyI=op.i; break;
+      case 'cmp': st.cmpI=op.i; st.cmpJ=(op.j===undefined)?-1:op.j; break;
+      case 'pivot': st.pivotI=op.i; break;
+      case 'min': st.minI=op.i; break;
+      case 'range': st.rangeLo=op.lo; st.rangeHi=op.hi; st.rangeRuns=op.runs||null; break;
+      case 'gap': st.gap=op.g; st.passNum=op.pass; break;
+      case 'pass': st.passNum=op.pass; break;
+      case 'width': st.widthW=op.w; st.passNum=op.pass; break;
+      case 'heap': st.heapSize=op.size; break;
+      case 'breset': st.breset=true; st.buckets=[]; for(var b=0;b<op.r;b++) st.buckets.push({items:[],hot:false}); break;
+      case 'bput':
+        if(st.buckets){ st.buckets.forEach(function(x){x.hot=false;});
+          if(op.b<st.buckets.length){ st.buckets[op.b].items.push(op.v); st.buckets[op.b].hot=true; } }
+        break;
+      case 'bcollect':
+        if(op.i>=0&&op.i<a.length) a[op.i]=op.v;
+        if(st.buckets&&op.b<st.buckets.length){ st.buckets[op.b].items.shift(); st.buckets[op.b].hot=true; }
+        break;
+      case 'alldone': for(var q=0;q<a.length;q++) st.sorted[q]=true; break;
+    }
+  }
+  /* 高亮只保留最后一步的 */
+  return st;
+}
+function render(){
+  var n=srcArr.length;
+  if(!n) return;
+  var k=cur;
+  var st=replay(k);
+  var op=(k>0)?steps[k-1]:null;
+  var maxV=1; for(var i=0;i<n;i++) if(st.arr[i]>maxV) maxV=st.arr[i];
+  /* 柱子 */
+  for(var j=0;j<n;j++){
+    var be=barEls[j]; if(!be) continue;
+    var h=16+76*(st.arr[j]/maxV);
+    be.bar.style.height=h+'%';
+    be.val.textContent=st.arr[j];
+    var cls='bar';
+    var dim=false;
+    if(st.heapSize>=0&&st.rangeLo<0&&j>=st.heapSize) cls+=' is-sorted';
+    if(st.rangeLo>=0&&(j<st.rangeLo||j>st.rangeHi)) dim=true;
+    if(j===st.cmpI) cls+=' is-cmp';
+    if(j===st.cmpJ) cls+=' is-cmp';
+    if(j===st.minI) cls+=' is-min';
+    if(j===st.pivotI) cls+=' is-pivot';
+    if(j===st.keyI) cls+=' is-key';
+    if(st.sorted[j]) cls+=' is-sorted';
+    if(st.rangeRuns){
+      var inRun=false;
+      for(var r2=0;r2<st.rangeRuns.length;r2++){ var rr=st.rangeRuns[r2]; if(j>=rr[0]&&j<=rr[1]){ inRun=true; break; } }
+      if(!inRun) dim=true;
+    }
+    if(k===0||k>=steps.length) cls+=' is-sorted';
+    if(op&&(op.t==='swap')&&(j===op.i||j===op.j)) cls+=' is-swap';
+    if(op&&op.out===1&&j===op.i) cls+=' is-head';
+    be.bar.className=cls;
+    be.wrap.classList.toggle('dim',dim);
+  }
+  /* 桶面板 */
+  var isRadix=ALGOS[algoIdx].id==='radix';
+  bucketPanelShow(isRadix&&k>0&&st.buckets);
+  if(isRadix) renderBuckets(st.buckets);
+  /* 统计 */
+  var cmps=0,moves=0;
+  for(var s=0;s<k;s++){
+    var so=steps[s];
+    if(so.t==='cmp') cmps++;
+    if(so.mv) moves++;
+  }
+  $('statCmp').textContent=cmps;
+  $('statMove').textContent=moves;
+  $('statRound').textContent=(st.passNum>0)?('#'+st.passNum):'—';
+  var badge=$('statState');
+  if(k===0){ badge.className='badge b-gray'; badge.textContent=t('state.init'); }
+  else if(k>=steps.length){ badge.className='badge b-green'; badge.textContent=t('state.done'); }
+  else if(playing){ badge.className='badge b-purple'; badge.textContent=t('state.playing'); }
+  else { badge.className='badge b-amber'; badge.textContent=t('state.pause'); }
+  /* 步数与进度 */
+  $('stepNow').textContent=k;
+  $('stepTotal').textContent=steps.length;
+  $('progressBar').style.width=(steps.length? (k/steps.length*100):0)+'%';
+  /* 旁白 */
+  if(k===0){
+    $('narrBadge').textContent='—';
+    $('narrTitle').textContent=(LANG==='zh'?ALGOS[algoIdx].name.zh:ALGOS[algoIdx].name.en);
+    $('narrBody').innerHTML=LANG==='zh'
+      ?'点击 <b>下一步</b> 或 <b>自动播放</b> 开始演示；也可以重新输入序列或更换算法。'
+      :'Click <b>Next</b> or <b>Auto play</b> to start; you can also change the sequence or algorithm.';
+    $('narrFormula').textContent='';
+  } else {
+    var sp=steps[k-1];
+    var isPhase=(sp.t==='pass'||sp.t==='gap'||sp.t==='width'||sp.t==='heap');
+    $('narrBadge').textContent=isPhase?('#'+(sp.pass||st.passNum||'')):(k);
+    $('narrTitle').textContent=(LANG==='zh'?sp.zh:sp.en);
+    var body='';
+    if(sp.t==='cmp'){ body=(LANG==='zh'?'正在比较两个元素的值（黄色高亮）':'Comparing two values (highlighted amber)'); }
+    else if(sp.t==='swap'){ body=(LANG==='zh'?'发生一次<b>交换</b>（红色抖动）':'A <b>swap</b> happened (red wiggle)'); }
+    else if(sp.t==='set'){ body=(LANG==='zh'?'发生一次<b>写入/移动</b>':'One <b>write/move</b> happened'); }
+    else if(sp.t==='sorted'){ body=(LANG==='zh'?'该元素已在最终位置（绿色）':'This element is in its final place (green)'); }
+    else if(sp.t==='key'){ body=(LANG==='zh'?'该元素被取出暂存为 key':'This element was taken aside as the key'); }
+    else if(sp.t==='pivot'){ body=(LANG==='zh'?'紫色 = 本趟枢轴':'Purple = this pass\u2019s pivot'); }
+    $('narrBody').innerHTML=body;
+    var formula='';
+    if(sp.t==='cmp'&&sp.v!==undefined){ formula='a['+sp.i+']'+(sp.j!==undefined?' ('+st.arr[sp.j]+')':'')+' vs '+(sp.j!==undefined?('a['+sp.j+']'):'key')+' = '+sp.v; }
+    if(sp.t==='gap'){ formula='g = '+sp.g+' → '+sp.g+' 组 × 直接插入'; }
+    if(sp.t==='width'){ formula='w = '+sp.w+' × k = '+((ALGOS[algoIdx].id==='merge')?parseInt($('selMergeK').value,10):2); }
+    if(sp.t==='heap'){ formula='heap size = '+sp.size; }
+    $('narrFormula').textContent=formula;
+  }
+  /* 按钮态 */
+  $('btnPrev').disabled=(k<=0);
+  $('btnNext').disabled=(k>=steps.length);
+  $('btnAuto').disabled=(k>=steps.length);
+}
+
+/* ================= 播放控制 ================= */
+function goNext(){ if(cur<steps.length){ cur++; render(); if(cur>=steps.length) stopPlay(); } }
+function goPrev(){ if(cur>0){ cur--; render(); } }
+function resetPlay(){
+  stopPlay();
+  if(!srcArr.length){ inputMsgClear(); return; }
+  var al=ALGOS[algoIdx];
+  var opts={ shellGap:$('selShellGap').value, pivot:$('selPivot').value,
+    mergeK:parseInt($('selMergeK').value,10), radixR:parseInt($('selRadixR').value,10) };
+  steps=al.gen(srcArr.slice(),opts);
+  cur=0;
+  $('stepTotal').textContent=steps.length;
+  $('stageNote').textContent=(LANG==='zh'?al.name.zh:al.name.en)+' · n = '+srcArr.length;
+  buildBars(); render();
+}
+function startPlay(){
+  if(!steps.length||cur>=steps.length) return;
+  playing=true;
+  $('btnAuto').textContent=t('ctrl.pause');
+  scheduleTick();
+}
+function scheduleTick(){
+  if(!playing) return;
+  var speed=parseInt($('speedSlider').value,10); /* 1~10 */
+  var ms=1150-speed*100; /* 1050ms ~ 150ms */
+  timer=setTimeout(function(){ goNext(); if(playing&&cur<steps.length) scheduleTick(); },ms);
+}
+function stopPlay(){
+  playing=false;
+  if(timer){ clearTimeout(timer); timer=null; }
+  $('btnAuto').textContent=t('ctrl.auto');
+  if(steps.length&&cur>0) render();
+}
+function togglePlay(){ if(playing) stopPlay(); else startPlay(); }
+
+/* ================= 语言应用 ================= */
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++){
+    var el=nodes[i];
+    el.textContent=t(el.getAttribute('data-i18n'));
+  }
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+  var opts=document.querySelectorAll('option[data-i18n]');
+  for(var j=0;j<opts.length;j++){ opts[j].textContent=t(opts[j].getAttribute('data-i18n')); }
+  buildAlgoButtons();
+  buildTable();
+  buildSummary();
+  updateAlgoUI();
+  updateIdea();
+  if(srcArr.length) render();
+  else {
+    $('stepTotal').textContent='0'; $('stepNow').textContent='0';
+    $('narrTitle').textContent=(LANG==='zh'?ALGOS[algoIdx].name.zh:ALGOS[algoIdx].name.en);
+  }
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+
+/* ================= 事件绑定 ================= */
+$('langZh').addEventListener('click',function(){ if(LANG!=='zh'){ LANG='zh'; $('langZh').classList.add('active'); $('langEn').classList.remove('active'); applyLang(); } });
+$('langEn').addEventListener('click',function(){ if(LANG!=='en'){ LANG='en'; $('langEn').classList.add('active'); $('langZh').classList.remove('active'); applyLang(); } });
+$('btnStart').addEventListener('click',startDemo);
+$('btnRandom').addEventListener('click',randomSeq);
+$('btnClassic').addEventListener('click',classicSeq);
+$('btnNext').addEventListener('click',function(){ stopPlay(); goNext(); });
+$('btnPrev').addEventListener('click',function(){ stopPlay(); goPrev(); });
+$('btnAuto').addEventListener('click',togglePlay);
+$('btnReset').addEventListener('click',function(){ stopPlay(); cur=0; if(srcArr.length) render(); });
+$('seqInput').addEventListener('input',inputMsgClear);
+$('selShellGap').addEventListener('change',function(){ if(srcArr.length) resetPlay(); });
+$('selPivot').addEventListener('change',function(){ if(srcArr.length) resetPlay(); });
+$('selMergeK').addEventListener('change',function(){ if(srcArr.length) resetPlay(); });
+$('selRadixR').addEventListener('change',function(){ if(srcArr.length) resetPlay(); });
+document.addEventListener('keydown',function(e){
+  if(e.target&&/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); if(e.key===' '){ togglePlay(); } else { stopPlay(); goNext(); } }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); goPrev(); }
+});
+
+/* ================= 启动 ================= */
+$('langZh').classList.toggle('active',LANG==='zh');
+$('langEn').classList.toggle('active',LANG==='en');
+applyLang();
+classicSeq();
+})();
+</script>
+</body>
+</html>

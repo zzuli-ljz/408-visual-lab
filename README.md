@@ -22,6 +22,7 @@
 | 题目 | 科目 | 在线预览 |
 | --- | --- | --- |
 | 2014 年 · 单选第 3 题：双端循环队列的队空与队满条件（答案 A） | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html) |
+| 知识点 · 排序算法可视化：直接/折半插入、希尔、冒泡、快速、简单选择、堆、归并（2/3/4 路）、基数，共 9 种。支持自定义序列、随机生成、参数配置，附复杂度与稳定性对比表 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/sorting-algorithms.html) |
 
 更多演示持续添加中（每周更新）。More demos are added regularly.
 
@@ -85,6 +86,7 @@ Subjects: Data Structures, Operating Systems, Computer Networks, Computer Organi
 | Problem | Subject | Live Demo |
 | --- | --- | --- |
 | 2014 · Multiple Choice Q3: Empty vs. full conditions of a double-ended circular queue (Answer: A) | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html) |
+| Topic · Sorting Algorithms Visualized: straight/binary insertion, Shell, bubble, quick, selection, heap, merge (2/3/4-way), radix — 9 in total. Custom sequences, random generation, configurable parameters, plus a complexity & stability table | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/sorting-algorithms.html) |
 
 More demos are added regularly.
 
