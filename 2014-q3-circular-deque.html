@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html data-page-node-id="BpdeflHKaGtf3JStZoLQ3M" lang="zh-CN">
+<head data-page-node-id="ZZt8Yu5jayEoLHmFLPztKR">
+<script data-page-node-id="KZGgDNALNG6MsQfzJeU2LJ" src="/page/page_comm/inject.js"></script>
+<meta data-page-node-id="HQqt2HtRP3HQZrvWR4QqRi" charset="UTF-8">
+<meta data-page-node-id="69ZAEQkZa2oKmclKsYjfjI" content="width=device-width, initial-scale=1.0" name="viewport">
+<title data-page-node-id="3Hp0n9PT2tI25M2eekL6AB" data-pnid-children="FdwX7VmZ1xnj5ZgV7p1e8k">2014年408真题 · 第3题：双端循环队列的队空与队满（动画演示）</title>
+<style data-page-node-id="ZIMJcEv1debeQXuuGnz6HZ" data-pnid-children="dusJZVVKoHJNrLIygy04hr">
+  :root{
+    --bg:#f3f4fa; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
+    --indigo:#4f46e5; --indigo-soft:#eef0ff; --indigo-line:#c7cbe8;
+    --rose:#e11d48; --blue:#2563eb;
+    --amber:#b45309; --amber-line:#d97706; --amber-soft:#fef3e2;
+    --green:#059669; --green-soft:#e7f7f1;
+    --line:#e6e8f2;
+    --shadow:0 10px 30px rgba(31,36,48,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 10% -12%, #e9eaff 0%, transparent 60%),
+      radial-gradient(820px 500px at 105% 6%, #e6f4ff 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); line-height:1.78; font-size:16.5px; padding:30px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    background:#f1f2fb;border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font-size:.92em;color:#3d3fb8;white-space:nowrap;
+  }
+  /* ---------- 语言切换 ---------- */
+  .lang-switch{
+    display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;
+    padding:3px;box-shadow:0 3px 10px rgba(20,24,40,.08);
+  }
+  .lang-btn{
+    border:none;background:transparent;border-radius:999px;padding:6px 18px;
+    font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;
+    font-family:inherit;
+  }
+  .lang-btn.active{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  /* ---------- 头部 ---------- */
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{
+    font-size:13.5px;font-weight:700;color:var(--indigo);
+    background:var(--indigo-soft);border:1px solid #dcdffb;
+    border-radius:999px;padding:4px 14px;
+  }
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.4;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  /* ---------- 卡片 ---------- */
+  .card{
+    background:var(--card);border-radius:18px;box-shadow:var(--shadow);
+    border:1px solid rgba(230,232,242,.9);
+    padding:24px 26px;margin-bottom:22px;
+  }
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  .problem p{font-size:16.5px}
+  .problem b{color:#000}
+  .options-static{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .opt{
+    border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;
+    font-size:15px;background:#fbfbff;
+  }
+  .opt b{color:var(--indigo);margin-right:6px}
+  .opt code{font-size:13.5px}
+  .opt-ok{border-color:#8fd8bd;background:var(--green-soft)}
+  .opt-ok b{color:var(--green)}
+  .mark{display:block;font-size:13px;font-weight:700;margin-top:2px}
+  .mark-ok{color:var(--green)}
+  .mark-no{color:#b91c1c}
+  /* ---------- 演示区 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+  .stat{
+    border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;
+    background:#fbfbff;text-align:center;
+  }
+  .stat-k{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .stat-v{display:block;font-size:24px;font-weight:800;line-height:1.3}
+  .c-rose{color:var(--rose)} .c-blue{color:var(--blue)}
+  .badge{
+    display:inline-block;font-size:17px;font-weight:800;border-radius:999px;
+    padding:3px 18px;margin-top:2px;
+  }
+  .b-gray{background:#eef0f4;color:#4b5563}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}
+  .b-green{background:var(--green-soft);color:var(--green)}
+  .stage{
+    position:relative;width:min(600px,100%);aspect-ratio:1/1;margin:14px auto 4px;
+    container-type:size;
+  }
+  .ring{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .ring-bg{fill:none;stroke:#e8eaf5;stroke-width:34}
+  .ring-arc{
+    fill:none;stroke:var(--indigo);stroke-width:34;stroke-linecap:butt;
+    transform-box:view-box;transform-origin:300px 300px;
+    transition:stroke-dasharray .55s ease, transform .55s cubic-bezier(.22,.9,.32,1), stroke .3s;
+  }
+  .ring-arc.is-full{stroke:var(--amber-line)}
+  .center{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:42%;text-align:center;pointer-events:none;
+  }
+  .center-count{font-size:52px;font-size:8.6cqw;font-weight:800;color:var(--indigo);line-height:1.1}
+  .center-label{font-size:13px;font-size:2.2cqw;color:var(--muted);font-weight:700;margin-top:2px}
+  .center-formula{
+    margin-top:8px;font-size:13.5px;font-size:2.35cqw;font-weight:700;color:#3d3fb8;
+    background:#fff;border:1.5px dashed var(--indigo-line);border-radius:10px;
+    padding:5px 10px;display:inline-block;line-height:1.5;
+  }
+  .cell{
+    position:absolute;width:11.6%;aspect-ratio:1.06/1;transform:translate(-50%,-50%);
+    border-radius:15px;border:2px dashed #c9cde0;background:#fbfbff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:border-color .35s,background .35s,box-shadow .35s;z-index:3;
+  }
+  .cell.occupied{
+    border:2px solid var(--indigo);
+    background:linear-gradient(160deg,#eef0ff,#e2e6ff);
+    box-shadow:0 6px 14px rgba(79,70,229,.20);
+  }
+  .cell.is-freeslot{border-color:var(--amber-line);background:var(--amber-soft)}
+  .cell.is-end1{box-shadow:0 0 0 3.5px var(--rose),0 6px 14px rgba(225,29,72,.22)}
+  .cell.is-end2{outline:3.5px solid var(--blue);outline-offset:2px}
+  .cell-idx{font-size:12px;font-size:2.1cqw;color:var(--muted);font-weight:700;line-height:1.1}
+  .cell-val{font-size:19px;font-size:3.7cqw;font-weight:800;line-height:1.15;min-height:1px}
+  .cell-tag{font-size:10.5px;font-size:1.85cqw;font-weight:700;color:#8a8fa8;line-height:1.1;white-space:nowrap}
+  .cell-val.pop{display:inline-block;animation:pop .45s cubic-bezier(.22,.9,.32,1)}
+  @keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .ptr{position:absolute;inset:0;pointer-events:none;z-index:6}
+  .ptr .arrow{
+    position:absolute;width:20px;height:16px;
+    clip-path:polygon(50% 0,100% 100%,0 100%);
+    transition:left .55s cubic-bezier(.22,.9,.32,1),top .55s cubic-bezier(.22,.9,.32,1),transform .55s cubic-bezier(.22,.9,.32,1);
+  }
+  .p-end1 .arrow{background:var(--rose)}
+  .p-end2 .arrow{background:var(--blue)}
+  .ptr .plabel{
+    position:absolute;transform:translate(-50%,-50%);
+    background:#fff;border-radius:999px;padding:3px 11px;font-size:12.5px;font-size:2.1cqw;
+    font-weight:700;box-shadow:0 3px 10px rgba(20,24,40,.16);white-space:nowrap;
+    transition:left .55s cubic-bezier(.22,.9,.32,1),top .55s cubic-bezier(.22,.9,.32,1),margin .55s;
+  }
+  .ptr .plabel b{font-size:13.5px;font-size:2.3cqw;margin-right:2px}
+  .p-end1 .plabel{color:var(--rose);border:1.5px solid var(--rose)}
+  .p-end2 .plabel{color:var(--blue);border:1.5px solid var(--blue)}
+  .stage.shake{animation:shake .45s}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}80%{transform:translateX(4px)}
+  }
+  .linear{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+  .lcell{
+    width:70px;border-radius:12px;border:2px dashed #c9cde0;background:#fbfbff;
+    padding:8px 4px 6px;text-align:center;transition:border-color .35s,background .35s,box-shadow .35s;
+  }
+  .lcell.occupied{border-style:solid;border-color:var(--indigo);background:linear-gradient(160deg,#eef0ff,#e2e6ff)}
+  .lcell.is-freeslot{border-color:var(--amber-line);background:var(--amber-soft)}
+  .lcell.is-end1{box-shadow:0 0 0 3.5px var(--rose)}
+  .lcell.is-end2{outline:3.5px solid var(--blue);outline-offset:2px}
+  .lcell-idx{display:block;font-size:11.5px;color:var(--muted);font-weight:700}
+  .lcell-val{display:block;font-size:21px;font-weight:800;min-height:27px;line-height:1.25}
+  .lcell-tag{display:block;font-size:10.5px;font-weight:700;color:#8a8fa8;min-height:13px}
+  .legend{
+    display:flex;gap:22px;justify-content:center;flex-wrap:wrap;
+    margin-top:14px;font-size:13.5px;color:var(--muted);font-weight:600;
+  }
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dot-rose{background:var(--rose)} .dot-blue{background:var(--blue)}
+  .dot-amber{background:var(--amber-line)} .dot-indigo{background:var(--indigo)}
+  /* ---------- 检测器 ---------- */
+  .check-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .check{
+    border:2px solid var(--line);border-radius:14px;padding:12px 16px;background:#fbfbff;
+    transition:border-color .3s,background .3s;
+  }
+  .check.on{border-color:#6ecfaa;background:var(--green-soft)}
+  .check-q{font-size:14.5px;font-weight:700;color:var(--muted)}
+  .check-q b{color:var(--ink)}
+  .check-expr{display:block;font-size:15px;margin:4px 0 6px}
+  .check-res{font-size:15.5px;font-weight:800}
+  .check-res.yes{color:var(--green)}
+  .check-res.no{color:#9ca3af}
+  /* ---------- 控制区 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;
+    padding:11px 20px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,36,48,.14)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;
+    box-shadow:0 6px 16px rgba(79,70,229,.35);
+  }
+  .btn-play{background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;border-color:transparent}
+  .btn-sm{padding:8px 14px;font-size:14.5px;border-radius:10px}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--indigo);font-size:18px}
+  .progress{height:9px;background:#eceef7;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{
+    height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--indigo),#8b7ff5);
+    transition:width .45s cubic-bezier(.22,.9,.32,1);
+  }
+  .narr{
+    border-radius:16px;border:1.5px solid var(--line);
+    background:linear-gradient(180deg,#fbfbff,#f5f6fd);padding:18px 22px;
+  }
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{
+    background:var(--indigo);color:#fff;font-size:13px;font-weight:800;
+    border-radius:999px;padding:3px 13px;white-space:nowrap;
+  }
+  .narr-badge.free{background:var(--amber-line)}
+  .narr-title{font-size:18.5px;font-weight:800}
+  .narr-body{font-size:16.5px}
+  .narr-body b{color:#000}
+  .narr-formula{
+    margin-top:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    background:#fff;border:1.5px dashed var(--indigo-line);border-radius:10px;
+    padding:8px 14px;display:inline-block;color:var(--indigo);font-weight:700;font-size:15px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 两栏区 ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr}}
+  .hint{font-size:14.5px;color:var(--muted);margin-bottom:12px}
+  .hint-sm{font-size:13px;margin:10px 0 0}
+  .sb-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .sb-input{
+    width:70px;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;
+    font-size:16px;font-weight:700;text-align:center;font-family:inherit;outline:none;
+  }
+  .sb-input:focus{border-color:var(--indigo)}
+  .sb-msg{
+    margin-top:12px;border-radius:10px;padding:10px 14px;font-size:14.5px;font-weight:600;
+    border:1.5px solid var(--line);background:#fbfbff;min-height:44px;
+  }
+  .sb-msg.ok{color:var(--green);border-color:#bfe8d7;background:var(--green-soft)}
+  .sb-msg.no{color:#b91c1c;border-color:#f3c2c2;background:#fdeeee}
+  .sb-log{list-style:none;margin-top:10px;max-height:150px;overflow:auto}
+  .sb-log li{
+    font-size:13.5px;padding:5px 10px;border-radius:8px;margin-bottom:5px;
+    background:#f6f7fc;border:1px solid var(--line);color:#4b5563;
+  }
+  .sb-log li.ok{color:var(--green)}
+  .sb-log li.no{color:#b91c1c}
+  /* ---------- 解析 ---------- */
+  .analysis h3{font-size:16.5px;margin:18px 0 8px;color:var(--indigo)}
+  .analysis h3:first-child{margin-top:0}
+  .analysis p{font-size:15.8px}
+  .tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px}
+  .tbl th,.tbl td{border:1px solid var(--line);padding:8px 12px;text-align:center}
+  .tbl th{background:var(--indigo-soft);color:var(--indigo);font-weight:800}
+  .tbl td:first-child{font-weight:700}
+  .pill{
+    display:inline-block;background:var(--green-soft);color:var(--green);font-weight:800;
+    border-radius:8px;padding:1px 10px;border:1.5px solid #bfe8d7;
+  }
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  @media (max-width:640px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 16px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .options-static{grid-template-columns:1fr}
+    .check-row{grid-template-columns:1fr}
+    .step-info{margin-left:0;width:100%}
+  }
+</style>
+</head>
+<body data-page-node-id="ZbDDscUUbYtjIe711tHdqe">
+<div data-page-node-id="9YQ8oI2wMrJfgPiIf9sAUZ" class="wrap">
+
+  <header data-page-node-id="dPuRweeceAwQZvjAc2DMWF" class="hero">
+    <div data-page-node-id="MNnAHoIHrqVErgM6OQ0ag9" class="hero-top">
+      <div data-page-node-id="DzjdwnUYFKpuP48HupKbnX" class="tag-row">
+        <span data-page-node-id="IMt2mftDbrM4cKtekixTrB" class="tag" data-i18n="tag.exam"><!--pnid:gYWjhkwFHmXilH12oWsrPR-->2014 年 408 真题</span>
+        <span data-page-node-id="VL1cEu3dBiMtO1AmhlMi97" class="tag" data-i18n="tag.subject"><!--pnid:6ga81vuWo3jZvnG6aQCgdK-->数据结构 · 单项选择题第 3 题</span>
+        <span data-page-node-id="Y0YaycdoXQPAwZqVxh55Gz" class="tag tag-ans" data-i18n="tag.answer"><!--pnid:S76aYAC2hwfrODIc5I8xLx-->答案：A</span>
+      </div>
+      <div data-page-node-id="QDJO92rkG1k3NrKonWTFEH" aria-label="Language" class="lang-switch" role="group">
+        <button data-page-node-id="jx9lhyHNSjrhsBUWQdu29B" class="lang-btn active" id="langZh" type="button"><!--pnid:ml3ehb0a8TZL5pD4KndIXm-->中文</button>
+        <button data-page-node-id="b8oKQBO5EzgicQIAHoSefK" class="lang-btn" id="langEn" type="button"><!--pnid:zkBMimR9ooXq2RUnpeB7P2-->EN</button>
+      </div>
+    </div>
+    <h1 data-page-node-id="xSgRzyA4dzYxjbffHnpBMe" data-i18n="hero.h1"><!--pnid:ORQ1V1IFRdW7bSOUdRKspX-->双端循环队列：什么时候算「队空」，什么时候算「队满」？</h1>
+    <p data-page-node-id="ii1KgeOKLMocKCCYCZ6Tyj" class="sub" data-i18n="hero.sub"><!--pnid:2S6U3msUZHbfDPKg3EAcrA-->end1 指向队头元素，end2 指向队尾元素的后一个位置，两端都能进出队 —— 点「下一步」跟着动画走一遍，比死记文字答案靠谱得多。</p>
+  </header>
+
+  <section data-page-node-id="25qmXiPxAHgpoDn2eCpi49" class="card problem">
+    <h2 data-page-node-id="3A3G65wjVYABj0Qi2bdOXj" class="card-title" data-i18n="problem.title"><!--pnid:gbvj6tB1I5uSxCGxk1P2LY-->题面</h2>
+    <p data-page-node-id="PLszmuOFvnOD9RTiTECqKI" data-i18n-html="problem.body"><!--pnid:4M1nZBLCKW4JojA2OpxPJf-->循环队列放在一维数组 A[0…M−1] 中，<b data-page-node-id="R5xEyprYVRxBqoFAVZ3hfq"><!--pnid:OVzIjO2kApjVs7CvGSpzfG-->end1 指向队头元素</b><!--pnid:5R0dmkyyPrkHTAsdyrY8ay-->，<b data-page-node-id="Nvktessyaq4E8FRsKP99tz"><!--pnid:Maq7y89HHDW8f1zQqivPOg-->end2 指向队尾元素的后一个位置</b><!--pnid:DLpgDvcwNmxR2iQFtirtSH-->。假设队列<b data-page-node-id="ooNXfPCWrDVO6H4qixSMnS"><!--pnid:7baLOPqmUMkdXnkKKV7i8s-->两端均可进行入队和出队操作</b><!--pnid:ftpg8opGV4ZnqYK8YljhbH-->，队列中最多能容纳 <b data-page-node-id="M79Wnuf17yiv21rlZTlhVZ"><!--pnid:L3KOfiCzLCihEcCIbsPw3J-->M−1 个元素</b><!--pnid:6moAYyxBiy9wTIFmHrymRb-->。初始时为空。下列判断队空和队满的条件中，正确的是（　）。</p>
+    <div data-page-node-id="wZeszEAXa81vRW5AHys4dI" class="options-static">
+      <div data-page-node-id="EcnAPomUxUl9hTA94SeBEu" class="opt opt-ok"><b data-page-node-id="oTZ2fCyiH2dDVf2PB0mKIp"><!--pnid:55Qz9FNG7XYoG5NRJOiIID-->A.</b> <span data-page-node-id="Jc6WzEqJvVK5T44wAtZpkA" data-i18n="problem.optA"><!--pnid:zgfzvISwwZTo1bSIZG3h30-->队空: end1 == end2；队满: end1 == (end2+1) mod M</span> <span data-page-node-id="CBukFdiW6RVXEixoAAdtgk" class="mark mark-ok" data-i18n="problem.markA"><!--pnid:dU456FR3t5bOG4ADICxVE0-->✓ 正确（下面会用动画证明）</span></div>
+      <div data-page-node-id="fKGDC2ulPQ9jWOBgE2Z0WE" class="opt"><b data-page-node-id="MSWUmlORffDMG7Nyhsm7sa"><!--pnid:NFHs6APgtZkLanwEjQYaXs-->B.</b> <span data-page-node-id="rMHsJsVYYczcSaVAKx9PA9" data-i18n="problem.optB"><!--pnid:aeLYIjJk8H0EQNuwWwNYmd-->队空: end1 == end2；队满: end1 == (end2+1) mod (M−1)</span> <span data-page-node-id="sniGitrFhrqU1fwEaWAKwr" class="mark mark-no" data-i18n="problem.markB"><!--pnid:YFWGtxXXwjqVT2dkuMVQFk-->✗ 下标应对 M 取模</span></div>
+      <div data-page-node-id="zPEXBmIQOMQtj62OnEERYw" class="opt"><b data-page-node-id="hhdTv1zjHHZiGdKQrWksg3"><!--pnid:o522azjoVM2Gx4Nw4roC73-->C.</b> <span data-page-node-id="vAlWSZsLT0lIPIWZVwOIdF" data-i18n="problem.optC"><!--pnid:v1edfHmFLY1AXjRywvnqDA-->队空: end2 == (end1+1) mod M；队满: end1 == (end2+1) mod M</span> <span data-page-node-id="PDOAzSjZcUtUx5JjBxlcEl" class="mark mark-no" data-i18n="problem.markC"><!--pnid:JiBuIcNeOpI4RNqUx2DvxY-->✗ 判空条件其实是「个数 = 1」</span></div>
+      <div data-page-node-id="cdp25ZuwmvMh4NXojAhiYg" class="opt"><b data-page-node-id="aUgLycadAmTeGOOKsoYspp"><!--pnid:Njn4j3C1zQBHJeKgjANdS8-->D.</b> <span data-page-node-id="xvPGzIvfFCHmdPZrqog0K8" data-i18n="problem.optD"><!--pnid:a1matk7XE56FLN3ya9MrsV-->队空: end1 == (end2+1) mod M；队满: end1 == (end2+1) mod (M−1)</span> <span data-page-node-id="t39I3lXQgGiYAhrWNYRp3e" class="mark mark-no" data-i18n="problem.markD"><!--pnid:RDKDu1JYHVs284mtMhORNp-->✗ 空和满写反了</span></div>
+    </div>
+  </section>
+
+  <section data-page-node-id="el7ti9SfvwyyjhW6IMD0de" class="card stage-card">
+    <h2 data-page-node-id="rqDSk3Y8isGB3aIBpEucYl" class="card-title"><span data-page-node-id="BxjJiVdCUyP9xGomTct9RL" data-i18n="stage.title"><!--pnid:1A3u3lG8zvUY68rys2vctq-->动画演示</span> <span data-page-node-id="IibvXRZNePZzLQS1GG0PQG" class="title-note" data-i18n="stage.note"><!--pnid:YzxaLrRG3k1BifnoUOImNE-->取 M = 6（数组 A[0]～A[5]），最多容纳 M − 1 = 5 个元素</span></h2>
+
+    <div data-page-node-id="r66szVgybz40XNQ5DxCrNM" class="stat-row">
+      <div data-page-node-id="S7FKH5ms4zMPeoihMj4iIX" class="stat"><span data-page-node-id="2isvCAT23H1lH0JYZ7rkRA" class="stat-k" data-i18n="stat.end1"><!--pnid:bXGro2l5zu4nukaQcHYR2B-->end1（队头）</span><span data-page-node-id="PpIOF5BXpBTmZCRqVaRxJH" class="stat-v c-rose" id="statEnd1"><!--pnid:WIZv4kdLtCZcixcxyk4Hz3-->0</span></div>
+      <div data-page-node-id="pq4oSk5yaaNa0rir06F6OI" class="stat"><span data-page-node-id="JW5ryBLR6a6Ranotpt1AQT" class="stat-k" data-i18n="stat.end2"><!--pnid:VPPUczg9B9m0ELnyokj3C8-->end2（队尾后一格）</span><span data-page-node-id="C0dNvndsQ0HEALlJJerjtt" class="stat-v c-blue" id="statEnd2"><!--pnid:Swrmrg6rEmsHPBuU5yCBy8-->0</span></div>
+      <div data-page-node-id="pljkjekNVoedo8wACDlAp0" class="stat"><span data-page-node-id="C8AC7IKkJi4nYCbovOUuQb" class="stat-k" data-i18n="stat.count"><!--pnid:suRd6yGAVmR527Mv7eNhn0-->元素个数 (end2−end1+M) mod M</span><span data-page-node-id="aPtROlDBcQebr3nZiFbOf0" class="stat-v" id="statCount"><!--pnid:UCSSOesiX8Dl2sX0gjNaBP-->0</span></div>
+      <div data-page-node-id="lIx3jdjDjdSAB7hJQpxvRi" class="stat"><span data-page-node-id="ho3r2DTI4A0SI9Q6S7lCAq" class="stat-k" data-i18n="stat.state"><!--pnid:X7b5voapNurNFbI60mO05Z-->当前状态</span><span data-page-node-id="SJoPepPUvo9HnkYclzp364" class="badge b-gray" id="statState"><!--pnid:fMPZoD4vk9rs2nplmdSeNB-->队空</span></div>
+    </div>
+
+    <div data-page-node-id="hRL37Iu2bta1bW14rbVQp5" class="stage" id="stage">
+      <svg data-page-node-id="4PXwtJm9DCfTSfhixsuTm5" aria-hidden="true" class="ring" viewBox="0 0 600 600">
+        <circle data-page-node-id="FkTV0tNY7gP5GBpG4JkAoJ" class="ring-bg" cx="300" cy="300" r="190"></circle>
+        <circle data-page-node-id="uNTefFMrfHi6VvyRjGVeQ1" class="ring-arc" cx="300" cy="300" id="ringArc" r="190"></circle>
+      </svg>
+      <div data-page-node-id="pGZBM2OBkcfi7og5OjxjKv" class="center">
+        <div data-page-node-id="RIzJkRJadCmQFyhwEmEYuz" class="center-count" id="centerCount"><!--pnid:Mp1GJAGLS3X9nfzgkUlRbi-->0</div>
+        <div data-page-node-id="MqA0hUQzs9JjQBcmqdpNqi" class="center-label" data-i18n="center.label"><!--pnid:53B8wpr7O93PJg64ow8Qan-->元素个数</div>
+        <div data-page-node-id="bT3n84ZuKgpw0LnPDXt45S" class="center-formula" id="centerFormula"><!--pnid:a3SUch6fj7vl0AotwRCiQ4-->(0 − 0 + 6) mod 6 = 0</div>
+      </div>
+      <div data-page-node-id="76jMLVTLPNACDJfOiw1hrd" class="ptr p-end1" id="ptrEnd1">
+        <div data-page-node-id="1XxKsXQXS79FpoKc65Uhsu" class="arrow"></div>
+        <div data-page-node-id="KV9144TFlyJ4sJXMgDvYb8" class="plabel"><b data-page-node-id="UKWuUNzQH9siN6F8IZwGEo"><!--pnid:wgg2j630Jh9iFfnSfCPbFR-->end1</b><span data-page-node-id="pMVgbMC2zdvJQL1Vd2uQcV" data-i18n="ptr.end1"><!--pnid:Gy1zkyh71pAHGDJtXYyHsb-->队头</span></div>
+      </div>
+      <div data-page-node-id="uA6ZQnLhC8OedZeEJWZ5x9" class="ptr p-end2" id="ptrEnd2">
+        <div data-page-node-id="67kBuEoZSVqn7YGK98Z5iA" class="arrow"></div>
+        <div data-page-node-id="rXRYOFvSllV0R2dMy4FoUo" class="plabel"><b data-page-node-id="freItTQl7q1vV6GHg5Yvwe"><!--pnid:RhVHZEz6kOUzsiXzdqkB3f-->end2</b><span data-page-node-id="qKNcmy5ELA0sEDO9IXw894" data-i18n="ptr.end2"><!--pnid:AFA8j7WeVtVkV1sD7THFya-->队尾后</span></div>
+      </div>
+    </div>
+
+    <div data-page-node-id="ZKWe05lFcQumFEmwlyVtSc" class="linear" id="linear"></div>
+
+    <div data-page-node-id="OWD83iNw75Q2gMN3MASDVi" class="legend">
+      <span data-page-node-id="oNBc8EaTQVC7xi9XLCAaAP"><i data-page-node-id="NLqiJdV4fnJHXEFoQ78w7T" class="dot dot-rose"></i><span data-page-node-id="48tRVVS4Q2nAGW4zm5h10v" data-i18n="legend.end1"><!--pnid:BqAMaLeu38PuTw0EFirSqk-->end1：指向队头元素</span></span>
+      <span data-page-node-id="CADMKpNXuo0SYCvx0mXl2W"><i data-page-node-id="cEYp1m3jCBmUJAgvGxOs9R" class="dot dot-blue"></i><span data-page-node-id="nXnBtz94fTbBE2XwuoJvt0" data-i18n="legend.end2"><!--pnid:IEaXZFd8bg6987fMWqvt2B-->end2：指向队尾元素的后一个位置</span></span>
+      <span data-page-node-id="DFtoUMHN5ZHBIcyg4yiP4Z"><i data-page-node-id="OQSoc6VtCO8RyGJW8ab1C9" class="dot dot-amber"></i><span data-page-node-id="iMPZpvmQXe1at46PHEy8Qa" data-i18n="legend.free"><!--pnid:vrS8dhYQ2jvzc7ls759FWO-->唯一空格子（队满时）</span></span>
+      <span data-page-node-id="GSPYqrGkNcuXOF1pMKTnc2"><i data-page-node-id="lkmCDgVcPsHYFE0NcUAz5P" class="dot dot-indigo"></i><span data-page-node-id="ucLNut09w6q5CAH513LXVR" data-i18n="legend.occupied"><!--pnid:ab5cuA7azkCPf7qC6UYUOY-->已占用格子</span></span>
+    </div>
+
+    <div data-page-node-id="pWfVDrfCiy4LAJo5yInS0x" class="check-row">
+      <div data-page-node-id="ieBXYNj6KUommAIbDsI1Ac" class="check" id="chkEmpty">
+        <div data-page-node-id="eE6jHcVPGtjtR0JayoZ7bq" class="check-q" data-i18n-html="check.emptyQ"><!--pnid:JWHnurATb1zo1fVYIWjUAE-->现在是 <b data-page-node-id="5xskO68sOKLX3inwBzgDYr"><!--pnid:35pXXDJUEhNzLiOUct3NgM-->队空</b><!--pnid:GrOpxCi5kqL913RnA9zou2--> 吗？</div>
+        <code data-page-node-id="FfVY8hTURFc0bvijSA5iim" data-pnid-children="ZbRpk1Oi4pJGcR4xj5xmQr" class="check-expr">end1 == end2</code>
+        <div data-page-node-id="1rVn6xbYVmD8PAFAP6CBhE" class="check-res no" id="chkEmptyRes"><!--pnid:a1rwWD6r2uWTCbd5VrqwjC-->0 == 0　✗ 不成立</div>
+      </div>
+      <div data-page-node-id="4uY8ggtqYftRKfS2huA4ro" class="check" id="chkFull">
+        <div data-page-node-id="U48p7S5yYUz2FmvTNiWG9c" class="check-q" data-i18n-html="check.fullQ"><!--pnid:10PawtpBjYm0zrY21BV5qa-->现在是 <b data-page-node-id="CbGcpK129khqDPK6tAnM2t"><!--pnid:7RfU0Ga3BxOsmU6fLVCIvY-->队满</b><!--pnid:DVtTRi4RSW2XLJMukcXmny--> 吗？</div>
+        <code data-page-node-id="PJOx7orP2SFt5fZb29eDJM" data-pnid-children="OoEMBjlR7FPDiaol2ScYWI" class="check-expr">end1 == (end2+1) mod M</code>
+        <div data-page-node-id="qb7CPOSA6JlvxkIPF9kbW8" class="check-res no" id="chkFullRes"><!--pnid:duZtpPvi2r4xatFBrxNr1M-->0 == 1　✗ 不成立</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-page-node-id="qEQflRkaL1AnQF29ydkzgw" class="card ctrl-card">
+    <div data-page-node-id="xXZRa2TmsXPZmSzge9UZGY" class="ctrl-row">
+      <button data-page-node-id="hUWnTFVpMv1perts37rn2P" class="btn" data-i18n="btn.reset" id="btnReset" type="button"><!--pnid:9tBCHxvtRstPJGXPWcb3LB-->⟲ 重置</button>
+      <button data-page-node-id="UHBpNA96UZVkx28E8F3OKT" class="btn" data-i18n="btn.prev" id="btnPrev" type="button"><!--pnid:vF9AMXB4vlrpAbif0zsUlu-->◀ 上一步</button>
+      <button data-page-node-id="uRzaKVrU5H8xhS43Nia0cL" class="btn btn-primary" data-i18n="btn.next" id="btnNext" type="button"><!--pnid:b6xdvYGgf6VKFpnAC1QQaw-->下一步 ▶</button>
+      <button data-page-node-id="19X0C2qxnNOLHhd2p0PscO" class="btn btn-play" data-i18n="btn.auto" id="btnAuto" type="button"><!--pnid:MJxT1gHKmg9e6DoJeBNbsz-->▶ 自动播放</button>
+      <div data-page-node-id="RTeoILv9Tb0xlQrZvHfp61" class="step-info" id="stepInfo"><!--pnid:2AVy1rxfjAHYZbDrQvxCGV-->第 <b data-page-node-id="KSss4qnTASUPOXiNEQBqX3"><!--pnid:MxlbgYSTiy8lMLFSffSTFr-->1</b><!--pnid:DjU1xrLl5FtGk3ZY2h5Gce--> / 18 步</div>
+    </div>
+    <div data-page-node-id="64jTC0IqSWjEeYIKluEbPL" class="progress"><div data-page-node-id="WxkTcdIYJft88hsc2W4LaH" class="progress-bar" id="progressBar"></div></div>
+    <div data-page-node-id="NFLqPRu4uTyjJQz3FtcWiY" class="narr" id="narr">
+      <div data-page-node-id="dSSXaggSHNobKOl5cCuCyE" class="narr-head">
+        <span data-page-node-id="yOfYC3LUzccUndHbGGLzzg" class="narr-badge" id="narrBadge"><!--pnid:CGdqkrDyZYLHyGwWNVJkJU-->第 1 步</span>
+        <span data-page-node-id="pPZVdmFEVccoh9YUtktCNg" class="narr-title" id="narrTitle"><!--pnid:gAlQ6ZAmWOjtjrjb530zju-->初始状态：队空</span>
+      </div>
+      <div data-page-node-id="ZVqoCv7o1SbabcRXaUjZOX" class="narr-body" id="narrBody"></div>
+      <div data-page-node-id="AVydMQhcweCP6YQFUbxpei" class="narr-formula" id="narrFormula"></div>
+    </div>
+    <p data-page-node-id="grVHtlUvazJfuptpTsdoNW" class="hint hint-sm" data-i18n="ctrl.tip"><!--pnid:l0N8AQCPHrF806TG8Vkvbi-->小技巧：也可以用键盘 ← → 翻步，空格 = 下一步。</p>
+  </section>
+
+  <div data-page-node-id="w6TPubnUXIBEE5ZRtiKUT9" class="grid2">
+    <section data-page-node-id="yQgWGKNqJbeovvbNR4xPrm" class="card">
+      <h2 data-page-node-id="OAG7mCtWGw3XDNwCIjNkcQ" class="card-title" data-i18n="sb.title"><!--pnid:EEmukUISz47N5sJ7Icg8NX-->自由练习</h2>
+      <p data-page-node-id="q7uZ7sz91QjbBqfBoxMf56" class="hint" data-i18n="sb.hint"><!--pnid:UEz3bhUm3J75J0AIZVQJ3B-->自己操作这个队列：先把它填满，再点一次入队看会发生什么；或者全部从队头入队，观察 end1 是怎么往前（绕回）移动的。</p>
+      <div data-page-node-id="yqcW0fBJ6GwSVSxBI24LmV" class="sb-row">
+        <input data-page-node-id="tXZ82zcvzk56QeI7oFnijC" aria-label="value" class="sb-input" data-i18n-attr="placeholder:sb.valPh" id="sbVal" maxlength="2" value="a">
+        <button data-page-node-id="FUK3n9Se4tc6CG5Vkaw9Dp" class="btn btn-sm" data-i18n="sb.pushBack" id="sbPushBack" type="button"><!--pnid:05xffIJbkE1M2doxCmU7RS-->队尾入队</button>
+        <button data-page-node-id="lKrnF6ZB0erd05aIP93pRc" class="btn btn-sm" data-i18n="sb.pushFront" id="sbPushFront" type="button"><!--pnid:6f18YMIPNkzedbscUIJn3Y-->队头入队</button>
+        <button data-page-node-id="fUj6KoLZ5dmfK8x09QdZp5" class="btn btn-sm" data-i18n="sb.popFront" id="sbPopFront" type="button"><!--pnid:BO3nCDsJGat0LeEtorGG88-->队头出队</button>
+        <button data-page-node-id="hWswSHJEDQxLI69MyqyNzS" class="btn btn-sm" data-i18n="sb.popBack" id="sbPopBack" type="button"><!--pnid:60fQcsi3U2GwU2qlv7WIgf-->队尾出队</button>
+      </div>
+      <div data-page-node-id="Xs7SvscZuh9fsEqud9x5bv" class="sb-msg" data-i18n="sb.msgDefault" id="sbMsg"><!--pnid:Mefac1y5nRupffLB4mrijs-->点击上面的按钮，结果会显示在这里。</div>
+      <ul data-page-node-id="ApHAvaTKoo4RX88J7mZFpL" class="sb-log" id="sbLog"></ul>
+      <p data-page-node-id="w3tF78Lwa44sZCnTJY4ZZL" class="hint hint-sm" data-i18n="sb.hint2"><!--pnid:9HvoxImge8JB2zQj1U7Uns-->想回到逐步动画演示，点上面的「⟲ 重置」即可。</p>
+    </section>
+
+    <section data-page-node-id="dYVtpGgrVbRpWxE0qKAFu7" class="card">
+      <h2 data-page-node-id="AF7mJcj7eP6KKAnXrDkBaC" class="card-title" data-i18n="opts.title"><!--pnid:RdhXa9toEXRjCrbG89YPaM-->选项速览</h2>
+      <div data-page-node-id="8Bf51NPIKcY3GqiZ8QnTlk" class="opt opt-ok"><b data-page-node-id="mgC6tFY2KPK9xua4r9RLpm"><!--pnid:Uykb1rY2ejv10U5Ydn8Ijc-->A.</b> <span data-page-node-id="kIjLELmd5l0JZhOvCHiv5X" data-i18n="problem.optA"><!--pnid:WHgbngzNSMwO1tumnQNCGJ-->队空: end1 == end2；队满: end1 == (end2+1) mod M</span> <span data-page-node-id="uYSOXSnbJuSh5baR4dg20p" class="mark mark-ok" data-i18n="opts.markA"><!--pnid:2U7NAtW0UzxZJoZqByVFCX-->✓ 个数 = 0 判空，个数 = M−1 判满，与方向无关</span></div>
+      <div data-page-node-id="0lFkLvZGTLA3I1sJe9tT2D" class="opt"><b data-page-node-id="Y1LO27X34OShV09P0S5bjx"><!--pnid:4dtkq7Fao95E5bKEdTkEpT-->B.</b> <span data-page-node-id="DClb4rb5dty2FxRa26xcYy" data-i18n="problem.optB"><!--pnid:lR72bwBHWITIST8Di85ViH-->队空: end1 == end2；队满: end1 == (end2+1) mod (M−1)</span> <span data-page-node-id="0H14EBgC67eMqHKmuFBPfM" class="mark mark-no" data-i18n="opts.markB"><!--pnid:Bkkr4y21Y81h6iLBhEeESm-->✗ 数组下标循环必须 mod M，mod (M−1) 会越界</span></div>
+      <div data-page-node-id="Ceh68xNv1XJFBfhPP7dOPn" class="opt"><b data-page-node-id="vT9PcRHPtpqHrYSZX3Wzw9"><!--pnid:Hb3TSJgxmhQJv8oC9nZTmG-->C.</b> <span data-page-node-id="W88BIyRz7l10XXVF6BxwIg" data-i18n="problem.optC"><!--pnid:xutRQT4tMnLwEtR5tghckS-->队空: end2 == (end1+1) mod M；队满: end1 == (end2+1) mod M</span> <span data-page-node-id="EOmRm4sBz91rlBKPwUnobq" class="mark mark-no" data-i18n="opts.markC"><!--pnid:laFpJh3ickStKVRG4CraFl-->✗ 该「判空」式实际表示个数 = 1，不是空</span></div>
+      <div data-page-node-id="hIqAzyMQ2TKpj8U2sRiJsk" class="opt"><b data-page-node-id="gs9Za1UmFC5iaWj5SUuWZY"><!--pnid:io2CTXBYJj18YfEwMV9H8a-->D.</b> <span data-page-node-id="4jVW0eHy0HgYaHooUD812t" data-i18n="problem.optD"><!--pnid:IYoGqPAJZXRk0R1UxLC7AV-->队空: end1 == (end2+1) mod M；队满: end1 == (end2+1) mod (M−1)</span> <span data-page-node-id="ew5mPc6kHgL2lubejQuuiT" class="mark mark-no" data-i18n="opts.markD"><!--pnid:yF4o1u9M6oWWOwMgG5x3o9-->✗ 它的「判空」恰恰是个数 = M−1 的队满状态</span></div>
+    </section>
+  </div>
+
+  <section data-page-node-id="O5o0jcaFYoFYAP4bgDFZ9q" class="card analysis">
+    <h2 data-page-node-id="So3mOlsWcoZp2K3iAHhLhE" class="card-title" data-i18n="ana.title"><!--pnid:8DjxWHdL9hmSrQnaDX133q-->文字解析：为什么选 A</h2>
+
+    <h3 data-page-node-id="Mmcitsp9tY0V7Y2aHO61PQ" data-i18n="ana.h1"><!--pnid:UKHTn4FceH32WFyOPIGfri-->1. 先抓住「不变量」：元素个数</h3>
+    <p data-page-node-id="ZautMdS591KeL1AAIildtP" data-i18n-html="ana.p1"><!--pnid:ZRFdAjXnrAd0MA77WeCK3T-->无论是队头入队、队头出队，还是队尾入队、队尾出队，变化的只是 end1 或 end2 各自移动一格，<b data-page-node-id="UprkqzvbZCJCIqQN5HYejO"><!--pnid:N7OxVvE5itQ4DseAHQ6RVv-->元素个数永远等于 (end2 − end1 + M) mod M</b><!--pnid:oS80PIlfrO1L0E2wSuDaag-->。这是解开本题的钥匙——「两端都能操作」并不会让个数公式失效：</p>
+    <table data-page-node-id="3cKFEXOnmwfzWzfq1dmxI0" class="tbl">
+      <thead data-page-node-id="gEXxELqbnWy006pDVJxbyb"><tr data-page-node-id="LvviRxXgf68dHloEL116D5"><th data-page-node-id="wvE2RMYVH4qgd1ODA4xYBd" data-i18n="ana.th1"><!--pnid:rIV9S5r3JtD3Z51TQmmK5S-->操作</th><th data-page-node-id="PIPw9rK3dccEsP4chivaDO"><!--pnid:KJ4pvT3AF88AC6BuyspGZI-->end1</th><th data-page-node-id="Y4Zuqy9ud6WaaF5sga6yfH"><!--pnid:ZRhBusVSFMY4l6zbCSe0cu-->end2</th><th data-page-node-id="nw1dwaGbIu60xjwL41KHLs" data-i18n="ana.th4"><!--pnid:w925ERbJ5IMo7rytvouuPj-->元素个数</th></tr></thead>
+      <tbody data-page-node-id="IvUALbJKRWV56YJzuhdA2d">
+        <tr data-page-node-id="Wn0eqfdBziDtUlgs30kqdv"><td data-page-node-id="7qTgXMqI7a3sSNCx1FqeuX" data-i18n="ana.opRearIn"><!--pnid:fu9QZlQ2joTPoCklt2slIt-->队尾入队</td><td data-page-node-id="zEfLPeUv09hpWi6OySXWM3" data-i18n="ana.keep"><!--pnid:9Ffy6UDizPwJG8ewfmo31Q-->不变</td><td data-page-node-id="jLiXxtprwRy2egQ1etQghp"><!--pnid:ZK2ZMF80qIfeGE2QmBex6i-->+1（mod M）</td><td data-page-node-id="jPzHzQfy0mZBouemGHqHXO"><!--pnid:1N6Rpf0olTwuqaLfmmbmm6-->+1</td></tr>
+        <tr data-page-node-id="FCmAe3yXWkm47au1VZJurb"><td data-page-node-id="9QhmND7YhCzunbtBiA755U" data-i18n="ana.opRearOut"><!--pnid:Cy0AecPAMelG38DMgAQDgD-->队尾出队</td><td data-page-node-id="IJEIaRHSup3etrnYM6khxH" data-i18n="ana.keep"><!--pnid:veKrd0Rq9qeNQGAvmXM34K-->不变</td><td data-page-node-id="a4aDZSZUnndIPjqAEcQTiJ"><!--pnid:NNugaswaVAMBxKxy4H8jyR-->−1（mod M）</td><td data-page-node-id="KPU0BmHGAxZG6xKqCOmGJz"><!--pnid:9NhW5qTTPa1GtWfNq2hf8z-->−1</td></tr>
+        <tr data-page-node-id="ezSmBxclRG7jipZivHk5Dx"><td data-page-node-id="cZKrkXdrX5BXF2vWRFYdnC" data-i18n="ana.opFrontIn"><!--pnid:f7qbEYNpfgSHoUbRjTyAC7-->队头入队</td><td data-page-node-id="CTLN6ugHMoqVrj07005NWb"><!--pnid:dS3RACtS8pQMBcsfMZ9HIK-->−1（mod M）</td><td data-page-node-id="c2lvbLm3vSPXlMvsXufL90" data-i18n="ana.keep"><!--pnid:40itU15N8OxjXF9Q9Irrlv-->不变</td><td data-page-node-id="PcekLkZqPDwcWOpzkecIlK"><!--pnid:OrJvlPMKR9a6N5xA9yGKVo-->+1</td></tr>
+        <tr data-page-node-id="hX0toTpUvDZZZOnbNcTbZk"><td data-page-node-id="4ONQR0rDcDwzoE5gvBseAg" data-i18n="ana.opFrontOut"><!--pnid:pqMelHgKZ8JjZR8GVW9Etq-->队头出队</td><td data-page-node-id="DfVdF3haV0EaLIALLRwq5Y"><!--pnid:qYX1WxXrmAhAp68BdekHw3-->+1（mod M）</td><td data-page-node-id="Zu7fiD0R6r9JWfRr8060He" data-i18n="ana.keep"><!--pnid:QAWHcAoC9ic9WfH6iiV91U-->不变</td><td data-page-node-id="uItSfVFEmwtemKs08nEQtf"><!--pnid:A20rhCSG3NISidF90mQq2c-->−1</td></tr>
+      </tbody>
+    </table>
+
+    <h3 data-page-node-id="SbPtNGVTjTGkw2LovHSv1G" data-i18n="ana.h2"><!--pnid:JMov2K0kdpKhbvvILWxhAe-->2. 再把个数翻译成指针条件</h3>
+    <p data-page-node-id="z3NTzxcNrT8OVkMv8dFAgD" data-i18n-html="ana.p2"><!--pnid:0gvIA6QJ3f3j33xNxT7zXd-->· <b data-page-node-id="ksArTmSedqbmiShvc0Hqw0"><!--pnid:bPlkv3hzjw71nibTaqS5lG-->队空</b><!--pnid:3ROidxsFxfP9tuGvqC4qrC-->：个数 = 0 ⟺ (end2 − end1) mod M = 0 ⟺ 两个指针重合 ⟺ <code data-page-node-id="aXngkmcDlXWFt3pcBZ5oN6" data-pnid-children="ujADYkHqGwL7vMnk0Mibud">end1 == end2</code><!--pnid:9sCmeAj5hWDkAaLjfMbODH-->。<br data-page-node-id="qGfFaoshPlEN5gyPqGl0uw"><!--pnid:Nz6V3f8dymyhzb3KnIiegA-->· <b data-page-node-id="XBE78YY7BPw8y477t25Af7"><!--pnid:J5DhdB0pIu2HRdeqLbwGDS-->队满</b><!--pnid:VgJ1Uxu0lK5PVznmxB753Z-->：个数 = M − 1 ⟺ (end2 − end1) mod M = M − 1 ⟺ end1 在环上比 end2「多走一格」⟺ <code data-page-node-id="tJIh5xTvBbJ4JRvzGrzOuu" data-pnid-children="lziIdBrHsrlmxbpTPRuHgR">end1 == (end2+1) mod M</code><!--pnid:BiCz3oqrk0v3DGRKY2altd-->。</p>
+    <p data-page-node-id="WW4eiktmYCt5YXVIER9dsY" data-i18n-html="ana.p3"><!--pnid:j0TPTNDtxblsSCLGa6zTOF-->这正是 <span data-page-node-id="rtZp7mTAvCo0r2NFVido1R" class="pill"><!--pnid:jkhhu9yjOrgOiHHQtGuSwt-->选项 A</span><!--pnid:tl2VkbPvVC4NrL2Qcwmn1a--> 。官方解析用的是特例法：假设 M−1 个元素存放在 A[0]～A[M−2]，队头 A[0]、队尾 A[M−2]，则 end1 = 0、end2 = M−1，代入即得 <code data-page-node-id="MUfpfs5zDYhpG7dWm0dIDs" data-pnid-children="X8Y7TWRxwNHtMQiJdWpc3S">end1 == (end2+1) mod M</code><!--pnid:5LiC0fytBMTrB9rNtBVsIs-->。</p>
+
+    <h3 data-page-node-id="P17pnYfQtKHdJrbYMnKbGb" data-i18n="ana.h3"><!--pnid:uFs8SCCZSeVtnZOPqPi1g5-->3. 为什么必须空出一个格子（容量只有 M−1）</h3>
+    <p data-page-node-id="v3rWmv39y8JF34t6XjBVml" data-i18n-html="ana.p4"><!--pnid:RjO0BNoKJj9oB9M4xKtZ0c-->若把第 M 个元素也放进去，end2 绕回后正好与 end1 重合，状态 (end1 = end2) 和「队空」长得一模一样，程序就无法区分空和满了。所以循环队列约定：<b data-page-node-id="IVYmTl6RlJ9pjpmnKZDlVX"><!--pnid:80EFbYPAa67Hdu6Ui8NmBr-->牺牲一个存储单元，用 (end2+1) mod M 是否等于 end1 来判满</b><!--pnid:BMJ9haakIipEfGzgNDFvnE-->。看动画第 6 步（入队被拒绝）就是这个道理。</p>
+
+    <h3 data-page-node-id="5aiOWORf4OjDmELyHBsykr" data-i18n="ana.h4"><!--pnid:RaTVSAyf79sox40FXzAb5E-->4. 两个易错点</h3>
+    <p data-page-node-id="TADLvrSYoQEgnH2B2TwRVI" data-i18n-html="ana.p5"><!--pnid:ofHyhWVyaeM6tsB8hK7ujl-->① 别被「两端均可入队」吓到——它只决定 end1 / end2 谁在动，<b data-page-node-id="5Idp5u76SFAMpf3OAb1byy"><!--pnid:a9E84usuYf6YWAgnQObBQE-->不改变个数公式，所以判满条件只有一个</b><!--pnid:h3OmORRqI8AyXe5qNCEpca-->，不会出现「两个满条件」。动画第 8 步和第 15 步分别从两头填满，条件完全一样。<br data-page-node-id="Tb8F6Syj7Y4zNIhIf5NsWN"><!--pnid:DTtQqeYsZKUszkjgZCGhmf-->② 注意 end2 的定义是「队尾元素的<b data-page-node-id="pH6cUuEp0a1rlt53sxqTCH"><!--pnid:QRSISFZ3TSvXNBlieMsj7s-->后一个位置</b><!--pnid:YrtQwt88KZxxBjXmHBDRPu-->」；有些教材约定 end2 直接指向队尾元素，那时的条件会不同，别背串了。</p>
+  </section>
+
+  <p data-page-node-id="SvlXtkgj1glFqYYzFDNBb4" class="footer" id="pageFooter"><!--pnid:dFe8nhHEEvw1z7AAXenN3e-->2014 年全国硕士研究生招生考试计算机学科专业基础综合试题 · 单项选择题第 3 题 ｜ 本页面为交互式动画解析，可离线打开</p>
+</div>
+
+<script data-page-node-id="lXDAiI57RQjNJhjbpj9mbC" data-pnid-children="IFgmrFIcOwQrjFX2tV7wuJ">
+(function(){
+  'use strict';
+
+  /* ============ 双语字典 / Bilingual dictionary ============ */
+  var I18N = {
+    zh: {
+      'doc.title': '2014年408真题 · 第3题：双端循环队列的队空与队满（动画演示）',
+      'tag.exam': '2014 年 408 真题',
+      'tag.subject': '数据结构 · 单项选择题第 3 题',
+      'tag.answer': '答案：A',
+      'hero.h1': '双端循环队列：什么时候算「队空」，什么时候算「队满」？',
+      'hero.sub': 'end1 指向队头元素，end2 指向队尾元素的后一个位置，两端都能进出队 —— 点「下一步」跟着动画走一遍，比死记文字答案靠谱得多。',
+      'problem.title': '题面',
+      'problem.body': '循环队列放在一维数组 A[0…M−1] 中，<b>end1 指向队头元素</b>，<b>end2 指向队尾元素的后一个位置</b>。假设队列<b>两端均可进行入队和出队操作</b>，队列中最多能容纳 <b>M−1 个元素</b>。初始时为空。下列判断队空和队满的条件中，正确的是（　）。',
+      'problem.optA': '队空: end1 == end2；队满: end1 == (end2+1) mod M',
+      'problem.optB': '队空: end1 == end2；队满: end1 == (end2+1) mod (M−1)',
+      'problem.optC': '队空: end2 == (end1+1) mod M；队满: end1 == (end2+1) mod M',
+      'problem.optD': '队空: end1 == (end2+1) mod M；队满: end1 == (end2+1) mod (M−1)',
+      'problem.markA': '✓ 正确（下面会用动画证明）',
+      'problem.markB': '✗ 下标应对 M 取模',
+      'problem.markC': '✗ 判空条件其实是「个数 = 1」',
+      'problem.markD': '✗ 空和满写反了',
+      'stage.title': '动画演示',
+      'stage.note': '取 M = 6（数组 A[0]～A[5]），最多容纳 M − 1 = 5 个元素',
+      'stat.end1': 'end1（队头）',
+      'stat.end2': 'end2（队尾后一格）',
+      'stat.count': '元素个数 (end2−end1+M) mod M',
+      'stat.state': '当前状态',
+      'center.label': '元素个数',
+      'ptr.end1': '队头',
+      'ptr.end2': '队尾后',
+      'legend.end1': 'end1：指向队头元素',
+      'legend.end2': 'end2：指向队尾元素的后一个位置',
+      'legend.free': '唯一空格子（队满时）',
+      'legend.occupied': '已占用格子',
+      'check.emptyQ': '现在是 <b>队空</b> 吗？',
+      'check.fullQ': '现在是 <b>队满</b> 吗？',
+      'btn.reset': '⟲ 重置',
+      'btn.prev': '◀ 上一步',
+      'btn.next': '下一步 ▶',
+      'btn.auto': '▶ 自动播放',
+      'btn.pause': '⏸ 暂停',
+      'ctrl.tip': '小技巧：也可以用键盘 ← → 翻步，空格 = 下一步。',
+      'sb.title': '自由练习',
+      'sb.hint': '自己操作这个队列：先把它填满，再点一次入队看会发生什么；或者全部从队头入队，观察 end1 是怎么往前（绕回）移动的。',
+      'sb.valPh': '元素值',
+      'sb.pushBack': '队尾入队',
+      'sb.pushFront': '队头入队',
+      'sb.popFront': '队头出队',
+      'sb.popBack': '队尾出队',
+      'sb.msgDefault': '点击上面的按钮，结果会显示在这里。',
+      'sb.hint2': '想回到逐步动画演示，点上面的「⟲ 重置」即可。',
+      'sb.badge': '自由练习',
+      'sb.titleRearIn': '队尾入队',
+      'sb.titleFrontIn': '队头入队',
+      'sb.titleFrontOut': '队头出队',
+      'sb.titleRearOut': '队尾出队',
+      'sb.rejectFull': '入队被拒绝',
+      'sb.rejectEmpty': '出队被拒绝',
+      'opts.title': '选项速览',
+      'opts.markA': '✓ 个数 = 0 判空，个数 = M−1 判满，与方向无关',
+      'opts.markB': '✗ 数组下标循环必须 mod M，mod (M−1) 会越界',
+      'opts.markC': '✗ 该「判空」式实际表示个数 = 1，不是空',
+      'opts.markD': '✗ 它的「判空」恰恰是个数 = M−1 的队满状态',
+      'ana.title': '文字解析：为什么选 A',
+      'ana.h1': '1. 先抓住「不变量」：元素个数',
+      'ana.p1': '无论是队头入队、队头出队，还是队尾入队、队尾出队，变化的只是 end1 或 end2 各自移动一格，<b>元素个数永远等于 (end2 − end1 + M) mod M</b>。这是解开本题的钥匙——「两端都能操作」并不会让个数公式失效：',
+      'ana.th1': '操作',
+      'ana.th4': '元素个数',
+      'ana.opRearIn': '队尾入队',
+      'ana.opRearOut': '队尾出队',
+      'ana.opFrontIn': '队头入队',
+      'ana.opFrontOut': '队头出队',
+      'ana.keep': '不变',
+      'ana.h2': '2. 再把个数翻译成指针条件',
+      'ana.p2': '· <b>队空</b>：个数 = 0 ⟺ (end2 − end1) mod M = 0 ⟺ 两个指针重合 ⟺ <code>end1 == end2</code>。<br>· <b>队满</b>：个数 = M − 1 ⟺ (end2 − end1) mod M = M − 1 ⟺ end1 在环上比 end2「多走一格」⟺ <code>end1 == (end2+1) mod M</code>。',
+      'ana.p3': '这正是 <span class="pill">选项 A</span> 。官方解析用的是特例法：假设 M−1 个元素存放在 A[0]～A[M−2]，队头 A[0]、队尾 A[M−2]，则 end1 = 0、end2 = M−1，代入即得 <code>end1 == (end2+1) mod M</code>。',
+      'ana.h3': '3. 为什么必须空出一个格子（容量只有 M−1）',
+      'ana.p4': '若把第 M 个元素也放进去，end2 绕回后正好与 end1 重合，状态 (end1 = end2) 和「队空」长得一模一样，程序就无法区分空和满了。所以循环队列约定：<b>牺牲一个存储单元，用 (end2+1) mod M 是否等于 end1 来判满</b>。看动画第 6 步（入队被拒绝）就是这个道理。',
+      'ana.h4': '4. 两个易错点',
+      'ana.p5': '① 别被「两端均可入队」吓到——它只决定 end1 / end2 谁在动，<b>不改变个数公式，所以判满条件只有一个</b>，不会出现「两个满条件」。动画第 8 步和第 15 步分别从两头填满，条件完全一样。<br>② 注意 end2 的定义是「队尾元素的<b>后一个位置</b>」；有些教材约定 end2 直接指向队尾元素，那时的条件会不同，别背串了。',
+      'footer': '2014 年全国硕士研究生招生考试计算机学科专业基础综合试题 · 单项选择题第 3 题 ｜ 本页面为交互式动画解析，可离线打开',
+      'state.empty': '队空',
+      'state.full': '队满',
+      'state.normal': '一般',
+      'tag.cellEmpty': '队空',
+      'tag.front': '队头',
+      'tag.rear': '队尾后',
+      'tag.free': '空格',
+      'state.emptyShort': '队空',
+      'state.fullShort': '队满',
+      'check.yes': '✓ 成立',
+      'check.no': '✗ 不成立',
+      'step.info': function(n, total){ return '第 ' + n + ' / 共 ' + total + ' 步'; },
+      'step.infoFree': '自由练习模式 / Sandbox mode',
+      'step.badge': function(n, total){ return '第 ' + n + ' 步 / 共 ' + total + ' 步'; }
+    },
+    en: {
+      'doc.title': 'CS 408 (2014) Q3: Empty vs. Full Conditions of a Double-Ended Circular Queue (Animated)',
+      'tag.exam': 'CS 408 Exam · 2014',
+      'tag.subject': 'Data Structures · Multiple Choice Q3',
+      'tag.answer': 'Answer: A',
+      'hero.h1': 'Double-Ended Circular Queue: When Is It "Empty", and When Is It "Full"?',
+      'hero.sub': 'end1 points to the front element, end2 points to the slot right after the rear element, and both ends support enqueue/dequeue — click "Next" and follow the animation step by step; far better than memorizing a textual answer.',
+      'problem.title': 'Problem',
+      'problem.body': 'A circular queue is stored in a one-dimensional array A[0…M−1]. <b>end1 points to the front element</b>, and <b>end2 points to the position right after the rear element</b>. Both ends of the queue support enqueue and dequeue operations, and the queue can hold at most <b>M−1 elements</b>. Initially the queue is empty. Which of the following conditions correctly judge "queue empty" and "queue full"?',
+      'problem.optA': 'Empty: end1 == end2; Full: end1 == (end2+1) mod M',
+      'problem.optB': 'Empty: end1 == end2; Full: end1 == (end2+1) mod (M−1)',
+      'problem.optC': 'Empty: end2 == (end1+1) mod M; Full: end1 == (end2+1) mod M',
+      'problem.optD': 'Empty: end1 == (end2+1) mod M; Full: end1 == (end2+1) mod (M−1)',
+      'problem.markA': '✓ Correct (proven by the animation below)',
+      'problem.markB': '✗ indices must wrap mod M',
+      'problem.markC': '✗ that "empty" test actually means count = 1',
+      'problem.markD': '✗ empty and full are swapped',
+      'stage.title': 'Animated Demo',
+      'stage.note': 'M = 6 (array A[0]–A[5]); capacity is M − 1 = 5 elements',
+      'stat.end1': 'end1 (front)',
+      'stat.end2': 'end2 (one past rear)',
+      'stat.count': '#elements (end2−end1+M) mod M',
+      'stat.state': 'State',
+      'center.label': 'elements',
+      'ptr.end1': 'front',
+      'ptr.end2': 'rear+1',
+      'legend.end1': 'end1: points to the front element',
+      'legend.end2': 'end2: points to the slot after the rear element',
+      'legend.free': 'the single free slot (when full)',
+      'legend.occupied': 'occupied slot',
+      'check.emptyQ': 'Is the queue <b>EMPTY</b>?',
+      'check.fullQ': 'Is the queue <b>FULL</b>?',
+      'btn.reset': '⟲ Reset',
+      'btn.prev': '◀ Previous',
+      'btn.next': 'Next ▶',
+      'btn.auto': '▶ Auto-play',
+      'btn.pause': '⏸ Pause',
+      'ctrl.tip': 'Tip: use the ← → keys to navigate steps, Space = next.',
+      'sb.title': 'Sandbox',
+      'sb.hint': 'Operate the queue yourself: fill it up, then try one more enqueue to see what happens; or enqueue everything from the front and watch how end1 moves backward (wrapping around).',
+      'sb.valPh': 'value',
+      'sb.pushBack': 'Enqueue (rear)',
+      'sb.pushFront': 'Enqueue (front)',
+      'sb.popFront': 'Dequeue (front)',
+      'sb.popBack': 'Dequeue (rear)',
+      'sb.msgDefault': 'Click the buttons above; results will show up here.',
+      'sb.hint2': 'Click "⟲ Reset" above to return to the step-by-step animation.',
+      'sb.badge': 'Sandbox',
+      'sb.titleRearIn': 'Enqueue at rear',
+      'sb.titleFrontIn': 'Enqueue at front',
+      'sb.titleFrontOut': 'Dequeue from front',
+      'sb.titleRearOut': 'Dequeue from rear',
+      'sb.rejectFull': 'Enqueue rejected',
+      'sb.rejectEmpty': 'Dequeue rejected',
+      'opts.title': 'Options at a Glance',
+      'opts.markA': '✓ count = 0 → empty; count = M−1 → full; direction-independent',
+      'opts.markB': '✗ indices wrap mod M; mod (M−1) goes out of range',
+      'opts.markC': '✗ that "empty" test means count = 1, not empty',
+      'opts.markD': '✗ its "empty" test is exactly the full state (count = M−1)',
+      'ana.title': 'Written Explanation: Why A',
+      'ana.h1': '1. Start with the invariant: the element count',
+      'ana.p1': 'Whether you enqueue or dequeue at the front or at the rear, only end1 or end2 moves by one slot; <b>the element count is always (end2 − end1 + M) mod M</b>. This is the key to the problem — "both ends operable" does not break the count formula:',
+      'ana.th1': 'Operation',
+      'ana.th4': '#elements',
+      'ana.opRearIn': 'Enqueue at rear',
+      'ana.opRearOut': 'Dequeue at rear',
+      'ana.opFrontIn': 'Enqueue at front',
+      'ana.opFrontOut': 'Dequeue at front',
+      'ana.keep': 'unchanged',
+      'ana.h2': '2. Translate the count into pointer conditions',
+      'ana.p2': '· <b>Empty</b>: count = 0 ⟺ (end2 − end1) mod M = 0 ⟺ the two pointers coincide ⟺ <code>end1 == end2</code>.<br>· <b>Full</b>: count = M − 1 ⟺ (end2 − end1) mod M = M − 1 ⟺ end1 is "one slot ahead" of end2 on the ring ⟺ <code>end1 == (end2+1) mod M</code>.',
+      'ana.p3': 'That is exactly <span class="pill">option A</span>. The official solution uses a special case: suppose M−1 elements occupy A[0]–A[M−2] with front A[0] and rear A[M−2]; then end1 = 0 and end2 = M−1, which gives <code>end1 == (end2+1) mod M</code>.',
+      'ana.h3': '3. Why one slot must stay free (capacity is only M−1)',
+      'ana.p4': 'If the M-th element were also stored, end2 would wrap around and coincide with end1 — the state (end1 = end2) would look exactly like "empty", so the program could no longer tell empty from full. Hence the circular-queue convention: <b>sacrifice one cell, and judge "full" by testing whether (end2+1) mod M equals end1</b>. See step 6 of the animation (the rejected enqueue).',
+      'ana.h4': '4. Two common pitfalls',
+      'ana.p5': "① Don't be scared by \"both ends can enqueue\" — it only decides whether end1 or end2 moves; <b>the count formula is unchanged, so there is exactly ONE full condition</b>, never two. Steps 8 and 15 fill the queue from opposite ends, and the condition is identical.<br>② Note that end2 is defined as \"the position right after the rear element\". Some textbooks define end2 to point at the rear element itself — the conditions would differ, so don't mix them up.",
+      'footer': '2014 National Postgraduate Entrance Exam · CS 408 Comprehensive Basics · Multiple Choice Q3 ｜ Interactive animated explanation; works offline',
+      'state.empty': 'EMPTY',
+      'state.full': 'FULL',
+      'state.normal': 'NORMAL',
+      'tag.cellEmpty': 'EMPTY',
+      'tag.front': 'FRONT',
+      'tag.rear': 'REAR+1',
+      'tag.free': 'FREE',
+      'state.emptyShort': 'EMPTY',
+      'state.fullShort': 'FULL',
+      'check.yes': '✓ TRUE',
+      'check.no': '✗ FALSE',
+      'step.info': function(n, total){ return 'Step ' + n + ' / ' + total; },
+      'step.infoFree': '自由练习模式 / Sandbox mode',
+      'step.badge': function(n, total){ return 'Step ' + n + ' / ' + total; }
+    }
+  };
+
+  var LANG = 'zh';
+  try { LANG = localStorage.getItem('408lab-lang') || 'zh'; } catch(e) {}
+  function t(k){
+    var d = I18N[LANG];
+    if(!d || d[k] === undefined) d = I18N.zh;
+    return d[k] === undefined ? k : d[k];
+  }
+  function tf(k, a, b){
+    var v = t(k);
+    return (typeof v === 'function') ? v(a, b) : v;
+  }
+
+  /* ============ DOM ============ */
+  var M = 6;
+  var R_CIRC = 2 * Math.PI * 190;
+  var stage = document.getElementById('stage');
+  var linear = document.getElementById('linear');
+  var ringArc = document.getElementById('ringArc');
+  var statEnd1 = document.getElementById('statEnd1');
+  var statEnd2 = document.getElementById('statEnd2');
+  var statCount = document.getElementById('statCount');
+  var statState = document.getElementById('statState');
+  var centerCount = document.getElementById('centerCount');
+  var centerFormula = document.getElementById('centerFormula');
+  var ptrEnd1 = document.getElementById('ptrEnd1');
+  var ptrEnd2 = document.getElementById('ptrEnd2');
+  var chkEmpty = document.getElementById('chkEmpty');
+  var chkEmptyRes = document.getElementById('chkEmptyRes');
+  var chkFull = document.getElementById('chkFull');
+  var chkFullRes = document.getElementById('chkFullRes');
+  var btnReset = document.getElementById('btnReset');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+  var btnAuto = document.getElementById('btnAuto');
+  var stepInfo = document.getElementById('stepInfo');
+  var progressBar = document.getElementById('progressBar');
+  var narrBadge = document.getElementById('narrBadge');
+  var narrTitle = document.getElementById('narrTitle');
+  var narrBody = document.getElementById('narrBody');
+  var narrFormula = document.getElementById('narrFormula');
+  var sbVal = document.getElementById('sbVal');
+  var sbMsg = document.getElementById('sbMsg');
+  var sbLog = document.getElementById('sbLog');
+  var langZh = document.getElementById('langZh');
+  var langEn = document.getElementById('langEn');
+  var pageFooter = document.getElementById('pageFooter');
+
+  /* ============ 队列状态 ============ */
+  var arr = [null,null,null,null,null,null];
+  var end1 = 0, end2 = 0;
+  var steps = [], cur = 0, mode = 'guide', timer = null;
+  var lastSb = null;
+
+  function count(){ return (end2 - end1 + M) % M; }
+  function isEmpty(){ return end1 === end2; }
+  function isFull(){ return end1 === (end2 + 1) % M; }
+  function pushBack(v){ if(isFull()) return false; arr[end2] = v; end2 = (end2 + 1) % M; return true; }
+  function pushFront(v){ if(isFull()) return false; end1 = (end1 - 1 + M) % M; arr[end1] = v; return true; }
+  function popFront(){ if(isEmpty()) return null; var v = arr[end1]; arr[end1] = null; end1 = (end1 + 1) % M; return v; }
+  function popBack(){ if(isEmpty()) return null; end2 = (end2 - 1 + M) % M; var v = arr[end2]; arr[end2] = null; return v; }
+  function resetState(){ arr = [null,null,null,null,null,null]; end1 = 0; end2 = 0; }
+
+  /* ============ 构建格子 ============ */
+  var cells = [], lins = [];
+  for(var i = 0; i < M; i++){
+    var phi = (60 * i) * Math.PI / 180;
+    var d = document.createElement('div');
+    d.className = 'cell';
+    d.style.left = (50 + 31.6667 * Math.sin(phi)) + '%';
+    d.style.top = (50 - 31.6667 * Math.cos(phi)) + '%';
+    d.innerHTML = '<span class="cell-idx">' + i + '</span><span class="cell-val"></span><span class="cell-tag"></span>';
+    stage.appendChild(d);
+    cells.push(d);
+    var l = document.createElement('div');
+    l.className = 'lcell';
+    l.innerHTML = '<span class="lcell-idx">A[' + i + ']</span><span class="lcell-val"></span><span class="lcell-tag"></span>';
+    linear.appendChild(l);
+    lins.push(l);
+  }
+
+  /* ============ 指针定位 ============ */
+  function placePtr(el, idx, rArrow, side){
+    var rad = (60 * idx) * Math.PI / 180;
+    var arrow = el.querySelector('.arrow');
+    var lab = el.querySelector('.plabel');
+    arrow.style.left = (50 + rArrow * Math.sin(rad)) + '%';
+    arrow.style.top = (50 - rArrow * Math.cos(rad)) + '%';
+    arrow.style.transform = 'translate(-50%,-50%) rotate(' + (60 * idx + 180) + 'deg)';
+    lab.style.left = (50 + 47 * Math.sin(rad)) + '%';
+    lab.style.top = (50 - 47 * Math.cos(rad)) + '%';
+    var tx = Math.cos(rad), ty = Math.sin(rad);
+    lab.style.marginLeft = (side * 36 * tx) + 'px';
+    lab.style.marginTop = (side * 36 * ty) + 'px';
+  }
+
+  /* ============ 渲染 ============ */
+  function render(){
+    var c = count(), empty = isEmpty(), full = isFull();
+    var sep = (LANG === 'zh') ? '·' : ' · ';
+    for(var i = 0; i < M; i++){
+      var v = arr[i], nv = (v === null ? '' : v);
+      var parts = [];
+      if(empty && i === end1) parts.push(t('tag.cellEmpty'));
+      else {
+        if(i === end1) parts.push(t('tag.front'));
+        if(i === end2) parts.push(t('tag.rear'));
+      }
+      if(full && i === end2) parts.push(t('tag.free'));
+      var tag = parts.join(sep);
+
+      var cell = cells[i];
+      cell.classList.toggle('occupied', v !== null);
+      cell.classList.toggle('is-end1', i === end1);
+      cell.classList.toggle('is-end2', i === end2);
+      cell.classList.toggle('is-freeslot', full && i === end2);
+      var val = cell.querySelector('.cell-val');
+      if(val.textContent !== nv){
+        val.textContent = nv;
+        if(nv){ val.classList.remove('pop'); void val.offsetWidth; val.classList.add('pop'); }
+      }
+      cell.querySelector('.cell-tag').textContent = tag;
+
+      var lc = lins[i];
+      lc.classList.toggle('occupied', v !== null);
+      lc.classList.toggle('is-end1', i === end1);
+      lc.classList.toggle('is-end2', i === end2);
+      lc.classList.toggle('is-freeslot', full && i === end2);
+      lc.querySelector('.lcell-val').textContent = nv;
+      lc.querySelector('.lcell-tag').textContent = tag;
+    }
+    ringArc.style.strokeDasharray = (R_CIRC * c / M).toFixed(1) + ' ' + R_CIRC.toFixed(1);
+    ringArc.style.transform = 'rotate(' + (-90 + 60 * end1) + 'deg)';
+    ringArc.classList.toggle('is-full', full);
+
+    placePtr(ptrEnd1, end1, 40, -1);
+    placePtr(ptrEnd2, end2, 43, 1);
+
+    statEnd1.textContent = end1;
+    statEnd2.textContent = end2;
+    statCount.textContent = c;
+    statState.textContent = empty ? t('state.empty') : (full ? t('state.full') : t('state.normal'));
+    statState.className = 'badge ' + (empty ? 'b-gray' : (full ? 'b-amber' : 'b-green'));
+
+    centerCount.textContent = c;
+    centerFormula.innerHTML = '(' + end2 + ' − ' + end1 + ' + 6) mod 6 = <b>' + c + '</b>' +
+      (full ? ' = M−1 → ' + t('state.full') : '') + (empty ? ' → ' + t('state.empty') : '');
+
+    setCheck(chkEmpty, chkEmptyRes, empty, end1 + ' == ' + end2);
+    setCheck(chkFull, chkFullRes, full, end1 + ' == ' + ((end2 + 1) % M));
+  }
+  function setCheck(box, resEl, on, nums){
+    box.classList.toggle('on', on);
+    resEl.textContent = nums + '　' + (on ? t('check.yes') : t('check.no'));
+    resEl.className = 'check-res ' + (on ? 'yes' : 'no');
+  }
+  function flashStage(cls){
+    stage.classList.remove('shake');
+    void stage.offsetWidth;
+    stage.classList.add(cls);
+    setTimeout(function(){ stage.classList.remove(cls); }, 600);
+  }
+
+  /* ============ 引导步骤（双语） ============ */
+  function buildSteps(){
+    resetState();
+    var S = [];
+    function push(step){ S.push({arr: arr.slice(), end1: end1, end2: end2, step: step}); }
+    var fTailFull = {zh: ' = M − 1 → 队满', en: ' = M−1 → FULL'};
+    var fTailEmpty = {zh: ' → 队空', en: ' → EMPTY'};
+    function f(num, tail){ return {zh: num + (tail ? fTailFull.zh : ''), en: num + (tail ? fTailFull.en : '')}; }
+
+    push({ flash: '',
+      zh: { title: '初始状态：队空',
+        html: '队列初始化：<b>end1 = end2 = 0</b>，数组 A[0]～A[5] 全部空闲。<br>元素个数 = <b>(end2 − end1 + M) mod M = (0 − 0 + 6) mod 6 = 0</b>，所以现在是<b>队空</b>。<br>先记住两个约定：<b>end1 指向队头元素</b>（红箭头），<b>end2 指向队尾元素的后一个位置</b>（蓝箭头）。容量 M = 6，最多放 M − 1 = 5 个元素。',
+        formula: '(0 − 0 + 6) mod 6 = 0 → 队空' },
+      en: { title: 'Initial state: empty',
+        html: 'The queue is initialized with <b>end1 = end2 = 0</b>; all cells A[0]–A[5] are free.<br>The element count = <b>(end2 − end1 + M) mod M = (0 − 0 + 6) mod 6 = 0</b>, so the queue is <b>EMPTY</b>.<br>Remember the two conventions: <b>end1 points to the front element</b> (red arrow), <b>end2 points to the slot right after the rear element</b> (blue arrow). Capacity M = 6, at most M − 1 = 5 elements.',
+        formula: '(0 − 0 + 6) mod 6 = 0 → EMPTY' }
+    });
+
+    var seq = ['a','b','c','d','e'];
+    for(var k = 0; k < seq.length; k++){
+      var v = seq[k], slot = end2;
+      pushBack(v);
+      if(k === seq.length - 1){
+        push({ flash: 'full',
+          zh: { title: '队尾入队 ' + v + '：队列满了！',
+            html: '<b>队尾入队 ' + v + '</b>：' + v + ' 放进 A[' + slot + ']，end2 后移 ' + slot + ' → ' + end2 + '。<br>元素个数 = <b>5 = M − 1</b>，<b>队列已满</b>！此时唯一的空格子，正是 end2 指向的 A[' + end2 + ']。<br>用选项 A 的判满条件验算：<code>end1 == (end2+1) mod M</code> → <code>0 == (5+1) mod 6 = 0</code> ✓ 成立，正好判满。',
+            formula: '(5 − 0 + 6) mod 6 = 5 = M − 1 → 队满' },
+          en: { title: 'Enqueue ' + v + ' at the rear: the queue is FULL!',
+            html: '<b>Enqueue ' + v + ' at the rear</b>: ' + v + ' goes into A[' + slot + '], end2 advances ' + slot + ' → ' + end2 + '.<br>Count = <b>5 = M − 1</b> — the queue is <b>FULL</b>! The only free cell is exactly A[' + end2 + '], the slot end2 points to.<br>Check option A\'s full condition: <code>end1 == (end2+1) mod M</code> → <code>0 == (5+1) mod 6 = 0</code> ✓ holds, correctly detecting full.',
+            formula: '(5 − 0 + 6) mod 6 = 5 = M−1 → FULL' }
+        });
+      } else {
+        push({
+          zh: { title: '队尾入队 ' + v,
+            html: '<b>队尾入队 ' + v + '</b>：' + v + ' 放进 A[end2] = A[' + slot + ']，然后 end2 后移 ' + slot + ' → ' + end2 + '。<br>元素个数 = <b>' + count() + '</b>，不空也不满，可以继续入队。',
+            formula: '(' + end2 + ' − ' + end1 + ' + 6) mod 6 = ' + count() },
+          en: { title: 'Enqueue ' + v + ' at the rear',
+            html: '<b>Enqueue ' + v + ' at the rear</b>: ' + v + ' goes into A[end2] = A[' + slot + '], then end2 advances ' + slot + ' → ' + end2 + '.<br>Count = <b>' + count() + '</b>: neither empty nor full, so we can keep enqueuing.',
+            formula: '(' + end2 + ' − ' + end1 + ' + 6) mod 6 = ' + count() }
+        });
+      }
+    }
+
+    pushBack('f');
+    push({ flash: 'reject',
+      zh: { title: '再入队？拒绝！',
+        html: '如果继续<b>队尾入队 f</b>：f 要放进 A[5]，随后 end2 绕回 0，与 end1 重合 —— (end1 = 0, end2 = 0) 看上去和<b>队空</b>一模一样，第 6 个元素也无处可放（超出了 M − 1 的容量）。<br>所以必须在 <code>end1 == (end2+1) mod M</code> 成立时<b>判满并拒绝入队</b>。这就是「最多容纳 M − 1 个元素」的原因：故意留出一个格子，把「空」和「满」区分开。',
+        formula: '(5 − 0 + 6) mod 6 = 5 = M − 1 → 队满，拒绝入队' },
+      en: { title: 'One more enqueue? Rejected!',
+        html: 'Suppose we keep going and <b>enqueue f at the rear</b>: f would go into A[5], then end2 wraps back to 0 and coincides with end1 — the state (end1 = 0, end2 = 0) looks exactly like <b>EMPTY</b>, and there is no room for a 6th element (beyond the M − 1 capacity).<br>So we must declare the queue full and reject the enqueue whenever <code>end1 == (end2+1) mod M</code> holds. This is why the queue holds at most M − 1 elements: one cell is deliberately sacrificed to tell "empty" from "full".',
+        formula: '(5 − 0 + 6) mod 6 = 5 = M−1 → FULL, enqueue rejected' }
+    });
+
+    var v1 = popFront();
+    push({
+      zh: { title: '队头出队 ' + v1,
+        html: '<b>队头出队 ' + v1 + '</b>：取出 A[end1] = A[0]，end1 后移 0 → 1，A[0] 变空闲。<br>元素个数 = 4，退出满状态。此时 end1 ≠ end2，<code>end1 == end2</code> 不成立，不会误判为队空。',
+        formula: '(5 − 1 + 6) mod 6 = 4' },
+      en: { title: 'Dequeue ' + v1 + ' from the front',
+        html: '<b>Dequeue ' + v1 + ' from the front</b>: read A[end1] = A[0], advance end1 0 → 1, and A[0] becomes free.<br>Count = 4, leaving the full state. Now end1 ≠ end2, so <code>end1 == end2</code> is false and the queue is not mistaken for empty.',
+        formula: '(5 − 1 + 6) mod 6 = 4' }
+    });
+
+    var oldEnd1 = end1;
+    pushFront('f');
+    push({ flash: 'full',
+      zh: { title: '队头入队 f：又满了',
+        html: '<b>队头入队 f</b>：end1 前移 ' + oldEnd1 + ' → ' + end1 + '，f 放进 A[' + end1 + ']。<br>元素个数 = 5 = M − 1，<b>再次队满</b>。再验算选项 A：<code>end1 == (end2+1) mod M</code> → <code>0 == (5+1) mod 6 = 0</code> ✓ 依然成立。<br><b>从队头入队，判满条件完全一样</b> —— 这就是本题的关键：两端都能操作，但元素个数始终等于 (end2 − end1 + M) mod M，判满条件只有一个。',
+        formula: '(5 − 0 + 6) mod 6 = 5 = M − 1 → 队满' },
+      en: { title: 'Enqueue f at the front: full again',
+        html: '<b>Enqueue f at the front</b>: end1 moves back ' + oldEnd1 + ' → ' + end1 + ', and f goes into A[' + end1 + '].<br>Count = 5 = M − 1 — <b>FULL again</b>. Check option A once more: <code>end1 == (end2+1) mod M</code> → <code>0 == (5+1) mod 6 = 0</code> ✓ still holds.<br><b>Enqueuing at the front gives exactly the same full condition</b> — this is the crux of the problem: both ends are operable, yet the count is always (end2 − end1 + M) mod M, so there is only ONE full condition.',
+        formula: '(5 − 0 + 6) mod 6 = 5 = M−1 → FULL' }
+    });
+
+    var v2 = popBack();
+    push({
+      zh: { title: '队尾出队 ' + v2,
+        html: '<b>队尾出队 ' + v2 + '</b>：end2 前移 5 → 4，取出 A[4]，A[4] 变空闲。<br>元素个数 = 4。至此四种操作都演示过了：两头进出，只是让 end1 或 end2 移动一格，个数公式始终成立。',
+        formula: '(4 − 0 + 6) mod 6 = 4' },
+      en: { title: 'Dequeue ' + v2 + ' from the rear',
+        html: '<b>Dequeue ' + v2 + ' from the rear</b>: end2 moves back 5 → 4, A[4] is read and becomes free.<br>Count = 4. All four operations have now been demonstrated: entering/leaving at either end merely moves end1 or end2 by one slot, and the count formula always holds.',
+        formula: '(4 − 0 + 6) mod 6 = 4' }
+    });
+
+    resetState();
+    push({
+      zh: { title: '演示二：换个方向填满',
+        html: '清空队列重新来：这次全部从<b>队头</b>入队，看看装满时两个指针是什么关系。',
+        formula: '(0 − 0 + 6) mod 6 = 0' },
+      en: { title: 'Demo 2: fill from the other end',
+        html: 'Clear the queue and start over: this time enqueue everything from the <b>FRONT</b>, and see how the two pointers relate when the queue fills up.',
+        formula: '(0 − 0 + 6) mod 6 = 0' }
+    });
+
+    for(var k2 = 0; k2 < seq.length; k2++){
+      var v3 = seq[k2], old = end1;
+      pushFront(v3);
+      if(k2 === seq.length - 1){
+        push({ flash: 'full',
+          zh: { title: '队头入队 ' + v3 + '：同样队满',
+            html: '<b>队头入队 ' + v3 + '</b>：end1 前移 ' + old + ' → ' + end1 + '，' + v3 + ' 放进 A[' + end1 + ']。<br>元素个数 = 5 = M − 1，<b>队满</b>。此时 end1 = ' + end1 + '、end2 = ' + end2 + '，验算选项 A：<code>end1 == (end2+1) mod M</code> → <code>1 == (0+1) mod 6 = 1</code> ✓ 成立。<br>两个方向填满，判满条件一模一样。',
+            formula: '(0 − 1 + 6) mod 6 = 5 = M − 1 → 队满' },
+          en: { title: 'Enqueue ' + v3 + ' at the front: full in the same way',
+            html: '<b>Enqueue ' + v3 + ' at the front</b>: end1 moves back ' + old + ' → ' + end1 + ', ' + v3 + ' goes into A[' + end1 + '].<br>Count = 5 = M − 1 — <b>FULL</b>. Now end1 = ' + end1 + ' and end2 = ' + end2 + '; check option A: <code>end1 == (end2+1) mod M</code> → <code>1 == (0+1) mod 6 = 1</code> ✓ holds.<br>Filling from either end gives the exact same condition.',
+            formula: '(0 − 1 + 6) mod 6 = 5 = M−1 → FULL' }
+        });
+      } else {
+        push({
+          zh: { title: '队头入队 ' + v3,
+            html: '<b>队头入队 ' + v3 + '</b>：end1 前移 ' + old + ' → ' + end1 + (old === 0 ? '（绕回数组末端）' : '') + '，' + v3 + ' 放进 A[' + end1 + ']。<br>元素个数 = ' + count() + '。注意队头入队时 end1 是向前（下标减小、到 0 后绕回）移动的。',
+            formula: '(' + end2 + ' − ' + end1 + ' + 6) mod 6 = ' + count() },
+          en: { title: 'Enqueue ' + v3 + ' at the front',
+            html: '<b>Enqueue ' + v3 + ' at the front</b>: end1 moves back ' + old + ' → ' + end1 + (old === 0 ? ' (wrapping to the end of the array)' : '') + ', ' + v3 + ' goes into A[' + end1 + '].<br>Count = ' + count() + '. Note that front-enqueue moves end1 backward (decreasing index, wrapping past 0).',
+            formula: '(' + end2 + ' − ' + end1 + ' + 6) mod 6 = ' + count() }
+        });
+      }
+    }
+
+    push({
+      zh: { title: '结论：答案选 A',
+        html: '无论从队头还是队尾入队，<b>元素个数恒等于 (end2 − end1 + M) mod M</b>：<br>· <b>队空</b> ⟺ 个数 = 0 ⟺ <code>end1 == end2</code><br>· <b>队满</b> ⟺ 个数 = M − 1 ⟺ <code>end1 == (end2+1) mod M</code><br>与选项 <b>A</b> 完全一致，本题选 <b>A</b>。',
+        formula: '队空: end1 == end2 ｜ 队满: end1 == (end2+1) mod M' },
+      en: { title: 'Conclusion: the answer is A',
+        html: 'Whether enqueuing at the front or the rear, <b>the count is always (end2 − end1 + M) mod M</b>:<br>· <b>Empty</b> ⟺ count = 0 ⟺ <code>end1 == end2</code><br>· <b>Full</b> ⟺ count = M − 1 ⟺ <code>end1 == (end2+1) mod M</code><br>This matches option <b>A</b> exactly — the answer is <b>A</b>.',
+        formula: 'Empty: end1 == end2 ｜ Full: end1 == (end2+1) mod M' }
+    });
+
+    push({
+      zh: { title: '错项分析',
+        html: '<b>B</b>：判满写成 <code>mod (M−1)</code>。数组下标循环应对 <b>M</b> 取模，mod (M−1) 会算出不合法下标，排除。<br><b>C</b>：判空写成 <code>end2 == (end1+1) mod M</code>，这恰恰表示个数 = 1（刚入队 1 个元素），不是队空。<br><b>D</b>：把空和满写反了 —— 它的「队空」条件 <code>end1 == (end2+1) mod M</code> 正是个数 = M − 1 的<b>队满</b>状态，后半句还错用 <code>mod (M−1)</code>。',
+        formula: '' },
+      en: { title: 'Why the other options are wrong',
+        html: '<b>B</b>: the full test uses <code>mod (M−1)</code>. Array indices wrap mod <b>M</b>, so mod (M−1) produces illegal indices — eliminate.<br><b>C</b>: the empty test <code>end2 == (end1+1) mod M</code> actually means count = 1 (just one element enqueued), not empty.<br><b>D</b>: empty and full are swapped — its "empty" condition <code>end1 == (end2+1) mod M</code> is precisely the <b>FULL</b> state (count = M − 1), and its second half also misuses <code>mod (M−1)</code>.',
+        formula: '' }
+    });
+
+    steps = S;
+    cur = 0;
+  }
+
+  /* ============ 播放控制 ============ */
+  function showStep(s){
+    var d = s.step[LANG] || s.step.zh;
+    narrBadge.textContent = tf('step.badge', cur + 1, steps.length);
+    narrBadge.className = 'narr-badge';
+    narrTitle.textContent = d.title;
+    narrBody.innerHTML = d.html;
+    narrFormula.textContent = d.formula || '';
+  }
+  function goTo(i, silent){
+    stopAuto();
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    var s = steps[cur];
+    arr = s.arr.slice(); end1 = s.end1; end2 = s.end2;
+    mode = 'guide';
+    lastSb = null;
+    render();
+    showStep(s);
+    if(!silent && s.step.flash) flashStage('shake');
+    updateCtrl();
+  }
+  function updateCtrl(){
+    var free = (mode === 'free');
+    btnPrev.disabled = free || cur <= 0;
+    btnNext.disabled = free || cur >= steps.length - 1;
+    btnAuto.disabled = free;
+    stepInfo.innerHTML = free ? t('step.infoFree') : tf('step.info', cur + 1, steps.length).replace(/(\d+)/g, '<b>$1</b>');
+    progressBar.style.width = free ? '100%' : ((cur + 1) / steps.length * 100) + '%';
+  }
+  function next(){ if(cur < steps.length - 1) goTo(cur + 1); }
+  function prev(){ if(cur > 0) goTo(cur - 1); }
+  function startAuto(){
+    if(timer) return;
+    btnAuto.textContent = t('btn.pause');
+    timer = setInterval(function(){
+      if(cur >= steps.length - 1){ stopAuto(); return; }
+      goTo(cur + 1);
+    }, 2300);
+  }
+  function stopAuto(){
+    if(timer){ clearInterval(timer); timer = null; }
+    btnAuto.textContent = t('btn.auto');
+  }
+
+  btnNext.addEventListener('click', function(){ next(); });
+  btnPrev.addEventListener('click', function(){ prev(); });
+  btnAuto.addEventListener('click', function(){ if(timer) stopAuto(); else startAuto(); });
+  btnReset.addEventListener('click', function(){ goTo(0); });
+
+  document.addEventListener('keydown', function(e){
+    var tg = e.target.tagName;
+    if(tg === 'INPUT' || tg === 'TEXTAREA') return;
+    if(tg === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;
+    if(e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); if(mode === 'guide') next(); }
+    else if(e.key === 'ArrowLeft'){ e.preventDefault(); if(mode === 'guide') prev(); }
+  });
+
+  /* ============ 自由练习（双语） ============ */
+  var logItems = [];
+  function addLog(zh, en, ok){
+    logItems.unshift({zh: zh, en: en, ok: ok});
+    if(logItems.length > 6) logItems.pop();
+    sbLog.innerHTML = '';
+    logItems.forEach(function(it){
+      var li = document.createElement('li');
+      li.textContent = (it.ok ? '✓ ' : '✗ ') + (LANG === 'zh' ? it.zh : it.en);
+      li.className = it.ok ? 'ok' : 'no';
+      sbLog.appendChild(li);
+    });
+  }
+  function stripTags(s){ return s.replace(/<[^>]+>/g, ''); }
+  function sbShow(titleKey, zh, en, ok){
+    lastSb = {titleKey: titleKey, zh: zh, en: en, ok: ok};
+    narrBadge.textContent = t('sb.badge');
+    narrBadge.className = 'narr-badge free';
+    narrTitle.textContent = t(titleKey);
+    narrBody.innerHTML = (LANG === 'zh' ? zh : en);
+    narrFormula.textContent = '(当前) (' + end2 + ' − ' + end1 + ' + 6) mod 6 = ' + count() +
+      (isEmpty() ? ' → ' + t('state.empty') : (isFull() ? ' → ' + t('state.full') : ''));
+    sbMsg.textContent = (ok ? '✓ ' : '✗ ') + stripTags(LANG === 'zh' ? zh : en);
+    sbMsg.className = 'sb-msg ' + (ok ? 'ok' : 'no');
+  }
+  function nextLetter(s){
+    if(/^[a-z]$/.test(s)) return String.fromCharCode(97 + (s.charCodeAt(0) - 96) % 26);
+    if(/^[A-Z]$/.test(s)) return String.fromCharCode(65 + (s.charCodeAt(0) - 64) % 26);
+    return s;
+  }
+  function getVal(){
+    var v = (sbVal.value || '').trim();
+    return v === '' ? 'a' : v;
+  }
+  document.getElementById('sbPushBack').addEventListener('click', function(){
+    if(mode !== 'free'){ mode = 'free'; }
+    var v = getVal();
+    if(pushBack(v)){
+      var slot = (end2 - 1 + M) % M;
+      var fullTail = isFull() ? (LANG === 'zh' ? '，<b>队列已满</b>！' : ' — the queue is now <b>FULL</b>!') : '';
+      render();
+      sbShow('sb.titleRearIn',
+        '队尾入队 <b>' + v + '</b> 成功：放入 A[' + slot + ']，end2 → ' + end2 + '，个数 = ' + count() + fullTail,
+        'Enqueue <b>' + v + '</b> at the rear: OK — stored in A[' + slot + '], end2 → ' + end2 + ', count = ' + count() + fullTail, true);
+      addLog('队尾入队 ' + v + ' → A[' + slot + ']，个数 ' + count(), 'Enqueue ' + v + ' at rear → A[' + slot + '], count ' + count(), true);
+      sbVal.value = nextLetter(v);
+    } else {
+      render(); flashStage('shake');
+      sbShow('sb.rejectFull',
+        '队满！<code>end1 == (end2+1) mod M</code>（' + end1 + ' == ' + ((end2 + 1) % M) + '），拒绝入队',
+        'Queue FULL! <code>end1 == (end2+1) mod M</code> (' + end1 + ' == ' + ((end2 + 1) % M) + '), enqueue rejected', false);
+      addLog('队尾入队 ' + v + ' 被拒绝（队满）', 'Enqueue ' + v + ' at rear rejected (FULL)', false);
+    }
+    updateCtrl();
+  });
+  document.getElementById('sbPushFront').addEventListener('click', function(){
+    if(mode !== 'free'){ mode = 'free'; }
+    var v = getVal();
+    if(pushFront(v)){
+      var slot = end1;
+      var fullTail = isFull() ? (LANG === 'zh' ? '，<b>队列已满</b>！' : ' — the queue is now <b>FULL</b>!') : '';
+      render();
+      sbShow('sb.titleFrontIn',
+        '队头入队 <b>' + v + '</b> 成功：end1 → ' + end1 + '，放入 A[' + slot + ']，个数 = ' + count() + fullTail,
+        'Enqueue <b>' + v + '</b> at the front: OK — end1 → ' + end1 + ', stored in A[' + slot + '], count = ' + count() + fullTail, true);
+      addLog('队头入队 ' + v + ' → A[' + slot + ']，个数 ' + count(), 'Enqueue ' + v + ' at front → A[' + slot + '], count ' + count(), true);
+      sbVal.value = nextLetter(v);
+    } else {
+      render(); flashStage('shake');
+      sbShow('sb.rejectFull',
+        '队满！<code>end1 == (end2+1) mod M</code>（' + end1 + ' == ' + ((end2 + 1) % M) + '），拒绝入队',
+        'Queue FULL! <code>end1 == (end2+1) mod M</code> (' + end1 + ' == ' + ((end2 + 1) % M) + '), enqueue rejected', false);
+      addLog('队头入队 ' + v + ' 被拒绝（队满）', 'Enqueue ' + v + ' at front rejected (FULL)', false);
+    }
+    updateCtrl();
+  });
+  document.getElementById('sbPopFront').addEventListener('click', function(){
+    if(mode !== 'free'){ mode = 'free'; }
+    var v = popFront();
+    if(v === null){
+      render(); flashStage('shake');
+      sbShow('sb.rejectEmpty',
+        '队空！<code>end1 == end2</code>（' + end1 + ' == ' + end2 + '），无元素可出',
+        'Queue EMPTY! <code>end1 == end2</code> (' + end1 + ' == ' + end2 + '), nothing to dequeue', false);
+      addLog('队头出队被拒绝（队空）', 'Dequeue from front rejected (EMPTY)', false);
+    } else {
+      var emptyTail = isEmpty() ? (LANG === 'zh' ? '，<b>队列已空</b>' : ' — the queue is now <b>EMPTY</b>') : '';
+      render();
+      sbShow('sb.titleFrontOut',
+        '队头出队 <b>' + v + '</b> 成功：end1 → ' + end1 + '，个数 = ' + count() + emptyTail,
+        'Dequeue <b>' + v + '</b> from the front: OK — end1 → ' + end1 + ', count = ' + count() + emptyTail, true);
+      addLog('队头出队 ' + v + '，个数 ' + count(), 'Dequeue ' + v + ' from front, count ' + count(), true);
+    }
+    updateCtrl();
+  });
+  document.getElementById('sbPopBack').addEventListener('click', function(){
+    if(mode !== 'free'){ mode = 'free'; }
+    var v = popBack();
+    if(v === null){
+      render(); flashStage('shake');
+      sbShow('sb.rejectEmpty',
+        '队空！<code>end1 == end2</code>（' + end1 + ' == ' + end2 + '），无元素可出',
+        'Queue EMPTY! <code>end1 == end2</code> (' + end1 + ' == ' + end2 + '), nothing to dequeue', false);
+      addLog('队尾出队被拒绝（队空）', 'Dequeue from rear rejected (EMPTY)', false);
+    } else {
+      var slot = end2;
+      var emptyTail = isEmpty() ? (LANG === 'zh' ? '，<b>队列已空</b>' : ' — the queue is now <b>EMPTY</b>') : '';
+      render();
+      sbShow('sb.titleRearOut',
+        '队尾出队 <b>' + v + '</b> 成功：end2 → ' + end2 + '，A[' + slot + '] 变空闲，个数 = ' + count() + emptyTail,
+        'Dequeue <b>' + v + '</b> from the rear: OK — end2 → ' + end2 + ', A[' + slot + '] is now free, count = ' + count() + emptyTail, true);
+      addLog('队尾出队 ' + v + '，个数 ' + count(), 'Dequeue ' + v + ' from rear, count ' + count(), true);
+    }
+    updateCtrl();
+  });
+
+  /* ============ 语言切换 ============ */
+  function applyLang(){
+    document.documentElement.lang = (LANG === 'zh') ? 'zh-CN' : 'en';
+    document.title = t('doc.title');
+    var els = document.querySelectorAll('[data-i18n]');
+    for(var i = 0; i < els.length; i++) els[i].textContent = t(els[i].getAttribute('data-i18n'));
+    var els2 = document.querySelectorAll('[data-i18n-html]');
+    for(var j = 0; j < els2.length; j++) els2[j].innerHTML = t(els2[j].getAttribute('data-i18n-html'));
+    var els3 = document.querySelectorAll('[data-i18n-attr]');
+    for(var k = 0; k < els3.length; k++){
+      var spec = els3[k].getAttribute('data-i18n-attr').split(':');
+      els3[k].setAttribute(spec[0], t(spec[1]));
+    }
+    langZh.classList.toggle('active', LANG === 'zh');
+    langEn.classList.toggle('active', LANG === 'en');
+    pageFooter.textContent = t('footer');
+    sbMsg.textContent = (lastSb ? ((lastSb.ok ? '✓ ' : '✗ ') + stripTags(LANG === 'zh' ? lastSb.zh : lastSb.en)) : t('sb.msgDefault'));
+    sbMsg.className = 'sb-msg' + (lastSb ? (lastSb.ok ? ' ok' : ' no') : '');
+    if(lastSb) addLogRefresh();
+    stopAuto();
+    if(mode === 'guide'){ render(); showStep(steps[cur]); }
+    else render();
+    updateCtrl();
+    try { localStorage.setItem('408lab-lang', LANG); } catch(e) {}
+  }
+  function addLogRefresh(){
+    sbLog.innerHTML = '';
+    logItems.forEach(function(it){
+      var li = document.createElement('li');
+      li.textContent = (it.ok ? '✓ ' : '✗ ') + (LANG === 'zh' ? it.zh : it.en);
+      li.className = it.ok ? 'ok' : 'no';
+      sbLog.appendChild(li);
+    });
+  }
+  langZh.addEventListener('click', function(){ if(LANG !== 'zh'){ LANG = 'zh'; applyLang(); } });
+  langEn.addEventListener('click', function(){ if(LANG !== 'en'){ LANG = 'en'; applyLang(); } });
+
+  /* ============ 启动 ============ */
+  buildSteps();
+  goTo(0, true);
+  applyLang();
+})();
+</script>
+</body>
+</html>
