@@ -21,7 +21,7 @@
 
 | 题目 | 科目 | 在线预览 |
 | --- | --- | --- |
-| 2014 年 · 单选第 3 题：双端循环队列的队空与队满条件（答案 A） | 数据结构 | [打开](data-structure/2014-q3-circular-deque.html) |
+| 2014 年 · 单选第 3 题：双端循环队列的队空与队满条件（答案 A） | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html) |
 
 更多演示持续添加中（每周更新）。More demos are added regularly.
 
@@ -84,7 +84,7 @@ Subjects: Data Structures, Operating Systems, Computer Networks, Computer Organi
 
 | Problem | Subject | Live Demo |
 | --- | --- | --- |
-| 2014 · Multiple Choice Q3: Empty vs. full conditions of a double-ended circular queue (Answer: A) | Data Structures | [Open](data-structure/2014-q3-circular-deque.html) |
+| 2014 · Multiple Choice Q3: Empty vs. full conditions of a double-ended circular queue (Answer: A) | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html) |
 
 More demos are added regularly.
 
