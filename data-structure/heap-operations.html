@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 数据结构 · 堆的构建与删除（动画演示）</title>
+<style>
+  :root{
+    --bg:#f3f4fa; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
+    --indigo:#4f46e5; --indigo-soft:#eef0ff; --indigo-line:#c7cbe8;
+    --rose:#e11d48; --blue:#2563eb;
+    --amber:#b45309; --amber-line:#d97706; --amber-soft:#fef3e2;
+    --green:#059669; --green-soft:#e7f7f1;
+    --purple:#7c3aed; --purple-soft:#f3eeff;
+    --line:#e6e8f2;
+    --shadow:0 10px 30px rgba(31,36,48,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 10% -12%, #e9eaff 0%, transparent 60%),
+      radial-gradient(820px 500px at 105% 6%, #e6f4ff 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); line-height:1.78; font-size:16.5px; padding:30px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    background:#f1f2fb;border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font-size:.92em;color:#3d3fb8;white-space:nowrap;
+  }
+  .lang-switch{display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 10px rgba(20,24,40,.08)}
+  .lang-btn{border:none;background:transparent;border-radius:999px;padding:6px 18px;font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+  .lang-btn.active{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{font-size:13.5px;font-weight:700;color:var(--indigo);background:var(--indigo-soft);border:1px solid #dcdffb;border-radius:999px;padding:4px 14px}
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.4;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);border:1px solid rgba(230,232,242,.9);padding:24px 26px;margin-bottom:22px}
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 堆类型 ---------- */
+  .type-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .type-btn{
+    border:1.5px solid var(--line);background:#fbfbff;border-radius:11px;
+    padding:9px 18px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:all .2s;font-family:inherit;
+  }
+  .type-btn:hover{border-color:var(--indigo);color:var(--indigo)}
+  .type-btn.active{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(79,70,229,.32)}
+  .type-hint{font-size:14px;font-weight:700;color:var(--muted);margin-left:6px}
+  /* ---------- 输入 ---------- */
+  .input-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .seq-input{
+    flex:1;min-width:260px;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 14px;font-size:17px;font-weight:700;outline:none;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1px;
+  }
+  .seq-input:focus{border-color:var(--indigo)}
+  .input-msg{margin-top:12px;font-size:14.5px;font-weight:700;min-height:24px}
+  .input-msg.ok{color:var(--green)} .input-msg.no{color:#b91c1c}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+  .stat{border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;background:#fbfbff;text-align:center}
+  .stat-k{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .stat-v{display:block;font-size:24px;font-weight:800;line-height:1.3}
+  .c-rose{color:var(--rose)} .c-blue{color:var(--blue)}
+  .badge{display:inline-block;font-size:16px;font-weight:800;border-radius:999px;padding:3px 16px;margin-top:2px}
+  .b-gray{background:#eef0f4;color:#4b5563}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}
+  .b-green{background:var(--green-soft);color:var(--green)}
+  .b-purple{background:var(--purple-soft);color:var(--purple)}
+  /* ---------- 树舞台 ---------- */
+  .tree-wrap{position:relative;width:min(680px,100%);margin:18px auto 4px}
+  .tree-svg{width:100%;display:block}
+  .edge{stroke:#d5d8ea;stroke-width:3;transition:stroke .3s}
+  .edge.hot{stroke:var(--amber-line);stroke-width:4.5}
+  .node circle{fill:#eef0ff;stroke:var(--indigo);stroke-width:2.5;transition:fill .3s,stroke .3s}
+  .n-cmp circle{fill:#fdeccc;stroke:var(--amber-line);stroke-width:3.5}
+  .n-swap circle{fill:#ffe1e6;stroke:var(--rose);stroke-width:3.5}
+  .n-target circle{fill:#f3eeff;stroke:var(--purple);stroke-width:3.5}
+  .n-cmp text.val{fill:var(--amber)} .n-swap text.val{fill:var(--rose)} .n-target text.val{fill:var(--purple)} .n-done text.val{fill:var(--green)}
+  .node text.val{font-size:19px;font-weight:800;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+  .n-cmp text.val{fill:var(--amber)} .n-swap text.val{fill:var(--rose)} .n-target text.val{fill:var(--purple)} .n-done text.val{fill:var(--green)}
+  .node text.idx{font-size:11px;font-weight:700;fill:#8a8fa8;text-anchor:middle}
+  .n-cut{opacity:.28}
+  .n-cut circle{fill:#f3f4f6;stroke:#9ca3af;stroke-dasharray:5 4}
+  .n-cut text.val{text-decoration:line-through;fill:#9ca3af}
+  .phase-note{text-align:center;font-size:13.5px;font-weight:700;color:var(--muted);margin-top:6px}
+  /* ---------- 数组视图 ---------- */
+  .linear{display:flex;gap:9px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+  .lcell{
+    width:64px;border-radius:12px;border:2px dashed #c9cde0;background:#fbfbff;
+    padding:7px 4px 5px;text-align:center;transition:all .35s;
+  }
+  .lcell.full{border-style:solid;border-color:var(--indigo);background:linear-gradient(160deg,#eef0ff,#e2e6ff)}
+  .lcell.is-cmp{border-color:var(--amber-line);background:var(--amber-soft)}
+  .lcell.is-swap{border-color:var(--rose);background:#ffe9ed}
+  .lcell.is-target{border-color:var(--purple);background:var(--purple-soft)}
+  .lcell.is-done{border-color:var(--green);background:var(--green-soft)}
+  .lcell.gone{opacity:.28;border-style:dashed;border-color:#9ca3af}
+  .lcell-idx{display:block;font-size:11px;color:var(--muted);font-weight:700}
+  .lcell-val{display:block;font-size:20px;font-weight:800;min-height:26px;line-height:1.3}
+  .legend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:16px;font-size:13.5px;color:var(--muted);font-weight:600}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dot-indigo{background:var(--indigo)} .dot-amber{background:var(--amber-line)}
+  .dot-rose{background:var(--rose)} .dot-green{background:var(--green)} .dot-purple{background:var(--purple)}
+  /* ---------- 删除区 ---------- */
+  .del-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px}
+  .del-row select{
+    border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;
+    font-size:15.5px;font-weight:700;font-family:inherit;background:#fff;outline:none;cursor:pointer;max-width:380px;
+  }
+  .del-row select:focus{border-color:var(--indigo)}
+  .btn-danger{background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(225,29,72,.3)}
+  /* ---------- 控制区 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:22px}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;
+    padding:11px 20px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,36,48,.14)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(79,70,229,.35)}
+  .btn-play{background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;border-color:transparent}
+  .btn-sm{padding:8px 14px;font-size:14.5px;border-radius:10px}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--indigo);cursor:pointer}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--indigo);font-size:18px}
+  .progress{height:9px;background:#eceef7;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--indigo),#8b7ff5);transition:width .45s cubic-bezier(.22,.9,.32,1)}
+  .narr{border-radius:16px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fbfbff,#f5f6fd);padding:18px 22px}
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{background:var(--indigo);color:#fff;font-size:13px;font-weight:800;border-radius:999px;padding:3px 13px;white-space:nowrap}
+  .narr-title{font-size:18.5px;font-weight:800}
+  .narr-body{font-size:16.5px}
+  .narr-body b{color:#000}
+  .narr-formula{
+    margin-top:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    background:#fff;border:1.5px dashed var(--indigo-line);border-radius:10px;
+    padding:8px 14px;display:inline-block;color:var(--indigo);font-weight:700;font-size:15px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 小结 ---------- */
+  .summary li{margin:8px 0 8px 22px;font-size:15.5px}
+  .summary b{color:var(--indigo)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--indigo);font-weight:700;text-decoration:none}
+  @media (max-width:640px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 16px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .step-info{margin-left:0;width:100%}
+    .lcell{width:52px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">数据结构 · 知识点</span>
+        <span class="tag" data-i18n="tag.scope">建堆（自底向上）· 删除关键字 · 逐步计数</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">大根堆 / 小根堆 可切换</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">堆的构建与删除：每一次比较都数得清清楚楚</h1>
+    <p class="sub" data-i18n="hero.sub">自底向上建堆（O(n)）、删除堆顶或任意关键字后重新调整 —— 树形 + 数组双视图，比较和交换次数逐步统计，408 选择题再也不怕「最少/最多比较多少次」。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cfg.title">配置</span> <span class="title-note" data-i18n="cfg.note">先选堆类型和序列，点「开始建堆」</span></h2>
+    <div class="type-row">
+      <button class="type-btn active" id="typeMax" type="button" data-i18n="cfg.max">⬆ 大根堆</button>
+      <button class="type-btn" id="typeMin" type="button" data-i18n="cfg.min">⬇ 小根堆</button>
+      <span class="type-hint" id="typeHint"></span>
+    </div>
+    <div class="input-row">
+      <input class="seq-input" id="seqInput" placeholder="49 38 65 97 76 13 27 49" spellcheck="false" type="text">
+      <button class="btn btn-sm" id="btnRandom" type="button" data-i18n="input.random">🎲 随机生成</button>
+      <button class="btn btn-sm" id="btnClassic" type="button" data-i18n="input.classic">📖 经典序列</button>
+      <button class="btn btn-primary" id="btnStart" type="button" data-i18n="input.start">开始建堆</button>
+    </div>
+    <div class="input-msg" id="inputMsg"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="stage.title">动画演示</span> <span class="title-note" id="stageNote"></span></h2>
+
+    <div class="stat-row">
+      <div class="stat"><span class="stat-k" data-i18n="stat.cmp">比较次数</span><span class="stat-v" id="statCmp" style="color:var(--amber)">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.swap">交换次数</span><span class="stat-v c-rose" id="statSwap">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.heap">堆大小</span><span class="stat-v c-blue" id="statHeap">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.state">当前状态</span><span class="badge b-gray" id="statState">—</span></div>
+    </div>
+
+    <div class="tree-wrap">
+      <svg aria-hidden="true" class="tree-svg" id="treeSvg" viewBox="0 0 680 400"></svg>
+      <div class="phase-note" id="phaseNote"></div>
+    </div>
+
+    <div class="linear" id="linear"></div>
+
+    <div class="legend">
+      <span><i class="dot dot-indigo"></i><span data-i18n="legend.normal">堆中元素</span></span>
+      <span><i class="dot dot-amber"></i><span data-i18n="legend.cmp">正在比较</span></span>
+      <span><i class="dot dot-rose"></i><span data-i18n="legend.swap">交换 / 被删</span></span>
+      <span><i class="dot dot-purple"></i><span data-i18n="legend.target">删除目标 / 下滤焦点</span></span>
+      <span><i class="dot dot-green"></i><span data-i18n="legend.done">调整完成</span></span>
+    </div>
+
+    <div class="del-row" id="delRow" style="display:none">
+      <span style="font-weight:800" data-i18n="del.label">🗑 删除关键字：</span>
+      <select id="delSel"></select>
+      <button class="btn btn-danger btn-sm" id="btnDelete" type="button" data-i18n="del.go">执行删除</button>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">⟲ 重置</button>
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-play" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <div class="speed-box">
+        <span data-i18n="ctrl.speed">速度</span>
+        <input id="speedSlider" max="10" min="1" type="range" value="5">
+      </div>
+      <div class="step-info"><span data-i18n="ctrl.step">步数</span> <b id="stepNow">0</b>/<span id="stepTotal">0</span></div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="narr">
+      <div class="narr-head">
+        <span class="narr-badge" id="narrBadge">—</span>
+        <span class="narr-title" id="narrTitle">—</span>
+      </div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title" data-i18n="sum.title">408 考点速记</h2>
+    <ul class="summary" id="summaryList"></ul>
+  </section>
+
+  <p class="footer">
+    <span data-i18n="footer.text">408 Visual Lab · 用动画讲透考研 408 重难点</span> ·
+    <a href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener">GitHub</a>
+  </p>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= 语言 ================= */
+var LANG='zh';
+try{ LANG=localStorage.getItem('408lab-lang')||'zh'; }catch(e){}
+
+var T={
+  'tag.subj':{zh:'数据结构 · 知识点',en:'Data Structures · Topic'},
+  'tag.scope':{zh:'建堆（自底向上）· 删除关键字 · 逐步计数',en:'Build (bottom-up) · Delete key · Step counting'},
+  'tag.inter':{zh:'大根堆 / 小根堆 可切换',en:'Max-heap / min-heap switchable'},
+  'hero.h1':{zh:'堆的构建与删除：每一次比较都数得清清楚楚',en:'Heap build & deletion: count every comparison'},
+  'hero.sub':{zh:'自底向上建堆（O(n)）、删除堆顶或任意关键字后重新调整 —— 树形 + 数组双视图，比较和交换次数逐步统计，408 选择题再也不怕「最少/最多比较多少次」。',en:'Bottom-up build in O(n), then delete the root or any key and re-adjust — tree + array views, with per-step comparison and swap counts.'},
+  'cfg.title':{zh:'配置',en:'Configuration'},
+  'cfg.note':{zh:'先选堆类型和序列，点「开始建堆」',en:'Pick a heap type & sequence, then press Build'},
+  'cfg.max':{zh:'⬆ 大根堆',en:'⬆ Max-heap'},
+  'cfg.min':{zh:'⬇ 小根堆',en:'⬇ Min-heap'},
+  'cfg.maxHint':{zh:'每个结点 ≥ 其孩子（升序排序用）',en:'every node ≥ its children (for ascending sort)'},
+  'cfg.minHint':{zh:'每个结点 ≤ 其孩子（优先队列用）',en:'every node ≤ its children (priority queues)'},
+  'input.random':{zh:'🎲 随机生成',en:'🎲 Random'},
+  'input.classic':{zh:'📖 经典序列',en:'📖 Classic seq.'},
+  'input.start':{zh:'开始建堆',en:'Build heap'},
+  'input.errFew':{zh:'至少需要 2 个元素（最多 15 个）',en:'Need 2 to 15 elements'},
+  'input.errInt':{zh:'请输入非负整数（0～99），用空格或逗号分隔',en:'Enter non-negative integers (0–99), separated by spaces or commas'},
+  'input.ok':{zh:'序列有效，共 n 个元素：',en:'Valid sequence, n elements:'},
+  'stage.title':{zh:'动画演示',en:'Animation'},
+  'stat.cmp':{zh:'比较次数',en:'Comparisons'},
+  'stat.swap':{zh:'交换次数',en:'Swaps'},
+  'stat.heap':{zh:'堆大小',en:'Heap size'},
+  'stat.state':{zh:'当前状态',en:'Status'},
+  'legend.normal':{zh:'堆中元素',en:'In heap'},
+  'legend.cmp':{zh:'正在比较',en:'Comparing'},
+  'legend.swap':{zh:'交换 / 被删',en:'Swap / deleted'},
+  'legend.target':{zh:'删除目标 / 下滤焦点',en:'Delete target / sifting node'},
+  'legend.done':{zh:'调整完成',en:'Settled'},
+  'del.label':{zh:'🗑 删除关键字：',en:'🗑 Delete key:'},
+  'del.go':{zh:'执行删除',en:'Delete'},
+  'ctrl.reset':{zh:'⟲ 重置',en:'⟲ Reset'},
+  'ctrl.prev':{zh:'← 上一步',en:'← Prev'},
+  'ctrl.next':{zh:'下一步 →',en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放',en:'▶ Auto play'},
+  'ctrl.pause':{zh:'⏸ 暂停',en:'⏸ Pause'},
+  'ctrl.speed':{zh:'速度',en:'Speed'},
+  'ctrl.step':{zh:'步数',en:'Step'},
+  'sum.title':{zh:'408 考点速记',en:'Key exam takeaways'},
+  'state.init':{zh:'待开始',en:'Ready'},
+  'state.playing':{zh:'演示中',en:'Playing'},
+  'state.pause':{zh:'已暂停',en:'Paused'},
+  'state.buildDone':{zh:'建堆完成 ✓',en:'Heap built ✓'},
+  'state.delDone':{zh:'删除完成 ✓',en:'Deleted ✓'},
+  'footer.text':{zh:'408 Visual Lab · 用动画讲透考研 408 重难点',en:'408 Visual Lab · Animated explanations for the CS 408 exam'}
+};
+function t(k){ var e=T[k]; return e?(LANG==='zh'?e.zh:e.en):k; }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ================= 步骤生成 =================
+   op 类型：init{arr} cmp{i,j} swap{i,j} cut{i} focus{i} unfocus
+            phase{} pass{i} doneBuild{} doneDel{} shrink{} */
+
+function siftSteps(a,i,size,maxHeap,st,S){
+  /* 对 a[i] 下滤，记录步骤；返回 */
+  while(true){
+    var l=2*i+1; if(l>=size) break;
+    var big=l;
+    if(l+1<size){
+      S({t:'cmp',i:l,j:l+1},
+        '比较左右孩子 a['+l+'] = '+a[l]+' 与 a['+(l+1)+'] = '+a[(l+1)]+'，选出更'+(maxHeap?'大':'小')+'的孩子',
+        'Compare children a['+l+'] = '+a[l]+' and a['+(l+1)+'] = '+a[(l+1)]+' to pick the '+(maxHeap?'larger':'smaller')+' one');
+      var c1=(a[l+1]>a[l]);
+      if(maxHeap? c1 : !c1&&a[l+1]!==a[l]) big=l+1;
+    }
+    S({t:'cmp',i:big,j:i},
+      '比较'+(maxHeap?'较大':'较小')+'孩子 a['+big+'] = '+a[big]+' 与父结点 a['+i+'] = '+a[i],
+      'Compare the '+(maxHeap?'larger':'smaller')+' child a['+big+'] = '+a[big]+' with parent a['+i+'] = '+a[i]);
+    var viol=(maxHeap? (a[big]>a[i]) : (a[big]<a[i]));
+    if(viol){
+      S({t:'focus',i:i},'父结点 a['+i+'] 违反堆性质，需要调整','Node a['+i+'] violates the heap property');
+      var tv=a[i]; a[i]=a[big]; a[big]=tv;
+      S({t:'swap',i:i,j:big,mv:1},'违反性质 → 交换父子，继续向下调整','Violation → swap parent and child, keep sifting down');
+      i=big;
+    } else {
+      S({t:'info'},'父子关系满足堆性质，下滤结束','Heap property holds — sifting stops');
+      break;
+    }
+  }
+}
+
+function buildSteps(a0,maxHeap){
+  var st=[], a=a0.slice(), n=a.length;
+  function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+  S({t:'init',arr:a.slice()},'初始序列：'+a.join('  '),'Initial array: '+a.join('  '));
+  S({t:'phase'},
+    '阶段一：自底向上建'+(maxHeap?'大根堆':'小根堆')+' —— 从最后一个非叶结点 ⌊n/2⌋−1 = '+(Math.floor(n/2)-1)+' 开始，逐个下滤',
+    'Phase 1: build a '+(maxHeap?'max':'min')+'-heap bottom-up — sift down from the last internal node ⌊n/2⌋−1 = '+(Math.floor(n/2)-1));
+  for(var i=Math.floor(n/2)-1;i>=0;i--){
+    S({t:'pass',i:i},'下滤结点 a['+i+'] = '+a[i],'Sift down node a['+i+'] = '+a[i]);
+    S({t:'focus',i:i},'下滤焦点：a['+i+'] = '+a[i],'Sifting node a['+i+'] = '+a[i]);
+    siftSteps(a,i,n,maxHeap,st,S);
+    S({t:'unfocus'},'a['+i+'] 调整完成','a['+i+'] is settled');
+  }
+  S({t:'doneBuild'},
+    '建堆完成！堆顶 a[0] = '+a[0]+' 是'+(maxHeap?'最大':'最小')+'值，总比较与交换次数见上方统计',
+    'Build complete! The root a[0] = '+a[0]+' is the '+(maxHeap?'maximum':'minimum')+'; see the counters above');
+  return st;
+}
+
+function deleteSteps(a0,maxHeap,target){
+  /* a0：删除前完整数组（长度 m），target：被删下标。返回追加步骤（不含 init） */
+  var st=[], a=a0.slice(), m=a.length;
+  function S(o,zh,en){ o.zh=zh; o.en=en; st.push(o); }
+  var v=a[target];
+  S({t:'phase'},
+    '删除关键字 a['+target+'] = '+v+'（'+(maxHeap?'大根堆':'小根堆')+'，当前堆大小 '+m+'）',
+    'Delete key a['+target+'] = '+v+' ('+(maxHeap?'max':'min')+'-heap, current size '+m+')');
+  S({t:'focus',i:target},'删除目标：a['+target+'] = '+v,'Delete target: a['+target+'] = '+v);
+  if(m===1){
+    S({t:'cut',i:0},'堆中只剩这一个元素，直接删除，堆变为空','The heap has only this element — deleting it empties the heap');
+    S({t:'shrink',n:0});
+    S({t:'doneDel'},'删除完成，堆为空','Deletion complete, heap is empty');
+    return st;
+  }
+  S({t:'info'},
+    '标准做法：用堆尾元素 a['+(m-1)+'] = '+a[m-1]+' 填补空位，堆大小减 1',
+    'Standard method: move the last heap element a['+(m-1)+'] = '+a[m-1]+' into the hole; heap shrinks by 1');
+  var tv=a[target]; a[target]=a[m-1]; a[m-1]=tv;
+  S({t:'swap',i:target,j:m-1,mv:1},'堆尾 '+a[target]+' 与被删位置交换','Swap the tail '+a[target]+' with the deleted slot');
+  S({t:'cut',i:m-1},'原堆尾位置 '+(m-1)+' 脱离堆（元素 '+tv+' 已被删除）','Old tail slot '+(m-1)+' leaves the heap ('+tv+' is deleted)');
+  S({t:'shrink',n:m-1},'堆大小：'+m+' → '+(m-1),'Heap size: '+m+' → '+(m-1));
+  if(target===m-1){
+    S({t:'doneDel'},'删除的恰好是堆尾，无需任何调整','The deleted key was the tail — no adjustment needed');
+    return st;
+  }
+  /* 判断向上滤还是向下滤 */
+  if(target>0){
+    var par=Math.floor((target-1)/2);
+    S({t:'cmp',i:target,j:par},
+      '先与父结点 a['+par+'] = '+a[par]+' 比较，决定向上还是向下调整',
+      'Compare with parent a['+par+'] = '+a[par]+' to decide: sift up or down');
+    var upNeed=(maxHeap? (a[target]>a[par]) : (a[target]<a[par]));
+    if(upNeed){
+      S({t:'info'},'a['+target+'] = '+a[target]+(maxHeap?' 大于':' 小于')+'父结点 → 向上滤','a['+target+'] = '+a[target]+(maxHeap?' > ':' < ')+'parent → sift up');
+      var i2=target;
+      while(i2>0){
+        var p2=Math.floor((i2-1)/2);
+        S({t:'cmp',i:i2,j:p2},'比较 a['+i2+'] = '+a[i2]+' 与父结点 a['+p2+'] = '+a[p2],'Compare a['+i2+'] = '+a[i2]+' with parent a['+p2+'] = '+a[p2]);
+        var v2=(maxHeap? (a[i2]>a[p2]) : (a[i2]<a[p2]));
+        if(v2){ var t2=a[i2]; a[i2]=a[p2]; a[p2]=t2; S({t:'swap',i:i2,j:p2,mv:1},'违反性质 → 与父结点交换，继续向上','Violation → swap with parent, keep sifting up'); i2=p2; }
+        else { S({t:'info'},'父子关系满足堆性质，上滤结束','Heap property holds — sifting up stops'); break; }
+      }
+      S({t:'doneDel'},'删除完成：'+v+' 已移除，堆性质恢复','Deletion complete: '+v+' removed, heap property restored');
+      return st;
+    }
+    S({t:'info'},'与父结点关系正常 → 向下滤','Relation with parent is fine → sift down');
+  } else {
+    S({t:'info'},'删除的是堆顶 → 直接向下滤','The root was deleted → sift down directly');
+  }
+  S({t:'focus',i:target},'下滤焦点：a['+target+'] = '+a[target],'Sifting node a['+target+'] = '+a[target]);
+  siftSteps(a,target,m-1,maxHeap,st,S);
+  S({t:'unfocus'});
+  S({t:'doneDel'},'删除完成：'+v+' 已移除，堆性质恢复','Deletion complete: '+v+' removed, heap property restored');
+  return st;
+}
+
+/* ================= 状态 ================= */
+var maxHeap=true;
+var srcArr=[];
+var steps=[];      /* 全部步骤（init + build + delete...） */
+var snapArr=[];    /* 与步骤末端对应的当前数组（用于追加删除） */
+var cur=0;
+var playing=false, timer=null;
+
+/* ================= 树渲染 ================= */
+var NS='http://www.w3.org/2000/svg';
+var nodeEls=[], edgeEls=[];
+function buildTree(n){
+  var svg=$('treeSvg'); svg.innerHTML='';
+  nodeEls=[]; edgeEls=[];
+  if(n<1) return;
+  var H=Math.min(400, 120+Math.ceil(Math.log2(n+1))*85);
+  svg.setAttribute('viewBox','0 0 680 '+H);
+  function pos(i){
+    var lvl=Math.floor(Math.log2(i+1));
+    var posIn=i+1-Math.pow(2,lvl), cnt=Math.pow(2,lvl);
+    return { x:(posIn+0.5)/cnt*680, y:52+lvl*((H-110)/Math.max(1,Math.ceil(Math.log2(n+1))-1)) };
+  }
+  for(var i=1;i<n;i++){
+    var p=pos(Math.floor((i-1)/2)), c=pos(i);
+    var ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',p.x); ln.setAttribute('y1',p.y);
+    ln.setAttribute('x2',c.x); ln.setAttribute('y2',c.y);
+    ln.setAttribute('class','edge');
+    svg.appendChild(ln); edgeEls.push(ln);
+  }
+  for(var j=0;j<n;j++){
+    var p2=pos(j);
+    var g=document.createElementNS(NS,'g');
+    g.setAttribute('class','node');
+    g.setAttribute('transform','translate('+p2.x+','+p2.y+')');
+    var c3=document.createElementNS(NS,'circle'); c3.setAttribute('r','27');
+    var tv=document.createElementNS(NS,'text'); tv.setAttribute('class','val'); tv.setAttribute('y','-2');
+    var ti=document.createElementNS(NS,'text'); ti.setAttribute('class','idx'); ti.setAttribute('y','40');
+    ti.textContent=j;
+    g.appendChild(c3); g.appendChild(tv); g.appendChild(ti);
+    svg.appendChild(g);
+    nodeEls.push({g:g,circle:c3,val:tv,idx:ti});
+  }
+}
+
+/* ================= 重放与渲染 ================= */
+function replay(k){
+  var a=[], heapN=0, cutSet={}, cmpI=-1,cmpJ=-1,swapI=-1,swapJ=-1,targetI=-1,focusI=-1;
+  for(var s=0;s<k;s++){
+    var op=steps[s];
+    switch(op.t){
+      case 'init': a=op.arr.slice(); heapN=a.length; break;
+      case 'swap': { var tv=a[op.i]; a[op.i]=a[op.j]; a[op.j]=tv; break; }
+      case 'cut': cutSet[op.i]=true; break;
+      case 'shrink': heapN=op.n; break;
+      case 'cmp': cmpI=op.i; cmpJ=op.j; break;
+      case 'focus': focusI=op.i; break;
+      case 'unfocus': focusI=-1; break;
+    }
+  }
+  /* swap 的高亮取最后一步 */
+  var last=(k>0)?steps[k-1]:null;
+  if(last&&last.t==='swap'){ swapI=last.i; swapJ=last.j; }
+  return {a:a,heapN:heapN,cut:cutSet,cmpI:cmpI,cmpJ:cmpJ,swapI:swapI,swapJ:swapJ,targetI:targetI,focusI:focusI,last:last};
+}
+function render(){
+  if(!srcArr.length||!steps.length) return;
+  var st=replay(cur);
+  var a=st.a, heapN=st.heapN;
+  /* 树 */
+  if(nodeEls.length!==heapN) buildTree(Math.max(heapN,1));
+  if(heapN===0){ $('treeSvg').innerHTML=''; nodeEls=[]; }
+  for(var i=0;i<nodeEls.length;i++){
+    var ne=nodeEls[i];
+    if(i<a.length) ne.val.textContent=a[i];
+    var cls='node';
+    if(st.cut[i]) cls+=' n-cut';
+    else{
+      if(i===st.cmpI||i===st.cmpJ) cls+=' n-cmp';
+      if(i===st.swapI||i===st.swapJ) cls+=' n-swap';
+      if(i===st.focusI) cls+=' n-target';
+      if(i>=heapN) cls+=' n-cut';
+    }
+    ne.g.setAttribute('class',cls);
+    ne.idx.textContent=i;
+  }
+  /* 边高亮：cmp 两端的父子边 */
+  for(var e=0;e<edgeEls.length;e++){
+    var child=e+1, par=Math.floor((child-1)/2);
+    var hot=((child===st.cmpI||child===st.cmpJ)&&(par===st.cmpI||par===st.cmpJ));
+    edgeEls[e].setAttribute('class',hot?'edge hot':'edge');
+  }
+  /* 数组视图 */
+  var lin=$('linear'); lin.innerHTML='';
+  for(var j=0;j<a.length;j++){
+    var d=document.createElement('div');
+    var lc='lcell';
+    if(j<a.length&&!st.cut[j]) lc+=' full';
+    if(j===st.cmpI||j===st.cmpJ) lc+=' is-cmp';
+    if(j===st.swapI||j===st.swapJ) lc+=' is-swap';
+    if(j===st.focusI) lc+=' is-target';
+    if(st.cut[j]||j>=heapN) lc+=' gone';
+    d.className=lc;
+    d.innerHTML='<span class="lcell-idx">'+j+'</span><span class="lcell-val">'+a[j]+'</span>';
+    lin.appendChild(d);
+  }
+  $('phaseNote').textContent='';
+  /* 统计 */
+  var cmps=0,swaps=0;
+  for(var s2=0;s2<cur;s2++){
+    var so=steps[s2];
+    if(so.t==='cmp') cmps++;
+    if(so.t==='swap') swaps++;
+  }
+  $('statCmp').textContent=cmps;
+  $('statSwap').textContent=swaps;
+  $('statHeap').textContent=heapN;
+  var badge=$('statState');
+  var last2=(cur>0)?steps[cur-1]:null;
+  if(cur===0){ badge.className='badge b-gray'; badge.textContent=t('state.init'); }
+  else if(last2&&last2.t==='doneBuild'){ badge.className='badge b-green'; badge.textContent=t('state.buildDone'); }
+  else if(last2&&last2.t==='doneDel'){ badge.className='badge b-green'; badge.textContent=t('state.delDone'); }
+  else if(playing){ badge.className='badge b-purple'; badge.textContent=t('state.playing'); }
+  else { badge.className='badge b-amber'; badge.textContent=t('state.pause'); }
+  /* 步数进度 */
+  $('stepNow').textContent=cur;
+  $('stepTotal').textContent=steps.length;
+  $('progressBar').style.width=(steps.length?(cur/steps.length*100):0)+'%';
+  /* 旁白 */
+  if(cur===0){
+    $('narrBadge').textContent='—';
+    $('narrTitle').textContent=(LANG==='zh'?'准备就绪':'Ready');
+    $('narrBody').innerHTML=(LANG==='zh'
+      ?'点击 <b>开始建堆</b> 或 <b>下一步</b> 开始演示。'
+      :'Press <b>Build heap</b> or <b>Next</b> to start.');
+    $('narrFormula').textContent='';
+  } else {
+    var sp=steps[cur-1];
+    var isPhase=(sp.t==='phase'||sp.t==='pass');
+    $('narrBadge').textContent=isPhase?(sp.t==='pass'?('a['+sp.i+']'):'★'):(cur);
+    $('narrTitle').textContent=(LANG==='zh'?sp.zh:sp.en)||'…';
+    var body='';
+    if(sp.t==='cmp') body=(LANG==='zh'?'<b>比较 +1</b>（黄色高亮的两个结点）':'<b>Comparison +1</b> (the two amber nodes)');
+    else if(sp.t==='swap') body=(LANG==='zh'?'<b>交换 +1</b>（红色高亮的两个结点）':'<b>Swap +1</b> (the two red nodes)');
+    else if(sp.t==='cut') body=(LANG==='zh'?'该元素脱离堆（灰色虚线）':'This element left the heap (grey, dashed)');
+    else if(sp.t==='shrink') body=(LANG==='zh'?'堆大小缩减':'Heap shrinks');
+    else if(sp.t==='doneBuild') body=(LANG==='zh'?'现在可以在下方选择关键字执行<b>删除</b>演示':'You can now <b>delete</b> a key below');
+    else if(sp.t==='doneDel') body=(LANG==='zh'?'可以继续删除其他关键字，或重置后换个序列':'Keep deleting more keys, or reset with a new sequence');
+    $('narrBody').innerHTML=body;
+    var f='';
+    if(sp.t==='cmp'&&st.a[sp.i]!==undefined){
+      f='a['+sp.i+']='+st.a[sp.i]+'  vs  a['+sp.j+']='+st.a[sp.j];
+    }
+    if(sp.t==='shrink') f='n = '+sp.n;
+    $('narrFormula').textContent=f;
+  }
+  /* 删除控件：仅当播放到最新一步且堆非空时可用 */
+  var atEnd=(cur===steps.length&&steps.length>0);
+  $('delRow').style.display=atEnd&&heapN>0?'flex':'none';
+  if(atEnd&&heapN>0) fillDelSelect(a,heapN,st.cut);
+  $('btnPrev').disabled=(cur<=0);
+  $('btnNext').disabled=(cur>=steps.length);
+  $('btnAuto').disabled=(cur>=steps.length);
+}
+function fillDelSelect(a,heapN,cut){
+  var sel=$('delSel');
+  var prev=sel.value;
+  sel.innerHTML='';
+  for(var i=0;i<heapN;i++){
+    if(cut[i]) continue;
+    var o=document.createElement('option');
+    o.value=i;
+    o.textContent='a['+i+'] = '+a[i];
+    sel.appendChild(o);
+  }
+  if(prev&&sel.querySelector('option[value="'+prev+'"]')) sel.value=prev;
+}
+
+/* ================= 操作 ================= */
+function startBuild(){
+  var msg=$('inputMsg');
+  var raw=$('seqInput').value.trim();
+  var parts=raw.split(/[\s,，、]+/).filter(function(s){return s.length;});
+  if(parts.length<2||parts.length>15){ msg.className='input-msg no'; msg.textContent=t('input.errFew'); return; }
+  var arr=[];
+  for(var i=0;i<parts.length;i++){
+    if(!/^\d{1,2}$/.test(parts[i])){ msg.className='input-msg no'; msg.textContent=t('input.errInt'); return; }
+    arr.push(parseInt(parts[i],10));
+  }
+  srcArr=arr.slice();
+  steps=buildSteps(srcArr,maxHeap);
+  cur=0;
+  msg.className='input-msg ok';
+  msg.textContent=t('input.ok')+' '+srcArr.length+'：'+srcArr.join('  ');
+  var hint=maxHeap?(LANG==='zh'?T['cfg.maxHint'].zh:T['cfg.maxHint'].en):(LANG==='zh'?T['cfg.minHint'].zh:T['cfg.minHint'].en);
+  $('stageNote').textContent=(maxHeap?(LANG==='zh'?'大根堆':'Max-heap'):(LANG==='zh'?'小根堆':'Min-heap'))+' · n = '+srcArr.length+' · '+hint;
+  buildTree(srcArr.length);
+  render();
+}
+function randomSeq(){
+  var n=7+Math.floor(Math.random()*3);
+  var arr=[];
+  for(var i=0;i<n;i++) arr.push(5+Math.floor(Math.random()*90));
+  $('seqInput').value=arr.join(' ');
+  $('inputMsg').className='input-msg'; $('inputMsg').textContent='';
+}
+function classicSeq(){
+  $('seqInput').value='49 38 65 97 76 13 27 49';
+  $('inputMsg').className='input-msg'; $('inputMsg').textContent='';
+}
+function doDelete(){
+  if(cur!==steps.length||!steps.length) return;
+  var st=replay(cur);
+  var target=parseInt($('delSel').value,10);
+  if(isNaN(target)) return;
+  var add=deleteSteps(st.a.slice(),maxHeap,target);
+  steps=steps.concat(add);
+  $('stepTotal').textContent=steps.length;
+  render();
+}
+function goNext(){ if(cur<steps.length){ cur++; render(); if(cur>=steps.length) stopPlay(); } }
+function goPrev(){ if(cur>0){ cur--; render(); } }
+function startPlay(){
+  if(!steps.length||cur>=steps.length) return;
+  playing=true; $('btnAuto').textContent=t('ctrl.pause'); scheduleTick();
+}
+function scheduleTick(){
+  if(!playing) return;
+  var speed=parseInt($('speedSlider').value,10);
+  var ms=1150-speed*100;
+  timer=setTimeout(function(){ goNext(); if(playing&&cur<steps.length) scheduleTick(); },ms);
+}
+function stopPlay(){
+  playing=false;
+  if(timer){ clearTimeout(timer); timer=null; }
+  $('btnAuto').textContent=t('ctrl.auto');
+  if(steps.length&&cur>0) render();
+}
+function togglePlay(){ if(playing) stopPlay(); else startPlay(); }
+function setType(isMax){
+  maxHeap=isMax;
+  $('typeMax').classList.toggle('active',maxHeap);
+  $('typeMin').classList.toggle('active',!maxHeap);
+  $('typeHint').textContent=maxHeap?t('cfg.maxHint'):t('cfg.minHint');
+  if(steps.length&&cur>0){ /* 换类型后重置重建 */
+    steps=buildSteps(srcArr,maxHeap); cur=0; render();
+  }
+}
+
+/* ================= 小结 ================= */
+var SUMMARY=[
+  {zh:'<b>自底向上建堆只看 ⌊n/2⌋−1 到 0 的结点</b>（叶子不用动）；时间 O(n)，比逐个插入建堆的 O(n log n) 更优。',
+   en:'<b>Bottom-up build sifts only nodes ⌊n/2⌋−1 … 0</b> (leaves stay); it is O(n), better than inserting one by one at O(n log n).'},
+  {zh:'<b>每次下滤最多 2 次比较</b>（两个孩子互比 1 次 + 与父结点比 1 次），沿树高走 O(log₂n) 层 → 删除后调整最多约 2⌊log₂n⌋ 次比较。',
+   en:'<b>Each sift-down level costs at most 2 comparisons</b> (children vs each other, then winner vs parent); over O(log₂n) levels → about 2⌊log₂n⌋ comparisons per deletion.'},
+  {zh:'<b>删除堆顶的标准做法</b>：堆尾元素填补堆顶，堆大小减 1，再下滤 —— 不是「把第二大的提上来」。',
+   en:'<b>Standard root deletion</b>: move the tail element to the root, shrink by 1, then sift down — never "promote the runner-up".'},
+  {zh:'<b>删除任意位置的关键字</b>：同样用堆尾替换，然后要判断方向 —— 与父结点比，若违反性质则<b>上滤</b>，否则<b>下滤</b>。只可能走其中一个方向。',
+   en:'<b>Deleting an arbitrary key</b>: replace with the tail, then compare with the parent — if the property breaks, <b>sift up</b>; otherwise <b>sift down</b>. Only one direction is needed.'},
+  {zh:'<b>建堆比较次数的界</b>：≤ 4n（严格 O(n)）；对 n 个元素建大根堆，最后一个非叶结点是 ⌊n/2⌋−1。',
+   en:'<b>Build-heap comparison bound</b>: ≤ 4n (strictly O(n)); the last internal node is ⌊n/2⌋−1.'},
+  {zh:'<b>大根堆 ↔ 升序排序 / 小根堆 ↔ 优先队列取最小</b>；堆是完全二叉树，用数组存储：i 的孩子是 2i+1 和 2i+2。',
+   en:'<b>Max-heap ↔ ascending sort; min-heap ↔ priority queue</b>; a heap is a complete binary tree stored in an array: children of i are 2i+1 and 2i+2.'}
+];
+function buildSummary(){
+  var ul=$('summaryList'); ul.innerHTML='';
+  SUMMARY.forEach(function(it){
+    var li=document.createElement('li');
+    li.innerHTML=(LANG==='zh'?it.zh:it.en);
+    ul.appendChild(li);
+  });
+}
+
+/* ================= 语言 ================= */
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent=t(nodes[i].getAttribute('data-i18n'));
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+  $('typeHint').textContent=maxHeap?t('cfg.maxHint'):t('cfg.minHint');
+  buildSummary();
+  if(srcArr.length&&steps.length){
+    var hint2=maxHeap?t('cfg.maxHint'):t('cfg.minHint');
+    $('stageNote').textContent=(maxHeap?(LANG==='zh'?'大根堆':'Max-heap'):(LANG==='zh'?'小根堆':'Min-heap'))+' · n = '+srcArr.length+' · '+hint2;
+    render();
+  }
+  else{
+    $('narrTitle').textContent=(LANG==='zh'?'准备就绪':'Ready');
+  }
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+
+/* ================= 事件 ================= */
+$('langZh').addEventListener('click',function(){ if(LANG!=='zh'){ LANG='zh'; $('langZh').classList.add('active'); $('langEn').classList.remove('active'); applyLang(); } });
+$('langEn').addEventListener('click',function(){ if(LANG!=='en'){ LANG='en'; $('langEn').classList.add('active'); $('langZh').classList.remove('active'); applyLang(); } });
+$('typeMax').addEventListener('click',function(){ setType(true); });
+$('typeMin').addEventListener('click',function(){ setType(false); });
+$('btnStart').addEventListener('click',startBuild);
+$('btnRandom').addEventListener('click',randomSeq);
+$('btnClassic').addEventListener('click',classicSeq);
+$('btnDelete').addEventListener('click',doDelete);
+$('btnNext').addEventListener('click',function(){ stopPlay(); goNext(); });
+$('btnPrev').addEventListener('click',function(){ stopPlay(); goPrev(); });
+$('btnAuto').addEventListener('click',togglePlay);
+$('btnReset').addEventListener('click',function(){ stopPlay(); cur=0; if(srcArr.length){ steps=buildSteps(srcArr,maxHeap); buildTree(srcArr.length); render(); } });
+$('seqInput').addEventListener('input',function(){ $('inputMsg').className='input-msg'; $('inputMsg').textContent=''; });
+document.addEventListener('keydown',function(e){
+  if(e.target&&/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); if(e.key===' '){ togglePlay(); } else { stopPlay(); goNext(); } }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); goPrev(); }
+});
+
+/* ================= 启动 ================= */
+$('langZh').classList.toggle('active',LANG==='zh');
+$('langEn').classList.toggle('active',LANG==='en');
+applyLang();
+classicSeq();
+})();
+</script>
+</body>
+</html>
