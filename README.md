@@ -24,6 +24,7 @@
 | 2014 年 · 单选第 3 题：双端循环队列的队空与队满条件（答案 A） | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html) |
 | 知识点 · 排序算法可视化：直接/折半插入、希尔、冒泡、快速、简单选择、堆、归并（2/3/4 路）、基数，共 9 种。支持自定义序列、随机生成、参数配置，附复杂度与稳定性对比表 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/sorting-algorithms.html) |
 | 知识点 · 堆的构建与删除：大根堆/小根堆自底向上建堆（O(n)），删除堆顶或任意关键字后自动判断上滤/下滤，树形 + 数组双视图，逐步统计比较与交换次数 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/heap-operations.html) |
+| 知识点 · 图算法四合一：Dijkstra 单源最短路、Floyd 全对最短路（矩阵逐轮演化）、Prim 与 Kruskal 最小生成树（并查集判环、连通分量染色），同一张图切换对比，支持自定义/随机/教材经典图，有向无向可切 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
 
 更多演示持续添加中（每周更新）。More demos are added regularly.
 
@@ -89,6 +90,7 @@ Subjects: Data Structures, Operating Systems, Computer Networks, Computer Organi
 | 2014 · Multiple Choice Q3: Empty vs. full conditions of a double-ended circular queue (Answer: A) | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html) |
 | Topic · Sorting Algorithms Visualized: straight/binary insertion, Shell, bubble, quick, selection, heap, merge (2/3/4-way), radix — 9 in total. Custom sequences, random generation, configurable parameters, plus a complexity & stability table | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/sorting-algorithms.html) |
 | Topic · Heap Build & Deletion: bottom-up build (O(n)) for max/min-heaps, delete the root or any key with automatic sift-up/sift-down; tree + array views with per-step comparison & swap counts | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/heap-operations.html) |
+| Topic · Graph Algorithms Combined: Dijkstra (single-source), Floyd (all-pairs, evolving matrix), Prim & Kruskal (MST with union-find cycle detection and component coloring) — switch algorithms on the same graph; custom / random / textbook presets, directed or undirected | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
 
 More demos are added regularly.
 
