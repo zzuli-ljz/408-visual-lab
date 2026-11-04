@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 数据结构 · 图算法四合一（Dijkstra / Floyd / Prim / Kruskal）</title>
+<style>
+  :root{
+    --bg:#f3f4fa; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
+    --indigo:#4f46e5; --indigo-soft:#eef0ff; --indigo-line:#c7cbe8;
+    --rose:#e11d48; --blue:#2563eb;
+    --amber:#b45309; --amber-line:#d97706; --amber-soft:#fef3e2;
+    --green:#059669; --green-soft:#e7f7f1;
+    --purple:#7c3aed; --purple-soft:#f3eeff;
+    --line:#e6e8f2;
+    --shadow:0 10px 30px rgba(31,36,48,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 10% -12%, #e9eaff 0%, transparent 60%),
+      radial-gradient(820px 500px at 105% 6%, #e6f4ff 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); line-height:1.78; font-size:16.5px; padding:30px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    background:#f1f2fb;border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font-size:.92em;color:#3d3fb8;white-space:nowrap;
+  }
+  .lang-switch{display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 10px rgba(20,24,40,.08)}
+  .lang-btn{border:none;background:transparent;border-radius:999px;padding:6px 18px;font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+  .lang-btn.active{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{font-size:13.5px;font-weight:700;color:var(--indigo);background:var(--indigo-soft);border:1px solid #dcdffb;border-radius:999px;padding:4px 14px}
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.4;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);border:1px solid rgba(230,232,242,.9);padding:24px 26px;margin-bottom:22px}
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 按钮 ---------- */
+  .type-btn{
+    border:1.5px solid var(--line);background:#fbfbff;border-radius:11px;
+    padding:9px 16px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:all .2s;font-family:inherit;
+  }
+  .type-btn:hover{border-color:var(--indigo);color:var(--indigo)}
+  .type-btn.active{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(79,70,229,.32)}
+  .type-btn small{display:block;font-size:11.5px;font-weight:600;opacity:.78;letter-spacing:.2px}
+  .type-btn.active small{opacity:.9}
+  .type-row{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .type-hint{font-size:14px;font-weight:700;color:var(--muted);margin-left:6px;align-self:center}
+  /* ---------- 输入 ---------- */
+  .seq-input{
+    width:100%;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 14px;font-size:15px;font-weight:700;outline:none;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.4px;
+    line-height:1.7;resize:vertical;color:var(--ink);background:#fdfdff;
+  }
+  .seq-input:focus{border-color:var(--indigo)}
+  .input-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .input-msg{margin-top:10px;font-size:14.5px;font-weight:700;min-height:24px}
+  .input-msg.ok{color:var(--green)} .input-msg.no{color:#b91c1c}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+  .stat{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;background:#fbfbff;text-align:center;overflow:hidden}
+  .stat-k{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .stat-v{display:block;font-size:22px;font-weight:800;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .c-rose{color:var(--rose)} .c-blue{color:var(--blue)} .c-green{color:var(--green)}
+  .badge{display:inline-block;font-size:15px;font-weight:800;border-radius:999px;padding:3px 14px;margin-top:3px}
+  .b-gray{background:#eef0f4;color:#4b5563}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}
+  .b-green{background:var(--green-soft);color:var(--green)}
+  .b-purple{background:var(--purple-soft);color:var(--purple)}
+  /* ---------- 图 ---------- */
+  .graph-wrap{position:relative;width:100%;margin:14px auto 2px}
+  .graph-svg{width:100%;display:block}
+  .edge{stroke:#cdd1e4;stroke-width:2.6;transition:stroke .25s,stroke-width .25s}
+  .e-chosen{stroke:#0ea5e9;stroke-width:4.6}
+  .e-active{stroke:var(--amber-line);stroke-width:5.4}
+  .e-reject{stroke:#f4a0b2;stroke-width:2.6;stroke-dasharray:6 5}
+  .e-cmp{stroke:var(--purple);stroke-width:4.6}
+  .ew{font-size:12.5px;font-weight:800;fill:#6b7280;text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+  .ew.hot{fill:var(--amber)} .ew.chosen{fill:#0284c7} .ew.rej{fill:#e11d48} .ew.cmp{fill:var(--purple)}
+  .gnode circle{fill:#eef0ff;stroke:var(--indigo);stroke-width:2.6;transition:fill .25s,stroke .25s}
+  .gnode text.nl{font-size:17px;font-weight:800;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+  .gnode .dsub{font-size:10.5px;font-weight:800;fill:var(--indigo);text-anchor:middle}
+  .n-in circle{fill:#e7f7f1;stroke:var(--green);stroke-width:3.4}
+  .n-in text.nl{fill:#047857}
+  .n-cur circle{fill:#f3eeff;stroke:var(--purple);stroke-width:4}
+  .n-cur text.nl{fill:var(--purple)}
+  .n-cmp circle{fill:#fdeccc;stroke:var(--amber-line);stroke-width:3.8}
+  .n-cmp text.nl{fill:var(--amber)}
+  .phase-note{text-align:center;font-size:13.5px;font-weight:700;color:var(--muted);margin-top:4px;min-height:22px}
+  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:12px;font-size:13.5px;color:var(--muted);font-weight:600}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dot-indigo{background:var(--indigo)} .dot-amber{background:var(--amber-line)}
+  .dot-green{background:var(--green)} .dot-purple{background:var(--purple)}
+  .dot-sky{background:#0ea5e9} .dot-rose{background:#f4a0b2}
+  /* ---------- 控制区 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:20px}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;
+    padding:11px 20px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(31,36,48,.14)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--indigo),#7a6ff2);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(79,70,229,.35)}
+  .btn-play{background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;border-color:transparent}
+  .btn-sm{padding:8px 14px;font-size:14.5px;border-radius:10px}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--indigo);cursor:pointer}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--indigo);font-size:18px}
+  .progress{height:9px;background:#eceef7;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--indigo),#8b7ff5);transition:width .45s cubic-bezier(.22,.9,.32,1)}
+  .narr{border-radius:16px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fbfbff,#f5f6fd);padding:18px 22px}
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{background:var(--indigo);color:#fff;font-size:13px;font-weight:800;border-radius:999px;padding:3px 13px;white-space:nowrap}
+  .narr-title{font-size:18px;font-weight:800;line-height:1.55}
+  .narr-body{font-size:16px;color:#39404f}
+  .narr-body b{color:#000}
+  .narr-formula{
+    margin-top:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    background:#fff;border:1.5px dashed var(--indigo-line);border-radius:10px;
+    padding:8px 14px;display:inline-block;color:var(--indigo);font-weight:700;font-size:14.5px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 结果面板 ---------- */
+  .res-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .res-total{font-size:15px;font-weight:800;color:var(--green);background:var(--green-soft);border:1px solid #bfe8d7;border-radius:999px;padding:3px 14px}
+  .rtable{width:100%;border-collapse:collapse;font-size:15px}
+  .rtable th,.rtable td{border:1px solid var(--line);padding:7px 10px;text-align:center}
+  .rtable th{background:#f4f5fc;font-weight:800;color:#4b5163}
+  .rtable td.v{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:700}
+  .rtable tr.hot td{background:var(--green-soft);color:#047857;font-weight:800}
+  .mtx{border-collapse:collapse;margin:0 auto;font-size:14.5px}
+  .mtx th,.mtx td{border:1px solid var(--line);min-width:46px;height:40px;text-align:center;font-weight:700;padding:2px 6px}
+  .mtx th{background:#f4f5fc;color:#4b5163}
+  .mtx td{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+  .mtx td.diag{background:#f7f8fd;color:#9aa0b4}
+  .mtx td.kline{background:#eef0ff;color:#3d3fb8}
+  .mtx td.upd{background:#dcf7ec;color:#047857;box-shadow:inset 0 0 0 2px var(--green)}
+  .elist{display:flex;flex-direction:column;gap:8px}
+  .eitem{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:10px;padding:7px 13px;font-weight:700;font-size:15px;background:#fbfbff}
+  .eitem .wt{margin-left:auto;font-family:ui-monospace,Consolas,monospace;font-weight:800}
+  .eitem.ok{border-color:#a7e3cc;background:var(--green-soft);color:#047857}
+  .eitem.no{border-color:#f6c9d4;background:#fff5f7;color:#b91c1c}
+  .eitem.cur{border-color:var(--amber-line);background:var(--amber-soft);color:var(--amber)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel-note{font-size:13.5px;color:var(--muted);font-weight:600;margin-top:10px}
+  /* ---------- 小结 ---------- */
+  .summary li{margin:8px 0 8px 22px;font-size:15.5px}
+  .summary b{color:var(--indigo)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--indigo);font-weight:700;text-decoration:none}
+  @media (max-width:720px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 16px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .step-info{margin-left:0;width:100%}
+    .grid2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">数据结构 · 图</span>
+        <span class="tag" data-i18n="tag.scope">Dijkstra · Floyd · Prim · Kruskal</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">一张图 · 四种算法切换对比</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">图的四种经典算法：最短路径与最小生成树，一步一步走给你看</h1>
+    <p class="sub" data-i18n="hero.sub">同一张图切换四种算法：Dijkstra 每次确定一个顶点、Floyd 一个矩阵滚三轮、Prim 每次挑最轻的跨切边、Kruskal 从最轻边开始并查集判环 —— 顶点表、距离矩阵、选边列表全程同步刷新。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cfg.title">图配置</span> <span class="title-note" data-i18n="cfg.note">每行一条边，格式「起点-终点 权值」，顶点用 A~I</span></h2>
+    <textarea class="seq-input" id="edgeInput" rows="6" spellcheck="false"></textarea>
+    <div class="input-row">
+      <button class="type-btn" id="btnClassic" type="button" data-i18n="cfg.classic">📖 教材经典图</button>
+      <button class="type-btn" id="btnRandom" type="button" data-i18n="cfg.random">🎲 随机图</button>
+      <button class="type-btn" id="btnDense" type="button" data-i18n="cfg.dense">🔗 稠密小图</button>
+      <span class="type-hint" data-i18n="cfg.dir">边类型</span>
+      <button class="type-btn active" id="btnUndir" type="button" data-i18n="cfg.undir">无向</button>
+      <button class="type-btn" id="btnDir" type="button" data-i18n="cfg.dirbtn">有向</button>
+      <button class="btn btn-primary" id="btnApply" type="button" data-i18n="cfg.apply">应用这张图</button>
+    </div>
+    <div class="input-msg" id="inputMsg"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="algo.title">算法演示</span> <span class="title-note" id="stageNote"></span></h2>
+
+    <div class="type-row" id="algoRow">
+      <button class="type-btn active" data-algo="dijkstra" type="button">Dijkstra<small data-i18n="algo.dij">单源最短路径</small></button>
+      <button class="type-btn" data-algo="floyd" type="button">Floyd<small data-i18n="algo.flo">每对顶点最短路径</small></button>
+      <button class="type-btn" data-algo="prim" type="button">Prim<small data-i18n="algo.pri">最小生成树 · 加点</small></button>
+      <button class="type-btn" data-algo="kruskal" type="button">Kruskal<small data-i18n="algo.kru">最小生成树 · 加边</small></button>
+    </div>
+
+    <div class="input-row" id="srcRow">
+      <span class="type-hint" id="srcLabel" data-i18n="src.label">源点</span>
+      <select id="srcSel" style="border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font-size:15px;font-weight:700;font-family:inherit;background:#fff;outline:none;cursor:pointer"></select>
+      <span class="title-note" id="srcNote"></span>
+    </div>
+
+    <div class="stat-row" style="margin-top:18px">
+      <div class="stat"><span class="stat-k" id="statK1">—</span><span class="stat-v" id="statV1">—</span></div>
+      <div class="stat"><span class="stat-k" id="statK2">—</span><span class="stat-v" id="statV2">—</span></div>
+      <div class="stat"><span class="stat-k" id="statK3">—</span><span class="stat-v" id="statV3">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.state">当前状态</span><span class="badge b-gray" id="statState">—</span></div>
+    </div>
+
+    <div class="graph-wrap">
+      <svg aria-hidden="true" class="graph-svg" id="graphSvg" viewBox="0 0 720 430"></svg>
+      <div class="phase-note" id="phaseNote"></div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="ctrl-row">
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">⟲ 重置</button>
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-play" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <div class="speed-box">
+        <span data-i18n="ctrl.speed">速度</span>
+        <input id="speedSlider" max="10" min="1" type="range" value="5">
+      </div>
+      <div class="step-info"><span data-i18n="ctrl.step">步数</span> <b id="stepNow">0</b>/<span id="stepTotal">0</span></div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="narr">
+      <div class="narr-head">
+        <span class="narr-badge" id="narrBadge">—</span>
+        <span class="narr-title" id="narrTitle">—</span>
+      </div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="res.title">当前结果</span> <span class="title-note" id="resNote"></span></h2>
+    <div id="resultPanel"></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title" data-i18n="sum.title">408 考点速记</h2>
+    <ul class="summary" id="summaryList"></ul>
+  </section>
+
+  <p class="footer">
+    <span data-i18n="footer.text">408 Visual Lab · 用动画讲透考研 408 重难点</span> ·
+    <a href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener">GitHub</a>
+  </p>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= 语言 ================= */
+var LANG='zh';
+try{ LANG=localStorage.getItem('408lab-lang')||'zh'; }catch(e){}
+
+var T={
+  'tag.subj':{zh:'数据结构 · 图',en:'Data Structures · Graphs'},
+  'tag.scope':{zh:'Dijkstra · Floyd · Prim · Kruskal',en:'Dijkstra · Floyd · Prim · Kruskal'},
+  'tag.inter':{zh:'一张图 · 四种算法切换对比',en:'One graph · four algorithms'},
+  'hero.h1':{zh:'图的四种经典算法：最短路径与最小生成树，一步一步走给你看',en:'Four classic graph algorithms: shortest paths and minimum spanning trees, step by step'},
+  'hero.sub':{zh:'同一张图切换四种算法：Dijkstra 每次确定一个顶点、Floyd 一个矩阵滚三轮、Prim 每次挑最轻的跨切边、Kruskal 从最轻边开始并查集判环 —— 顶点表、距离矩阵、选边列表全程同步刷新。',en:'Switch between four algorithms on the same graph: Dijkstra settles one vertex per round, Floyd rolls a matrix, Prim repeatedly takes the lightest crossing edge, Kruskal takes the lightest edge and uses union-find to detect cycles — tables and matrices update in sync.'},
+  'cfg.title':{zh:'图配置',en:'Graph setup'},
+  'cfg.note':{zh:'每行一条边，格式「起点-终点 权值」，顶点用 A~I',en:'One edge per line: "u-v weight", vertices A–I'},
+  'cfg.classic':{zh:'📖 教材经典图',en:'📖 Textbook graph'},
+  'cfg.random':{zh:'🎲 随机图',en:'🎲 Random graph'},
+  'cfg.dense':{zh:'🔗 稠密小图',en:'🔗 Dense graph'},
+  'cfg.dir':{zh:'边类型',en:'Edge type'},
+  'cfg.undir':{zh:'无向',en:'Undirected'},
+  'cfg.dirbtn':{zh:'有向',en:'Directed'},
+  'cfg.apply':{zh:'应用这张图',en:'Apply graph'},
+  'algo.title':{zh:'算法演示',en:'Animation'},
+  'algo.dij':{zh:'单源最短路径',en:'Single-source shortest path'},
+  'algo.flo':{zh:'每对顶点最短路径',en:'All-pairs shortest paths'},
+  'algo.pri':{zh:'最小生成树 · 加点',en:'MST · add vertex'},
+  'algo.kru':{zh:'最小生成树 · 加边',en:'MST · add edge'},
+  'src.label':{zh:'源点',en:'Source'},
+  'src.start':{zh:'起点',en:'Start'},
+  'src.noteDij':{zh:'dist 表示从该顶点出发到各点的最短距离',en:'dist = shortest distance from this vertex'},
+  'src.notePrim':{zh:'Prim 从该顶点开始生长生成树',en:'Prim grows the tree from this vertex'},
+  'stat.state':{zh:'当前状态',en:'Status'},
+  'stat.settled':{zh:'已确定顶点',en:'Settled'},
+  'stat.rest':{zh:'未确定顶点',en:'Remaining'},
+  'stat.relax':{zh:'松弛成功',en:'Relaxations'},
+  'stat.round':{zh:'当前中转 k',en:'Pivot k'},
+  'stat.upd':{zh:'矩阵更新',en:'Updates'},
+  'stat.cmp3':{zh:'比较次数',en:'Comparisons'},
+  'stat.picked':{zh:'已选边数',en:'Edges picked'},
+  'stat.total':{zh:'当前总权值',en:'Total weight'},
+  'stat.minedge':{zh:'当前最小边',en:'Lightest edge'},
+  'stat.checked':{zh:'已检查边',en:'Edges checked'},
+  'ctrl.reset':{zh:'⟲ 重置',en:'⟲ Reset'},
+  'ctrl.prev':{zh:'← 上一步',en:'← Prev'},
+  'ctrl.next':{zh:'下一步 →',en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放',en:'▶ Auto play'},
+  'ctrl.pause':{zh:'⏸ 暂停',en:'⏸ Pause'},
+  'ctrl.speed':{zh:'速度',en:'Speed'},
+  'ctrl.step':{zh:'步数',en:'Step'},
+  'res.title':{zh:'当前结果',en:'Current result'},
+  'res.dijkstra':{zh:'dist 与前驱路径',en:'dist and path'},
+  'res.floyd':{zh:'当前距离矩阵 D',en:'Current distance matrix D'},
+  'res.prim':{zh:'已选入生成树的边',en:'Edges in the tree'},
+  'res.kruskal':{zh:'按权值升序检查的边',en:'Edges in ascending weight'},
+  'res.weight':{zh:'总权值',en:'Total weight'},
+  'res.vertex':{zh:'顶点',en:'Vertex'},
+  'res.dist':{zh:'dist',en:'dist'},
+  'res.path':{zh:'最短路径',en:'Path'},
+  'res.none':{zh:'尚未开始',en:'Not started'},
+  'res.mstNote':{zh:'最小生成树只针对无向图，已按无向边处理。',en:'MST is defined on undirected graphs; edges are treated as undirected.'},
+  'res.pending':{zh:'待检查',en:'pending'},
+  'state.init':{zh:'待开始',en:'Ready'},
+  'state.playing':{zh:'演示中',en:'Playing'},
+  'state.pause':{zh:'已暂停',en:'Paused'},
+  'state.done':{zh:'完成 ✓',en:'Done ✓'},
+  'sum.title':{zh:'408 考点速记',en:'Key exam takeaways'},
+  'footer.text':{zh:'408 Visual Lab · 用动画讲透考研 408 重难点',en:'408 Visual Lab · Animated explanations for the CS 408 exam'},
+  'legend.node':{zh:'顶点',en:'Vertex'},
+  'legend.cur':{zh:'当前处理',en:'Current'},
+  'legend.chosen':{zh:'已选入（树 / 路径）',en:'Chosen (tree / path)'},
+  'legend.active':{zh:'正在检查的边',en:'Edge being examined'},
+  'legend.reject':{zh:'会成环，舍弃',en:'Rejected (cycle)'},
+  'err.parse':{zh:'无法解析这一行：',en:'Cannot parse line: '},
+  'err.few':{zh:'至少需要 3 个顶点、2 条边，最多 9 个顶点',en:'Need at least 3 vertices and 2 edges (max 9 vertices)'},
+  'err.weight':{zh:'权值需为 1~99 的整数',en:'Weights must be integers 1–99'},
+  'err.self':{zh:'不允许自环',en:'Self loops are not allowed'},
+  'ok.graph':{zh:'图已应用：',en:'Graph applied: '},
+  'ok.v':{zh:'个顶点、',en:' vertices, '},
+  'ok.e':{zh:'条边',en:' edges'},
+  'err.disc':{zh:'（图不连通，部分顶点不可达）',en:' (graph is disconnected — some vertices are unreachable)'}
+};
+function t(k){ var e=T[k]; return e?(LANG==='zh'?e.zh:e.en):k; }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/*TEST-BEGIN*/
+/* ============ 纯算法层：不依赖 DOM ============
+   每个生成器返回 { steps:[...], init:snapshot, edges?:[...] }
+   step = { t, zh, en, f, snap } */
+
+function gFmt(v){ return v===Infinity?'∞':String(v); }
+
+/* ---------- Dijkstra ---------- */
+function genDijkstra(g,s){
+  var n=g.n, W=g.W, out=[], i, j, v;
+  var dist=[], prev=[], vis=[];
+  for(i=0;i<n;i++){ dist[i]=Infinity; prev[i]=-1; vis[i]=false; }
+  dist[s]=0;
+
+  function sn(x){
+    var o={dist:dist.slice(),prev:prev.slice(),vis:vis.slice(),cur:-1,active:null,upd:-1,settled:0};
+    if(x){ for(var k in x) o[k]=x[k]; }
+    var c=0; for(var q=0;q<n;q++) if(o.vis[q]) c++;
+    o.settled=c; return o;
+  }
+  function setStr(){
+    var r=[]; for(var q=0;q<n;q++) if(vis[q]) r.push(g.names[q]);
+    return r.length?('{'+r.join(', ')+'}'):'∅';
+  }
+
+  out.push({t:'init',
+    zh:'初始化：dist['+g.names[s]+'] = 0，其余顶点为 ∞；集合 S = ∅',
+    en:'Init: dist['+g.names[s]+'] = 0, all others ∞; S = ∅',
+    bzh:'dist 存「从源点到该顶点的当前最短距离」，前驱数组 pred 先全部置空。',
+    ben:'dist holds the best known distance from the source; all predecessors start empty.',
+    f:'dist = ['+dist.map(gFmt).join(', ')+']', snap:sn()});
+
+  for(var it=0; it<n; it++){
+    var u=-1, best=Infinity;
+    for(v=0;v<n;v++){ if(!vis[v] && dist[v]<best){ best=dist[v]; u=v; } }
+    if(u<0) break;
+
+    out.push({t:'pick',u:u,
+      zh:'在未确定的顶点中选 dist 最小的：'+g.names[u]+'（dist = '+gFmt(best)+'）',
+      en:'Among unsettled vertices pick the smallest dist: '+g.names[u]+' (dist = '+gFmt(best)+')',
+      bzh:'这一步是 Dijkstra 的核心：贪心地认为当前 dist 最小的顶点已经不可能再被缩短。',
+      ben:'This greedy choice is the heart of Dijkstra: the smallest tentative distance can no longer be improved.',
+      f:'min dist = '+gFmt(best)+'  @ '+g.names[u], snap:sn({cur:u})});
+
+    vis[u]=true;
+    out.push({t:'settle',u:u,
+      zh:g.names[u]+' 的最短距离最终确定为 '+gFmt(dist[u])+'，加入集合 S',
+      en:g.names[u]+' is settled at '+gFmt(dist[u])+' and joins S',
+      bzh:'一个顶点只会被确定一次，n 个顶点共确定 n 次。',
+      ben:'Each vertex is settled exactly once — n times in total.',
+      f:'S = '+setStr(), snap:sn({cur:u})});
+
+    for(j=0;j<n;j++){
+      if(j===u) continue;
+      var w=W[u][j];
+      if(w===Infinity || vis[j]) continue;
+      var nd=dist[u]+w;
+      if(nd<dist[j]){
+        var old=dist[j];
+        dist[j]=nd; prev[j]=u;
+        out.push({t:'relax',u:u,v:j,ok:true,
+          zh:'松弛边 '+g.names[u]+'→'+g.names[j]+'：'+gFmt(dist[u])+' + '+w+' = '+nd+' ＜ '+gFmt(old)+'，可以更短',
+          en:'Relax '+g.names[u]+'→'+g.names[j]+': '+gFmt(dist[u])+' + '+w+' = '+nd+' < '+gFmt(old)+' — shorter',
+          bzh:'更新 dist 并记下前驱 pred['+g.names[j]+'] = '+g.names[u]+'，路径就是这样回溯出来的。',
+          ben:'Update dist and set pred['+g.names[j]+'] = '+g.names[u]+'; paths are reconstructed from pred.',
+          f:'dist['+g.names[j]+'] = min('+gFmt(old)+', '+nd+') = '+nd, snap:sn({cur:u,active:[u,j],upd:j})});
+      }else{
+        out.push({t:'relax',u:u,v:j,ok:false,
+          zh:'松弛边 '+g.names[u]+'→'+g.names[j]+'：'+gFmt(dist[u])+' + '+w+' = '+nd+' ≥ '+gFmt(dist[j])+'，不更新',
+          en:'Relax '+g.names[u]+'→'+g.names[j]+': '+gFmt(dist[u])+' + '+w+' = '+nd+' ≥ '+gFmt(dist[j])+' — keep',
+          bzh:'已有路径更短，dist 和前驱都保持不变。',
+          ben:'The existing path is shorter, so dist and pred stay unchanged.',
+          f:'dist['+g.names[j]+'] = min('+gFmt(dist[j])+', '+nd+') = '+gFmt(dist[j]), snap:sn({cur:u,active:[u,j]})});
+      }
+    }
+  }
+  out.push({t:'done',
+    zh:'Dijkstra 结束：所有可达顶点的最短距离都已确定',
+    en:'Dijkstra finished: every reachable vertex is settled',
+    bzh:'若还有 dist 为 ∞ 的顶点，说明源点到它不可达。',
+    ben:'Any vertex left at ∞ is unreachable from the source.',
+    f:'', snap:sn()});
+  return {steps:out, init:out[0].snap};
+}
+
+/* ---------- Floyd ---------- */
+function genFloyd(g){
+  var n=g.n, out=[], i, j, k;
+  var D=[];
+  for(i=0;i<n;i++){
+    D.push([]);
+    for(j=0;j<n;j++) D[i][j] = (i===j?0:g.W[i][j]);
+  }
+  var updCnt=0;
+  function cp(){
+    var r=[];
+    for(var a=0;a<n;a++) r.push(D[a].slice());
+    return r;
+  }
+  function sn(x){
+    var o={D:cp(),k:-1,ci:-1,cj:-1,upd:updCnt};
+    if(x){ for(var q in x) o[q]=x[q]; }
+    return o;
+  }
+  out.push({t:'init',
+    zh:'初始化距离矩阵 D：D[i][i] = 0，有边则为权值，无边为 ∞',
+    en:'Init D: D[i][i] = 0, edge weight where an edge exists, ∞ otherwise',
+    bzh:'Floyd 用三重循环，逐个把顶点 k 当作中转站，尝试把 D[i][j] 缩短。',
+    ben:'Floyd tries every vertex k as an intermediate stop to shorten D[i][j].',
+    f:'D⁰ = 邻接矩阵', snap:sn()});
+
+  for(k=0;k<n;k++){
+    out.push({t:'round',k:k,
+      zh:'第 '+(k+1)+' 轮：以 '+g.names[k]+' 作为中转顶点，检查所有 D[i][j] 是否能变成 D[i]['+g.names[k]+'] + D['+g.names[k]+'][j]',
+      en:'Round '+(k+1)+': let '+g.names[k]+' be the pivot; test whether D[i][j] > D[i]['+g.names[k]+'] + D['+g.names[k]+'][j]',
+      bzh:'这一轮的更新只会让路径「多经过一个 '+g.names[k]+'」，已经求出的最短性不会被破坏。',
+      ben:'This round only allows paths that pass through '+g.names[k]+'; earlier results stay valid.',
+      f:'k = '+g.names[k]+'（第 '+(k+1)+'/'+n+' 轮）', snap:sn({k:k})});
+
+    for(i=0;i<n;i++){
+      if(i===k) continue;
+      for(j=0;j<n;j++){
+        if(j===k || i===j) continue;
+        if(D[i][k]===Infinity || D[k][j]===Infinity) continue;
+        var alt=D[i][k]+D[k][j];
+        if(alt<D[i][j]){
+          var old=D[i][j];
+          D[i][j]=alt; updCnt++;
+          out.push({t:'upd',i:i,j:j,k:k,
+            zh:'D['+g.names[i]+']['+g.names[j]+']：'+gFmt(old)+' → 经 '+g.names[k]+' 得 '+gFmt(D[i][k])+' + '+gFmt(D[k][j])+' = '+alt+'，更短',
+            en:'D['+g.names[i]+']['+g.names[j]+']: '+gFmt(old)+' → via '+g.names[k]+' gives '+gFmt(D[i][k])+' + '+gFmt(D[k][j])+' = '+alt+', shorter',
+            bzh:'更新矩阵元素，注意此时用的 D[i][k]、D[k][j] 已经是本轮更新后的值。',
+            ben:'Update the cell; D[i][k] and D[k][j] already include this round’s improvements.',
+            f:'D['+g.names[i]+']['+g.names[j]+'] = '+alt, snap:sn({k:k,ci:i,cj:j})});
+        }
+      }
+    }
+  }
+  out.push({t:'done',
+    zh:'Floyd 结束：D 中即为任意两点间的最短距离',
+    en:'Floyd finished: D now holds all-pairs shortest distances',
+    bzh:'共 n³ 次比较；允许负权边，但存在负权回路时结果无意义。',
+    ben:'n³ comparisons; negative edges are allowed, but a negative cycle makes the result meaningless.',
+    f:'', snap:sn()});
+  return {steps:out, init:out[0].snap};
+}
+
+/* ---------- Prim ---------- */
+function genPrim(g,s){
+  var n=g.n, W=g.W, out=[], i, v;
+  var inT=[], low=[], clo=[], chosen=[], total=0;
+  for(i=0;i<n;i++){ inT[i]=false; low[i]=Infinity; clo[i]=-1; }
+  inT[s]=true;
+  for(v=0;v<n;v++){
+    if(v===s) continue;
+    if(W[s][v]<Infinity){ low[v]=W[s][v]; clo[v]=s; }
+  }
+  function sn(x){
+    var o={inT:inT.slice(),low:low.slice(),clo:clo.slice(),chosen:chosen.map(function(e){return {u:e.u,v:e.v,w:e.w};}),total:total,cur:-1,active:null};
+    if(x){ for(var q in x) o[q]=x[q]; }
+    return o;
+  }
+  function uStr(){
+    var r=[]; for(var q=0;q<n;q++) if(inT[q]) r.push(g.names[q]);
+    return '{'+r.join(', ')+'}';
+  }
+  out.push({t:'init',
+    zh:'初始化：U = {'+g.names[s]+'}，lowcost[v] = 边 '+g.names[s]+'-v 的权值（无边为 ∞）',
+    en:'Init: U = {'+g.names[s]+'}, lowcost[v] = weight of edge '+g.names[s]+'-v (∞ if none)',
+    bzh:'Prim 维护一个顶点集合 U，每次把「离 U 最近」的顶点拉进来。',
+    ben:'Prim keeps a vertex set U and repeatedly pulls in the vertex closest to U.',
+    f:'lowcost = ['+low.map(gFmt).join(', ')+']', snap:sn()});
+
+  for(var it=1; it<n; it++){
+    var u=-1, best=Infinity;
+    for(v=0;v<n;v++){ if(!inT[v] && low[v]<best){ best=low[v]; u=v; } }
+    if(u<0) break;
+
+    out.push({t:'pick',u:u,
+      zh:'在 U 外选 lowcost 最小的顶点：'+g.names[u]+'（边 '+g.names[clo[u]]+'-'+g.names[u]+'，权 '+best+'）',
+      en:'Pick the smallest lowcost outside U: '+g.names[u]+' (edge '+g.names[clo[u]]+'-'+g.names[u]+', weight '+best+')',
+      bzh:'这条边就是当前横跨「已选集合 U」与「未选集合」的最轻边。',
+      ben:'This edge is the lightest one crossing the cut between U and the rest.',
+      f:'min lowcost = '+best+'', snap:sn({cur:u,active:[clo[u],u]})});
+
+    inT[u]=true; chosen.push({u:clo[u],v:u,w:low[u]}); total+=low[u];
+    out.push({t:'add',u:u,
+      zh:'把 '+g.names[u]+' 加入 U，边 '+g.names[clo[u]]+'-'+g.names[u]+' 进入生成树，累计权值 '+total,
+      en:'Add '+g.names[u]+' to U; edge '+g.names[clo[u]]+'-'+g.names[u]+' joins the tree, total = '+total,
+      bzh:'n 个顶点只要选 n−1 条边，因此循环 n−1 次即可。',
+      ben:'A spanning tree needs n−1 edges, so the loop runs n−1 times.',
+      f:'|U| = '+uStr().split(',').length+' / '+n, snap:sn({cur:u,active:[clo[u],u]})});
+
+    for(v=0;v<n;v++){
+      if(inT[v]) continue;
+      var w=W[u][v];
+      if(w===Infinity) continue;
+      if(w<low[v]){
+        var old=low[v];
+        low[v]=w; clo[v]=u;
+        out.push({t:'upd',u:u,v:v,
+          zh:'用新加入的 '+g.names[u]+' 更新 '+g.names[v]+'：lowcost '+gFmt(old)+' → '+w+'（离 U 更近了）',
+          en:'Update '+g.names[v]+' via the newly added '+g.names[u]+': lowcost '+gFmt(old)+' → '+w,
+          bzh:'只更新变小的那些，lowcost 就是「到 U 的最短一条边」。',
+          ben:'Only smaller values change; lowcost means "lightest edge to U".',
+          f:'lowcost['+g.names[v]+'] = min('+gFmt(old)+', '+w+') = '+w, snap:sn({cur:u,active:[u,v]})});
+      }
+    }
+  }
+  out.push({t:'done',
+    zh:'Prim 结束：生成树共 '+(n-1)+' 条边，总权值 '+total,
+    en:'Prim finished: '+(n-1)+' tree edges, total weight '+total,
+    bzh:'若中途找不到可加入的顶点，说明图不连通，不存在生成树。',
+    ben:'If no vertex can be added, the graph is disconnected and no spanning tree exists.',
+    f:'W(T) = '+total, snap:sn()});
+  return {steps:out, init:out[0].snap};
+}
+
+/* ---------- Kruskal ---------- */
+function genKruskal(g){
+  var n=g.n, out=[], i;
+  var es=g.edges.slice().sort(function(a,b){
+    if(a.w!==b.w) return a.w-b.w;
+    if(a.u!==b.u) return a.u-b.u;
+    return a.v-b.v;
+  });
+  var par=[];
+  for(i=0;i<n;i++) par[i]=i;
+  function find(x){ while(par[x]!==x){ par[x]=par[par[x]]; x=par[x]; } return x; }
+
+  var acc=[], rej=[], total=0, picked=0;
+  function sn(x){
+    var o={parent:par.slice(),acc:acc.slice(),rej:rej.slice(),curE:-1,total:total,picked:picked};
+    if(x){ for(var q in x) o[q]=x[q]; }
+    return o;
+  }
+  var order=es.map(function(e){ return g.names[e.u]+'-'+g.names[e.v]+'('+e.w+')'; }).join('  ');
+  out.push({t:'init',
+    zh:'初始化：把 '+(es.length)+' 条边按权值升序排好，每个顶点各自成一个连通分量',
+    en:'Init: sort all '+es.length+' edges by weight; each vertex starts in its own component',
+    bzh:'Kruskal 是「加边法」：从最轻的边开始，能加就加，会成环就跳过。',
+    ben:'Kruskal adds edges: start from the lightest, keep it unless it forms a cycle.',
+    f:'排序：'+order, snap:sn()});
+
+  for(i=0;i<es.length;i++){
+    var e=es[i];
+    var a=find(e.u), b=find(e.v);
+    out.push({t:'check',i:i,
+      zh:'检查最轻的未处理边 '+g.names[e.u]+'-'+g.names[e.v]+'（权 '+e.w+'）：两端是否已连通？',
+      en:'Examine the next lightest edge '+g.names[e.u]+'-'+g.names[e.v]+' (w='+e.w+'): are the endpoints already connected?',
+      bzh:'用并查集找根：根相同 → 加这条边会成环，舍弃。',
+      ben:'Union-find: same root means this edge would close a cycle — reject it.',
+      f:'find('+g.names[e.u]+') = '+g.names[a]+'   find('+g.names[e.v]+') = '+g.names[b], snap:sn({curE:i})});
+
+    if(a!==b){
+      par[a]=b;
+      acc.push(i); total+=e.w; picked++;
+      out.push({t:'accept',i:i,
+        zh:'两个分量不同 → 接受这条边，合并分量，累计权值 '+total+'（已选 '+picked+'/'+(n-1)+' 条）',
+        en:'Different components → accept the edge, merge them, total = '+total+' ('+picked+'/'+(n-1)+' edges)',
+        bzh:'合并就是把一个根挂到另一个根下面。',
+        ben:'Merging simply links one root under the other.',
+        f:'W(T) = '+total, snap:sn({curE:i})});
+    }else{
+      rej.push(i);
+      out.push({t:'reject',i:i,
+        zh:'两端已在同一分量 → 加上会形成回路，舍弃这条边',
+        en:'Both endpoints are already in the same component → adding it forms a cycle, reject',
+        bzh:'这就是 Kruskal 判环的全部逻辑，不需要真的去搜环。',
+        ben:'That is the entire cycle test — no explicit cycle search needed.',
+        f:'skip '+g.names[e.u]+'-'+g.names[e.v]+' ('+e.w+')', snap:sn({curE:i})});
+    }
+    if(picked===n-1) break;
+  }
+  out.push({t:'done',
+    zh:'Kruskal 结束：共选 '+(n-1)+' 条边，最小生成树总权值 '+total,
+    en:'Kruskal finished: '+(n-1)+' edges selected, MST total weight '+total,
+    bzh:'若选不满 n−1 条边，说明图不连通。',
+    ben:'If fewer than n−1 edges were selected, the graph is disconnected.',
+    f:'W(T) = '+total, snap:sn()});
+  return {steps:out, init:out[0].snap, edges:es};
+}
+/*TEST-END*/
+
+/* ================= 图模型 ================= */
+var G={n:0,names:[],edges:[],directed:false,W:[],pos:[]};
+var ALGO='dijkstra';
+var steps=[], initSnap=null, kEdges=null, cur=0;
+var playing=false, timer=null;
+var srcNode=0;
+
+function buildAdj(){
+  var n=G.n, i;
+  G.W=[];
+  for(i=0;i<n;i++){
+    var row=[];
+    for(var j=0;j<n;j++) row.push(Infinity);
+    G.W.push(row);
+  }
+  for(i=0;i<G.edges.length;i++){
+    var e=G.edges[i];
+    G.W[e.u][e.v]=e.w;
+    if(!G.directed) G.W[e.v][e.u]=e.w;
+  }
+}
+function undirectedCopy(){
+  var o={n:G.n,names:G.names,edges:G.edges,directed:false,W:[]};
+  for(var i=0;i<G.n;i++){
+    var row=[];
+    for(var j=0;j<G.n;j++) row.push(Infinity);
+    o.W.push(row);
+  }
+  for(var k=0;k<G.edges.length;k++){
+    var e=G.edges[k];
+    o.W[e.u][e.v]=e.w; o.W[e.v][e.u]=e.w;
+  }
+  return o;
+}
+function ekey(a,b){
+  if(G.directed) return a+'>'+b;
+  return Math.min(a,b)+'-'+Math.max(a,b);
+}
+
+/* ================= 布局与绘制 ================= */
+var NS='http://www.w3.org/2000/svg';
+var nodeEls=[], edgeEls={};
+
+function layout(){
+  var n=G.n, pos=[];
+  var cx=360, cy=215, rx=252, ry=163;
+  for(var i=0;i<n;i++){
+    var ang=-Math.PI/2 + i*2*Math.PI/n;
+    pos.push({x:cx+rx*Math.cos(ang), y:cy+ry*Math.sin(ang)});
+  }
+  G.pos=pos;
+}
+
+function buildSvg(){
+  var svg=$('graphSvg');
+  svg.innerHTML='';
+  nodeEls=[]; edgeEls={};
+  var i;
+
+  if(G.directed){
+    var defs=document.createElementNS(NS,'defs');
+    defs.innerHTML='<marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9aa0b4"/></marker>';
+    svg.appendChild(defs);
+  }
+
+  var R=26;
+  for(i=0;i<G.edges.length;i++){
+    var e=G.edges[i];
+    var p=G.pos[e.u], q=G.pos[e.v];
+    var dx=q.x-p.x, dy=q.y-p.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    var ux=dx/d, uy=dy/d;
+    var x1=p.x+ux*R, y1=p.y+uy*R, x2=q.x-ux*R, y2=q.y-uy*R;
+    var ln=document.createElementNS(NS,'line');
+    ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
+    ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
+    ln.setAttribute('class','edge');
+    if(G.directed) ln.setAttribute('marker-end','url(#arw)');
+    svg.appendChild(ln);
+
+    var tt=0.32;
+    var mx=x1+(x2-x1)*tt, my=y1+(y2-y1)*tt;
+    var tx=document.createElementNS(NS,'text');
+    tx.setAttribute('x',mx); tx.setAttribute('y',my);
+    tx.setAttribute('class','ew');
+    tx.textContent=e.w;
+    svg.appendChild(tx);
+
+    edgeEls[ekey(e.u,e.v)]={line:ln,label:tx};
+  }
+
+  for(i=0;i<G.n;i++){
+    var g=document.createElementNS(NS,'g');
+    g.setAttribute('class','gnode');
+    g.setAttribute('transform','translate('+G.pos[i].x+','+G.pos[i].y+')');
+    var c=document.createElementNS(NS,'circle');
+    c.setAttribute('r',R);
+    var tl=document.createElementNS(NS,'text');
+    tl.setAttribute('class','nl'); tl.setAttribute('y','1');
+    tl.textContent=G.names[i];
+    var ts=document.createElementNS(NS,'text');
+    ts.setAttribute('class','dsub'); ts.setAttribute('y','45');
+    g.appendChild(c); g.appendChild(tl); g.appendChild(ts);
+    svg.appendChild(g);
+    nodeEls.push({g:g,circle:c,text:tl,sub:ts});
+  }
+}
+
+/* ================= 渲染 ================= */
+function renderGraph(snap,last){
+  var i,k;
+  for(i=0;i<nodeEls.length;i++){
+    nodeEls[i].g.setAttribute('class','gnode');
+    nodeEls[i].circle.removeAttribute('style');
+    nodeEls[i].sub.textContent='';
+  }
+  for(k in edgeEls){
+    if(!edgeEls.hasOwnProperty(k)) continue;
+    edgeEls[k].line.setAttribute('class','edge');
+    edgeEls[k].label.setAttribute('class','ew');
+  }
+  if(!snap) return;
+
+  function mk(a,b,cls,labCls){
+    var el=edgeEls[ekey(a,b)]||edgeEls[ekey(b,a)]||edgeEls[Math.min(a,b)+'-'+Math.max(a,b)];
+    if(el){
+      el.line.setAttribute('class','edge '+cls);
+      if(labCls) el.label.setAttribute('class','ew '+labCls);
+    }
+  }
+  function setNode(idx,cls){ if(nodeEls[idx]) nodeEls[idx].g.setAttribute('class','gnode '+cls); }
+
+  if(ALGO==='dijkstra'){
+    for(i=0;i<G.n;i++){
+      nodeEls[i].sub.textContent=gFmt(snap.dist[i]);
+      if(snap.prev[i]>=0) mk(snap.prev[i],i,'e-chosen','chosen');
+      if(snap.vis[i]) setNode(i,'n-in');
+      if(snap.upd===i) setNode(i,'n-cmp');
+      if(snap.cur===i) setNode(i,'n-cur');
+    }
+  } else if(ALGO==='prim'){
+    for(i=0;i<G.n;i++){
+      nodeEls[i].sub.textContent=snap.inT[i]?'✓':gFmt(snap.low[i]);
+      if(snap.inT[i]) setNode(i,'n-in');
+      if(snap.cur===i) setNode(i,'n-cur');
+    }
+    for(i=0;i<snap.chosen.length;i++) mk(snap.chosen[i].u,snap.chosen[i].v,'e-chosen','chosen');
+    if(snap.active) mk(snap.active[0],snap.active[1],'e-active','hot');
+  } else if(ALGO==='kruskal'){
+    if(!kEdges) return;
+    for(i=0;i<G.n;i++){
+      var root=i;
+      while(snap.parent[root]!==root) root=snap.parent[root];
+      nodeEls[i].sub.textContent=G.names[root];
+    }
+    for(i=0;i<snap.acc.length;i++){ var ea=kEdges[snap.acc[i]]; mk(ea.u,ea.v,'e-chosen','chosen'); }
+    for(i=0;i<snap.rej.length;i++){ var er=kEdges[snap.rej[i]]; mk(er.u,er.v,'e-reject','rej'); }
+    if(snap.curE>=0){ var ec=kEdges[snap.curE]; mk(ec.u,ec.v,'e-active','hot'); }
+    var pal=['#4f46e5','#0891b2','#c2410c','#7c3aed','#059669','#be123c','#b45309','#2563eb','#db2777'];
+    for(i=0;i<G.n;i++){
+      var root=i;
+      while(snap.parent[root]!==root) root=snap.parent[root];
+      nodeEls[i].circle.style.stroke=pal[root%pal.length];
+      nodeEls[i].circle.style.fill='#fbfbff';
+    }
+    if(snap.curE>=0){
+      var ce=kEdges[snap.curE];
+      setNode(ce.u,'n-cur'); setNode(ce.v,'n-cur');
+    }
+  } else if(ALGO==='floyd'){
+    if(snap.k>=0){
+      setNode(snap.k,'n-cur');
+      if(snap.ci>=0){
+        mk(snap.ci,snap.k,'e-cmp','cmp');
+        mk(snap.k,snap.cj,'e-cmp','cmp');
+        setNode(snap.ci,'n-cmp');
+        setNode(snap.cj,'n-cmp');
+      }
+    }
+  }
+}
+
+function setStat(i,label,value){
+  $('statK'+i).textContent=label;
+  $('statV'+i).textContent=value;
+}
+function renderStats(snap,last){
+  var n=G.n;
+  var state=$('statState');
+  if(cur===0){ state.className='badge b-gray'; state.textContent=t('state.init'); }
+  else if(last&&last.t==='done'){ state.className='badge b-green'; state.textContent=t('state.done'); }
+  else if(playing){ state.className='badge b-purple'; state.textContent=t('state.playing'); }
+  else { state.className='badge b-amber'; state.textContent=t('state.pause'); }
+
+  if(ALGO==='dijkstra'){
+    var rel=0;
+    for(var s=0;s<cur;s++) if(steps[s].t==='relax'&&steps[s].ok) rel++;
+    setStat(1,t('stat.settled'),snap.settled+' / '+n);
+    setStat(2,t('stat.rest'),(n-snap.settled)+'');
+    setStat(3,t('stat.relax'),rel+'');
+  } else if(ALGO==='floyd'){
+    setStat(1,t('stat.round'),snap.k>=0?G.names[snap.k]:'—');
+    setStat(2,t('stat.upd'),(snap.upd||0)+'');
+    setStat(3,t('stat.cmp3'),(n*n*n)+'');
+  } else if(ALGO==='prim'){
+    setStat(1,t('stat.picked'),snap.chosen.length+' / '+(n-1));
+    setStat(2,t('stat.total'),(snap.total||0)+'');
+    setStat(3,t('stat.minedge'),snap.active?(G.names[snap.active[0]]+'-'+G.names[snap.active[1]]):'—');
+  } else {
+    setStat(1,t('stat.picked'),(snap.acc.length)+' / '+(n-1));
+    setStat(2,t('stat.checked'),(snap.acc.length+snap.rej.length)+' / '+(kEdges?kEdges.length:0));
+    setStat(3,t('stat.total'),(snap.total||0)+'');
+  }
+}
+
+function pathStr(snap,i){
+  if(snap.dist[i]===Infinity) return '—';
+  var seq=[], x=i, guard=0;
+  while(x>=0 && guard++<50){ seq.unshift(G.names[x]); if(x===srcNode) break; x=snap.prev[x]; }
+  return seq.join(' → ');
+}
+
+function renderResult(snap){
+  var box=$('resultPanel'), n=G.n, i, j, html='';
+  if(!snap){ box.innerHTML='<div class="panel-note">'+t('res.none')+'</div>'; return; }
+
+  if(ALGO==='dijkstra'){
+    html+='<table class="rtable"><tr><th>'+t('res.vertex')+'</th><th>'+t('res.dist')+'</th><th>'+t('res.path')+'</th></tr>';
+    for(i=0;i<n;i++){
+      html+='<tr class="'+(snap.vis[i]?'hot':'')+'"><td><b>'+G.names[i]+'</b></td><td class="v">'+gFmt(snap.dist[i])+'</td><td>'+(snap.dist[i]===Infinity?'—':esc(pathStr(snap,i)))+'</td></tr>';
+    }
+    html+='</table>';
+  } else if(ALGO==='floyd'){
+    html+='<table class="mtx"><tr><th>D</th>';
+    for(j=0;j<n;j++) html+='<th>'+G.names[j]+'</th>';
+    html+='</tr>';
+    for(i=0;i<n;i++){
+      html+='<tr><th>'+G.names[i]+'</th>';
+      for(j=0;j<n;j++){
+        var cls='';
+        if(i===j) cls='diag';
+        if(snap.k>=0 && (i===snap.k||j===snap.k) && i!==j) cls='kline';
+        if(i===snap.ci&&j===snap.cj) cls='upd';
+        html+='<td class="'+cls+'">'+gFmt(snap.D[i][j])+'</td>';
+      }
+      html+='</tr>';
+    }
+    html+='</table>';
+  } else if(ALGO==='prim'){
+    html+='<div class="res-head"><span class="res-total">'+t('res.weight')+' = '+(snap.total||0)+'</span><span class="panel-note" style="margin:0">'+t('res.prim')+'</span></div>';
+    if(!snap.chosen.length){ html+='<div class="panel-note">'+t('res.none')+'</div>'; }
+    else{
+      html+='<div class="elist">';
+      for(i=0;i<snap.chosen.length;i++){
+        var e=snap.chosen[i];
+        html+='<div class="eitem ok"><span>'+(i+1)+'.</span><span>'+G.names[e.u]+' — '+G.names[e.v]+'</span><span class="wt">'+e.w+'</span></div>';
+      }
+      html+='</div>';
+    }
+  } else if(ALGO==='kruskal'){
+    if(!kEdges) kEdges=[];
+    html+='<div class="res-head"><span class="res-total">'+t('res.weight')+' = '+(snap.total||0)+'</span><span class="panel-note" style="margin:0">'+t('res.kruskal')+'</span></div>';
+    html+='<div class="elist">';
+    for(i=0;i<kEdges.length;i++){
+      var ke=kEdges[i], cls='eitem', tag=t('res.pending');
+      if(snap.acc.indexOf(i)>=0){ cls+=' ok'; tag='✓'; }
+      else if(snap.rej.indexOf(i)>=0){ cls+=' no'; tag='✗'; }
+      else if(snap.curE===i){ cls+=' cur'; tag='…'; }
+      html+='<div class="'+cls+'"><span>'+tag+'</span><span>'+G.names[ke.u]+' — '+G.names[ke.v]+'</span><span class="wt">'+ke.w+'</span></div>';
+    }
+    html+='</div>';
+  }
+  box.innerHTML=html;
+  $('resNote').textContent=t('res.'+ALGO);
+  if((ALGO==='prim'||ALGO==='kruskal') && G.directed){
+    box.innerHTML+='<div class="panel-note">'+t('res.mstNote')+'</div>';
+  }
+}
+
+function renderNarr(last,snap){
+  if(cur===0){
+    $('narrBadge').textContent='—';
+    $('narrTitle').textContent=(LANG==='zh'?'准备就绪':'Ready');
+    $('narrBody').innerHTML=(LANG==='zh'
+      ?'选好图与算法，点 <b>下一步</b> 或 <b>自动播放</b> 开始。'
+      :'Pick a graph and an algorithm, then press <b>Next</b> or <b>Auto play</b>.');
+    $('narrFormula').textContent='';
+    return;
+  }
+  var sp=last;
+  $('narrBadge').textContent=String(cur);
+  $('narrTitle').textContent=(LANG==='zh'?sp.zh:sp.en)||'…';
+  $('narrBody').innerHTML=(LANG==='zh'?(sp.bzh||''):(sp.ben||''))||'';
+  $('narrFormula').textContent=sp.f||'';
+}
+
+function render(){
+  var snap = (cur===0)?initSnap:(steps[cur-1].snap);
+  var last = (cur===0)?null:steps[cur-1];
+  renderGraph(snap,last);
+  renderStats(snap,last);
+  renderResult(snap);
+  renderNarr(last,snap);
+
+  $('stepNow').textContent=cur;
+  $('stepTotal').textContent=steps.length;
+  $('progressBar').style.width=(steps.length?(cur/steps.length*100):0)+'%';
+  $('btnPrev').disabled=(cur<=0);
+  $('btnNext').disabled=(cur>=steps.length);
+  $('btnAuto').disabled=(cur>=steps.length);
+
+  if(ALGO==='prim'||ALGO==='kruskal'){
+    var picked=0;
+    if(snap) picked=(ALGO==='prim')?snap.chosen.length:snap.acc.length;
+    $('phaseNote').textContent=(LANG==='zh'
+      ?('已选 '+picked+' / '+(G.n-1)+' 条边'+(snap&&snap.total?'　总权值 '+snap.total:''))
+      :(picked+' / '+(G.n-1)+' edges picked'+(snap&&snap.total?'　total '+snap.total:'')));
+  } else if(ALGO==='floyd'){
+    $('phaseNote').textContent=(LANG==='zh'?'第 '+(snap.k>=0?(snap.k+1):0)+' / '+G.n+' 轮':'Round '+(snap.k>=0?(snap.k+1):0)+' / '+G.n);
+  } else {
+    $('phaseNote').textContent=(LANG==='zh'?'已确定 '+snap.settled+' / '+G.n+' 个顶点':'Settled '+snap.settled+' / '+G.n);
+  }
+}
+
+/* ================= 生成步骤 ================= */
+function generate(){
+  var g=G, r;
+  if((ALGO==='prim'||ALGO==='kruskal') && G.directed) g=undirectedCopy();
+  if(ALGO==='dijkstra') r=genDijkstra(g,srcNode);
+  else if(ALGO==='floyd') r=genFloyd(g);
+  else if(ALGO==='prim') r=genPrim(g,srcNode);
+  else r=genKruskal(g);
+  steps=r.steps; initSnap=r.init; kEdges=r.edges||null;
+  cur=0;
+}
+
+/* ================= 输入解析 ================= */
+var lastText='';
+
+function parseInput(text){
+  var lines=text.split(/[\n;]+/).map(function(s){return s.trim();}).filter(function(s){return s.length;});
+  var pairs=[], nameSet={}, bad=null;
+  for(var i=0;i<lines.length;i++){
+    var ln=lines[i];
+    var m=ln.match(/^([A-Za-z])\s*(?:-|—|–|>|→|--)\s*([A-Za-z])\s*[,\s:]\s*(\d{1,2})$/);
+    if(!m) m=ln.match(/^([A-Za-z])\s+([A-Za-z])\s+(\d{1,2})$/);
+    if(!m){ bad=ln; break; }
+    var a=m[1].toUpperCase(), b=m[2].toUpperCase(), w=parseInt(m[3],10);
+    if(!/^[A-I]$/.test(a)||!/^[A-I]$/.test(b)){ bad=ln; break; }
+    if(a===b) return {err:'err.self'};
+    if(!(w>=1&&w<=99)) return {err:'err.weight'};
+    nameSet[a]=1; nameSet[b]=1;
+    pairs.push({a:a,b:b,w:w});
+  }
+  if(bad!==null) return {err:'err.parse',line:bad};
+  var names=Object.keys(nameSet).sort();
+  if(names.length<3||names.length>9||pairs.length<2) return {err:'err.few'};
+
+  var idx={};
+  names.forEach(function(nm,i){ idx[nm]=i; });
+  var emap={}, edges=[];
+  pairs.forEach(function(p){
+    var u=idx[p.a], v=idx[p.b];
+    var key=Math.min(u,v)+'-'+Math.max(u,v);
+    if(emap[key]){ if(p.w<emap[key].w) emap[key].w=p.w; return; }
+    var e={u:u,v:v,w:p.w};
+    emap[key]=e; edges.push(e);
+  });
+  return {names:names, edges:edges};
+}
+
+function applyGraph(silent){
+  var res=parseInput($('edgeInput').value);
+  var msg=$('inputMsg');
+  if(res.err){
+    msg.className='input-msg no';
+    msg.textContent=t(res.err)+(res.line?('「'+res.line+'」'):'');
+    return false;
+  }
+  G.names=res.names;
+  G.n=res.names.length;
+  G.edges=res.edges;
+  buildAdj();
+  layout();
+  buildSvg();
+  fillSrc();
+  generate();
+  render();
+  if(!silent){
+    msg.className='input-msg ok';
+    msg.textContent=t('ok.graph')+G.n+t('ok.v')+G.edges.length+t('ok.e');
+  }
+  $('stageNote').textContent=stageNoteText();
+  return true;
+}
+function stageNoteText(){
+  var a=(ALGO==='dijkstra')?'Dijkstra':(ALGO==='floyd'?'Floyd':(ALGO==='prim'?'Prim':'Kruskal'));
+  var dir=G.directed?(LANG==='zh'?'有向图':'directed'):(LANG==='zh'?'无向图':'undirected');
+  var extra='';
+  if(ALGO==='dijkstra') extra=(LANG==='zh'?'　源点 ':'　source ')+G.names[srcNode];
+  if(ALGO==='prim') extra=(LANG==='zh'?'　起点 ':'　start ')+G.names[srcNode];
+  return a+' · '+dir+' · n = '+G.n+' , m = '+G.edges.length+extra;
+}
+function fillSrc(){
+  var sel=$('srcSel');
+  sel.innerHTML='';
+  for(var i=0;i<G.n;i++){
+    var o=document.createElement('option');
+    o.value=i; o.textContent=G.names[i];
+    sel.appendChild(o);
+  }
+  if(srcNode>=G.n) srcNode=0;
+  sel.value=String(srcNode);
+}
+
+/* ================= 预设图 ================= */
+var PRESET_CLASSIC='A-B 6\nA-C 1\nA-D 5\nB-C 5\nB-E 3\nC-D 5\nC-E 6\nC-F 4\nD-F 2\nE-F 6';
+var PRESET_DENSE='A-B 4\nA-C 8\nA-D 7\nA-E 9\nB-C 3\nB-D 6\nB-E 5\nC-D 2\nC-E 6\nD-E 1';
+
+function setEdgesText(edges,names){
+  var lines=[];
+  edges.forEach(function(e){
+    lines.push(names[e.u]+'-'+names[e.v]+' '+e.w);
+  });
+  $('edgeInput').value=lines.join('\n');
+}
+function randomGraphText(){
+  var n=5+Math.floor(Math.random()*4);      /* 5~8 */
+  var names=['A','B','C','D','E','F','G','H','I'].slice(0,n);
+  var edges=[], seen={};
+  function add(u,v,w){
+    var k=Math.min(u,v)+'-'+Math.max(u,v);
+    if(u===v||seen[k]) return false;
+    seen[k]=1; edges.push({u:u,v:v,w:w}); return true;
+  }
+  for(var i=1;i<n;i++) add(Math.floor(Math.random()*i),i,1+Math.floor(Math.random()*9));
+  var extra=2+Math.floor(Math.random()*4), tries=0;
+  while(extra>0&&tries<200){
+    tries++;
+    if(add(Math.floor(Math.random()*n),Math.floor(Math.random()*n),1+Math.floor(Math.random()*9))) extra--;
+  }
+  setEdgesText(edges,names);
+}
+
+/* ================= 交互 ================= */
+function goNext(){ if(cur<steps.length){ cur++; render(); if(cur>=steps.length) stopPlay(); } }
+function goPrev(){ if(cur>0){ cur--; render(); } }
+function startPlay(){
+  if(!steps.length||cur>=steps.length) return;
+  playing=true; $('btnAuto').textContent=t('ctrl.pause'); scheduleTick();
+}
+function scheduleTick(){
+  if(!playing) return;
+  var speed=parseInt($('speedSlider').value,10);
+  var ms=1200-speed*100;
+  timer=setTimeout(function(){ goNext(); if(playing&&cur<steps.length) scheduleTick(); else if(playing) stopPlay(); },ms);
+}
+function stopPlay(){
+  playing=false;
+  if(timer){ clearTimeout(timer); timer=null; }
+  $('btnAuto').textContent=t('ctrl.auto');
+  if(steps.length) render();
+}
+function togglePlay(){ if(playing) stopPlay(); else startPlay(); }
+
+function setAlgo(a){
+  if(ALGO===a) return;
+  playing=false;
+  if(timer){ clearTimeout(timer); timer=null; }
+  $('btnAuto').textContent=t('ctrl.auto');
+  ALGO=a;
+  var btns=document.querySelectorAll('[data-algo]');
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active',btns[i].getAttribute('data-algo')===ALGO);
+  $('srcRow').style.display=(ALGO==='dijkstra'||ALGO==='prim')?'flex':'none';
+  $('srcLabel').textContent=(ALGO==='prim')?t('src.start'):t('src.label');
+  $('srcNote').textContent=(ALGO==='prim')?t('src.notePrim'):t('src.noteDij');
+  generate(); render();
+  $('stageNote').textContent=stageNoteText();
+  buildLegend();
+}
+
+/* ================= 图例 ================= */
+function buildLegend(){
+  var items='';
+  if(ALGO==='kruskal'){
+    items=[['dot-indigo',t('legend.node')],['dot-sky',t('legend.chosen')],['dot-amber',t('legend.active')],['dot-rose',t('legend.reject')]];
+  } else if(ALGO==='floyd'){
+    items=[['dot-purple',t('legend.cur')],['dot-indigo',t('legend.node')]];
+  } else {
+    items=[['dot-indigo',t('legend.node')],['dot-purple',t('legend.cur')],['dot-green',t('legend.chosen')],['dot-amber',t('legend.active')]];
+  }
+  var h='';
+  for(var i=0;i<items.length;i++){
+    h+='<span><i class="dot '+items[i][0]+'"></i>'+items[i][1]+'</span>';
+  }
+  $('legend').innerHTML=h;
+}
+
+/* ================= 小结 ================= */
+var SUMMARY=[
+  {zh:'<b>Dijkstra</b>：每次从未确定集合中选 dist 最小的顶点「锁定」，再把它的边用于松弛 —— 共 n 轮，邻接矩阵实现 O(n²)，堆优化 O(m log n)。<b>不能有负权边</b>。',
+   en:'<b>Dijkstra</b>: repeatedly lock the unsettled vertex with the smallest dist, then relax its edges — n rounds; O(n²) with a matrix, O(m log n) with a heap. <b>No negative weights.</b>'},
+  {zh:'<b>Floyd</b>：三重循环，D(k)[i][j] = min(D(k−1)[i][j], D(k−1)[i][k] + D(k−1)[k][j])，O(n³)，允许负权但<b>不能有负权回路</b>。',
+   en:'<b>Floyd</b>: triple loop, D(k)[i][j] = min(D(k−1)[i][j], D(k−1)[i][k] + D(k−1)[k][j]); O(n³); negative edges allowed but <b>no negative cycle</b>.'},
+  {zh:'<b>Prim 适合稠密图</b>（O(n²)，与边数无关），<b>Kruskal 适合稀疏图</b>（O(m log m)，排序为主）。两者都贪心，且都只能用于<b>无向图</b>。',
+   en:'<b>Prim suits dense graphs</b> (O(n²), independent of m); <b>Kruskal suits sparse graphs</b> (O(m log m), dominated by sorting). Both are greedy and need <b>undirected</b> graphs.'},
+  {zh:'<b>Prim 与 Dijkstra 的代码结构几乎相同</b>，唯一区别是更新量：Prim 存「到集合 U 的最短边」lowcost，Dijkstra 存「到源点的累计距离」dist。',
+   en:'<b>Prim and Dijkstra look almost identical</b>; the only difference is what is updated: lowcost (lightest edge to U) vs dist (accumulated distance from the source).'},
+  {zh:'<b>Kruskal 判环用并查集</b>：两端根相同就舍弃这条边。n 个顶点选出 n−1 条边即结束；选不满说明图不连通。',
+   en:'<b>Kruskal detects cycles with union-find</b>: reject an edge whose endpoints share a root. Stop at n−1 edges; fewer means the graph is disconnected.'},
+  {zh:'<b>最小生成树不一定唯一，但最小权值和唯一</b>。若图中所有边权互不相同，则 MST 唯一（Kruskal 每一轮的选择都无歧义）。',
+   en:'<b>The MST need not be unique, but its total weight is.</b> With distinct edge weights the MST itself is unique (every Kruskal choice is forced).'}
+];
+function buildSummary(){
+  var ul=$('summaryList'); ul.innerHTML='';
+  for(var i=0;i<SUMMARY.length;i++){
+    var li=document.createElement('li');
+    li.innerHTML=(LANG==='zh'?SUMMARY[i].zh:SUMMARY[i].en);
+    ul.appendChild(li);
+  }
+}
+
+/* ================= 语言 ================= */
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent=t(nodes[i].getAttribute('data-i18n'));
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+  $('srcLabel').textContent=(ALGO==='prim')?t('src.start'):t('src.label');
+  $('srcNote').textContent=(ALGO==='prim')?t('src.notePrim'):t('src.noteDij');
+  $('stageNote').textContent=stageNoteText();
+  buildLegend();
+  buildSummary();
+  if(G.n) render();
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+
+/* ================= 事件 ================= */
+$('langZh').addEventListener('click',function(){ if(LANG!=='zh'){ LANG='zh'; $('langZh').classList.add('active'); $('langEn').classList.remove('active'); applyLang(); } });
+$('langEn').addEventListener('click',function(){ if(LANG!=='en'){ LANG='en'; $('langEn').classList.add('active'); $('langZh').classList.remove('active'); applyLang(); } });
+
+var abtns=document.querySelectorAll('[data-algo]');
+for(var ai=0;ai<abtns.length;ai++){
+  abtns[ai].addEventListener('click',function(){ setAlgo(this.getAttribute('data-algo')); });
+}
+
+$('btnClassic').addEventListener('click',function(){ $('edgeInput').value=PRESET_CLASSIC; applyGraph(); });
+$('btnDense').addEventListener('click',function(){ $('edgeInput').value=PRESET_DENSE; applyGraph(); });
+$('btnRandom').addEventListener('click',function(){ randomGraphText(); applyGraph(); });
+$('btnApply').addEventListener('click',function(){ applyGraph(); });
+
+$('btnUndir').addEventListener('click',function(){
+  if(!G.directed) return;
+  G.directed=false;
+  $('btnUndir').classList.add('active'); $('btnDir').classList.remove('active');
+  applyGraph(true);
+  $('stageNote').textContent=stageNoteText();
+});
+$('btnDir').addEventListener('click',function(){
+  if(G.directed) return;
+  G.directed=true;
+  $('btnDir').classList.add('active'); $('btnUndir').classList.remove('active');
+  applyGraph(true);
+  $('stageNote').textContent=stageNoteText();
+});
+
+$('srcSel').addEventListener('change',function(){
+  srcNode=parseInt(this.value,10)||0;
+  stopPlay(); generate(); render();
+  $('stageNote').textContent=stageNoteText();
+});
+
+$('btnNext').addEventListener('click',function(){ stopPlay(); goNext(); });
+$('btnPrev').addEventListener('click',function(){ stopPlay(); goPrev(); });
+$('btnAuto').addEventListener('click',togglePlay);
+$('btnReset').addEventListener('click',function(){ stopPlay(); cur=0; render(); });
+$('edgeInput').addEventListener('input',function(){ $('inputMsg').className='input-msg'; $('inputMsg').textContent=''; });
+
+document.addEventListener('keydown',function(e){
+  if(e.target&&/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); if(e.key===' '){ togglePlay(); } else { stopPlay(); goNext(); } }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); goPrev(); }
+});
+
+/* ================= 启动 ================= */
+$('langZh').classList.toggle('active',LANG==='zh');
+$('langEn').classList.toggle('active',LANG==='en');
+$('srcRow').style.display='flex';
+$('edgeInput').value=PRESET_CLASSIC;
+applyLang();
+applyGraph(true);
+$('inputMsg').className='input-msg ok';
+$('inputMsg').textContent=t('ok.graph')+G.n+t('ok.v')+G.edges.length+t('ok.e');
+})();
+</script>
+</body>
+</html>
