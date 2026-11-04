@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 计算机网络 · TCP 三次握手 / 四次挥手 / 状态机</title>
+<style>
+  /* 主题：计算机网络 = 天青 Sky #0284c7（四科配色规范见 README） */
+  :root{
+    --bg:#f0f7fb; --card:#ffffff; --ink:#182330; --muted:#64748b;
+    --sky:#0284c7; --sky-deep:#0369a1; --sky-soft:#e4f3fc; --sky-line:#b7dcf0;
+    --cyan:#0891b2;
+    --violet:#7c3aed; --violet-soft:#f3edff;
+    --green:#059669; --green-soft:#e6f7f1;
+    --amber:#b45309; --amber-line:#d97706; --amber-soft:#fef4e4;
+    --rose:#e11d48;
+    --line:#dfeaf2;
+    --shadow:0 10px 30px rgba(21,58,82,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 8% -12%, #dff0fb 0%, transparent 60%),
+      radial-gradient(820px 500px at 104% 4%, #e6f7fb 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); line-height:1.78; font-size:16.5px; padding:30px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  code{
+    font-family:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    background:#eef7fc;border:1px solid var(--line);border-radius:6px;
+    padding:1px 6px;font-size:.92em;color:#075985;white-space:nowrap;
+  }
+  .lang-switch{display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 10px rgba(16,50,70,.08)}
+  .lang-btn{border:none;background:transparent;border-radius:999px;padding:6px 18px;font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+  .lang-btn.active{background:linear-gradient(135deg,var(--sky),#22a3d8);color:#fff;box-shadow:0 3px 10px rgba(2,132,199,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{font-size:13.5px;font-weight:700;color:var(--sky-deep);background:var(--sky-soft);border:1px solid var(--sky-line);border-radius:999px;padding:4px 14px}
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.42;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);border:1px solid rgba(223,234,242,.9);padding:24px 26px;margin-bottom:22px}
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 按钮 ---------- */
+  .type-btn{
+    border:1.5px solid var(--line);background:#fbfdff;border-radius:11px;
+    padding:9px 16px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:all .2s;font-family:inherit;text-align:left;
+  }
+  .type-btn:hover{border-color:var(--sky);color:var(--sky-deep)}
+  .type-btn.active{background:linear-gradient(135deg,var(--sky),#1c9fd6);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(2,132,199,.3)}
+  .type-btn small{display:block;font-size:11.5px;font-weight:600;opacity:.78;letter-spacing:.2px}
+  .type-btn.active small{opacity:.92}
+  .type-row{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .type-hint{font-size:14px;font-weight:700;color:var(--muted);margin-left:6px;align-self:center}
+  .cfg-line{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+  .isn-box{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;color:var(--muted)}
+  .isn-box input{
+    width:96px;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;
+    font-size:14.5px;font-weight:700;font-family:ui-monospace,Consolas,monospace;
+    color:var(--ink);outline:none;background:#fdfeff;
+  }
+  .isn-box input:focus{border-color:var(--sky)}
+  .chk{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;color:var(--muted);cursor:pointer;user-select:none}
+  .chk input{width:17px;height:17px;accent-color:var(--sky);cursor:pointer}
+  .chk.off{opacity:.42;cursor:not-allowed}
+  .cfg-note{font-size:13.5px;color:var(--muted);font-weight:600;margin-top:10px;line-height:1.7}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:6px}
+  .stat{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;background:#fbfdff;text-align:center;overflow:hidden}
+  .stat-k{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .stat-v{display:block;font-size:21px;font-weight:800;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{display:inline-block;font-size:14.5px;font-weight:800;border-radius:999px;padding:2px 13px;margin-top:3px;letter-spacing:.2px}
+  .b-gray{background:#eef2f6;color:#4b5563}
+  .b-sky{background:var(--sky-soft);color:var(--sky-deep)}
+  .b-violet{background:var(--violet-soft);color:var(--violet)}
+  .b-green{background:var(--green-soft);color:var(--green)}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}
+  /* ---------- 时序图 ---------- */
+  .seq-wrap{margin:16px 0 4px;background:linear-gradient(180deg,#fcfdff,#f7fbfe);border:1.5px solid var(--line);border-radius:16px;padding:8px 6px;overflow:hidden}
+  .seq-svg{width:100%;display:block}
+  .life{stroke:#c7d7e3;stroke-width:2;stroke-dasharray:6 6}
+  .hdr{fill:#fff;stroke:var(--line);stroke-width:1.6}
+  .hdr-c{fill:var(--sky-soft);stroke:var(--sky)}
+  .hdr-s{fill:var(--violet-soft);stroke:var(--violet)}
+  .hdr-name{font-size:16px;font-weight:800;text-anchor:middle}
+  .hdr-state{font-size:11.5px;font-weight:800;text-anchor:middle;font-family:ui-monospace,Consolas,monospace}
+  .pkt{animation:pin .38s ease both}
+  @keyframes pin{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+  .pline{stroke-width:2.8;fill:none}
+  .p-c{stroke:var(--sky)}
+  .p-s{stroke:var(--violet)}
+  .p-g{stroke:var(--green)}
+  .p-a{stroke:var(--amber-line)}
+  .p-retry{stroke-dasharray:7 5}
+  .pill{stroke:none}
+  .pill-txt{font-size:11.5px;font-weight:800;text-anchor:middle;dominant-baseline:central;letter-spacing:.3px}
+  .pkt-txt{font-size:12.5px;font-weight:700;text-anchor:middle;fill:#5a6a7a;font-family:ui-monospace,Consolas,monospace}
+  .pkt-txt.last{fill:#193a4d}
+  .spill{stroke-width:1.5}
+  .spill-c{fill:var(--sky-soft);stroke:var(--sky)}
+  .spill-s{fill:var(--violet-soft);stroke:var(--violet)}
+  .spill-txt{font-size:11px;font-weight:800;text-anchor:middle;dominant-baseline:central}
+  .st-c{fill:var(--sky-deep)} .st-s{fill:var(--violet)}
+  .note-box{fill:#fff8ec;stroke:#e8c78b;stroke-width:1.5;stroke-dasharray:5 4}
+  .note-txt{font-size:12.5px;font-weight:700;fill:#8a5a12;text-anchor:middle}
+  .wait-box{fill:var(--amber-soft);stroke:var(--amber-line);stroke-width:1.6}
+  .wait-txt{font-size:12.8px;font-weight:800;fill:var(--amber);text-anchor:middle}
+  .axis-txt{font-size:11.5px;fill:#93a5b4;font-weight:700}
+  .tick{stroke:var(--green);stroke-width:3;stroke-linecap:round}
+  /* ---------- 状态机 ---------- */
+  .fsm-svg{width:100%;display:block}
+  .fsm-node rect{fill:#fbfdff;stroke:#cfdde8;stroke-width:1.8;transition:all .28s}
+  .fsm-node .nm{font-size:14.5px;font-weight:800;fill:#42566a;text-anchor:middle;font-family:ui-monospace,Consolas,monospace}
+  .fsm-node .nt{font-size:10.5px;font-weight:600;fill:#93a5b4;text-anchor:middle}
+  .fsm-node.act-c rect{fill:var(--sky);stroke:var(--sky-deep);stroke-width:2.6}
+  .fsm-node.act-c .nm{fill:#fff} .fsm-node.act-c .nt{fill:#d8eefb}
+  .fsm-node.act-s rect{fill:var(--violet);stroke:#5b21b6;stroke-width:2.6}
+  .fsm-node.act-s .nm{fill:#fff} .fsm-node.act-s .nt{fill:#e8dcff}
+  .fsm-node.act-c rect, .fsm-node.act-s rect{filter:drop-shadow(0 4px 10px rgba(20,60,90,.22))}
+  .fa{stroke:#cfdde8;stroke-width:1.8;fill:none}
+  .fa.done{stroke:#7cc4e4;stroke-width:2.2}
+  .fa.on{stroke:var(--amber-line);stroke-width:3.4}
+  .flabel{font-size:10px;font-weight:700;fill:#b6c6d3;transition:all .2s}
+  .flabel.done{fill:#7fa8bf}
+  .flabel.on{fill:var(--amber);font-size:11px;font-weight:800}
+  .fside{font-size:12.5px;font-weight:800;fill:#8aa0b2;text-anchor:middle;letter-spacing:.5px}
+  /* ---------- 控制 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;
+    padding:11px 20px;font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(20,50,70,.14)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--sky),#1c9fd6);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(2,132,199,.32)}
+  .btn-play{background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border-color:transparent}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--sky);cursor:pointer;width:108px}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--sky-deep);font-size:18px}
+  .progress{height:9px;background:#e8f1f7;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--sky),#38bdf8);transition:width .4s cubic-bezier(.22,.9,.32,1)}
+  .narr{border-radius:16px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fbfdff,#f4fafd);padding:18px 22px}
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{background:var(--sky);color:#fff;font-size:13px;font-weight:800;border-radius:999px;padding:3px 13px;white-space:nowrap}
+  .narr-title{font-size:18px;font-weight:800;line-height:1.55}
+  .narr-body{font-size:16px;color:#38495b}
+  .narr-body b{color:#0b2133}
+  .narr-formula{
+    margin-top:12px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    background:#fff;border:1.5px dashed var(--sky-line);border-radius:10px;
+    padding:8px 14px;display:inline-block;color:var(--sky-deep);font-weight:700;font-size:14.5px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 表格 ---------- */
+  .rtable{width:100%;border-collapse:collapse;font-size:14.8px;margin-top:4px}
+  .rtable th,.rtable td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  .rtable th{background:#f2f9fd;font-weight:800;color:#3e566b}
+  .rtable td.st{font-family:ui-monospace,Consolas,monospace;font-weight:800;color:var(--sky-deep);white-space:nowrap}
+  .rtable tr.hot td{background:var(--sky-soft)}
+  .rtable tr.hot td.st{color:var(--sky-deep)}
+  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:10px;font-size:13.5px;color:var(--muted);font-weight:600}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dot-sky{background:var(--sky)} .dot-violet{background:var(--violet)}
+  .dot-green{background:var(--green)} .dot-amber{background:var(--amber-line)}
+  /* ---------- 小结 ---------- */
+  .summary li{margin:9px 0 9px 22px;font-size:15.5px}
+  .summary b{color:var(--sky-deep)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--sky-deep);font-weight:700;text-decoration:none}
+  @media (max-width:720px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 15px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .step-info{margin-left:0;width:100%}
+    .rtable{font-size:13.6px}
+    .rtable th,.rtable td{padding:6px 8px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">计算机网络 · 传输层</span>
+        <span class="tag" data-i18n="tag.scope">三次握手 · 四次挥手 · 11 个状态</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">时序图 + 状态机同步联动</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">TCP 连接的建立与释放：三段报文、四次挥手，每一步都对应一个状态</h1>
+    <p class="sub" data-i18n="hero.sub">左侧时序图逐段发出报文段，右侧状态机同步点亮客户端与服务端的状态 —— 看清「为什么是三次」「为什么是四次」「TIME_WAIT 在等什么」。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cfg.title">场景设置</span> <span class="title-note" data-i18n="cfg.note">选一个过程，再决定是否插入异常</span></h2>
+    <div class="type-row" id="scnRow">
+      <button class="type-btn active" data-scn="handshake" type="button"><span data-i18n="cfg.hs">三次握手</span><small data-i18n="cfg.hsSub">建立连接 · 3 段 · 1.5 RTT</small></button>
+      <button class="type-btn" data-scn="teardown" type="button"><span data-i18n="cfg.td">四次挥手</span><small data-i18n="cfg.tdSub">释放连接 · 4 段 · 2 RTT</small></button>
+      <button class="type-btn" data-scn="full" type="button"><span data-i18n="cfg.full">完整生命周期</span><small data-i18n="cfg.fullSub">握手 + 数据传输 + 挥手</small></button>
+    </div>
+    <div class="cfg-line">
+      <span class="isn-box"><span data-i18n="cfg.isnC">客户端初始序号 ISN</span><input id="isnC" max="99999" min="0" type="number" value="1000"></span>
+      <span class="isn-box"><span data-i18n="cfg.isnS">服务端初始序号 ISN</span><input id="isnS" max="99999" min="0" type="number" value="3000"></span>
+      <label class="chk" id="lossWrap"><input id="lossChk" type="checkbox"><span data-i18n="cfg.loss">模拟第 3 个 ACK 丢失</span></label>
+    </div>
+    <p class="cfg-note" data-i18n="cfg.hint">提示：序号只是演示用的具体数值，408 题目里通常写成 x、y、u、v、w。SYN 与 FIN 各消耗一个序号，纯 ACK 不消耗。</p>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="anim.title">报文交互演示</span> <span class="title-note" id="stageNote"></span></h2>
+
+    <div class="stat-row">
+      <div class="stat"><span class="stat-k" data-i18n="stat.seg">已发送报文段</span><span class="stat-v" id="statSeg">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.phase">当前阶段</span><span class="badge b-gray" id="statPhase">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.c">客户端状态</span><span class="badge b-sky" id="statC">CLOSED</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.s">服务端状态</span><span class="badge b-violet" id="statS">LISTEN</span></div>
+    </div>
+
+    <div class="seq-wrap"><svg class="seq-svg" id="seq" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="legend">
+      <span><i class="dot dot-sky"></i><span data-i18n="lg.c2s">客户端 → 服务端</span></span>
+      <span><i class="dot dot-violet"></i><span data-i18n="lg.s2c">服务端 → 客户端</span></span>
+      <span><i class="dot dot-green"></i><span data-i18n="lg.ack">纯 ACK 确认</span></span>
+      <span><i class="dot dot-amber"></i><span data-i18n="lg.fin">FIN / 等待</span></span>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-primary" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">↺ 重置</button>
+      <span class="speed-box"><span data-i18n="ctrl.speed">速度</span><input id="speed" max="5" min="1" type="range" value="3"></span>
+      <span class="step-info"><span data-i18n="ctrl.step">第</span> <b id="stepNow">0</b> / <span id="stepTotal">0</span> <span data-i18n="ctrl.step2">步</span></span>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="narr">
+      <div class="narr-head">
+        <span class="narr-badge" id="narrBadge">—</span>
+        <span class="narr-title" id="narrTitle"></span>
+      </div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="fsm.title">TCP 状态机</span> <span class="title-note" data-i18n="fsm.note">左：客户端 FSM　右：服务端 FSM　高亮 = 当前所处状态</span></h2>
+    <svg class="fsm-svg" id="fsm" viewBox="0 0 1000 570" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="legend">
+      <span><i class="dot dot-sky"></i><span data-i18n="lg.client">客户端状态</span></span>
+      <span><i class="dot dot-violet"></i><span data-i18n="lg.server">服务端状态</span></span>
+      <span><i class="dot dot-amber"></i><span data-i18n="lg.now">刚刚发生的迁移</span></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="tb.title">11 个状态速查</span> <span class="title-note" data-i18n="tb.note">408 选择题常考「某状态下收到什么会怎样」</span></h2>
+    <table class="rtable" id="stateTable">
+      <thead><tr>
+        <th data-i18n="tb.h1">状态</th><th data-i18n="tb.h2">含义</th><th data-i18n="tb.h3">记忆要点</th>
+      </tr></thead>
+      <tbody id="stateTbody"></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title" data-i18n="notes.title">408 考点速记</h2>
+    <ul class="summary" id="notesList"></ul>
+  </section>
+
+  <p class="footer"><span data-i18n="footer.text">408 可视化实验室 · 计算机网络</span> · <a href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener">GitHub</a></p>
+</div>
+
+<script>
+/* =========================================================
+   TCP 三次握手 / 四次挥手 / 状态机
+   科目主题：计算机网络 · Sky #0284c7
+   ========================================================= */
+var NS='http://www.w3.org/2000/svg';
+function $(id){ return document.getElementById(id); }
+
+var LANG='zh';
+try{ LANG=localStorage.getItem('408lab-lang')||'zh'; }catch(e){}
+
+var T={
+  'tag.subj':{zh:'计算机网络 · 传输层',en:'Computer Networks · Transport Layer'},
+  'tag.scope':{zh:'三次握手 · 四次挥手 · 11 个状态',en:'3-way handshake · 4-way close · 11 states'},
+  'tag.inter':{zh:'时序图 + 状态机同步联动',en:'Sequence diagram + live state machine'},
+  'hero.h1':{zh:'TCP 连接的建立与释放：三段报文、四次挥手，每一步都对应一个状态',en:'TCP connection setup and release: three segments, four waves — every packet moves a state'},
+  'hero.sub':{zh:'左侧时序图逐段发出报文段，右侧状态机同步点亮客户端与服务端的状态 —— 看清「为什么是三次」「为什么是四次」「TIME_WAIT 在等什么」。',en:'Each segment appears in the sequence diagram while the state machine lights up on both sides — see why three packets are needed, why closing takes four, and what TIME_WAIT is waiting for.'},
+
+  'cfg.title':{zh:'场景设置',en:'Scenario'},
+  'cfg.note':{zh:'选一个过程，再决定是否插入异常',en:'Pick a process, optionally inject a lost ACK'},
+  'cfg.hs':{zh:'三次握手',en:'3-way handshake'},
+  'cfg.hsSub':{zh:'建立连接 · 3 段 · 1.5 RTT',en:'Connect · 3 segments · 1.5 RTT'},
+  'cfg.td':{zh:'四次挥手',en:'4-way close'},
+  'cfg.tdSub':{zh:'释放连接 · 4 段 · 2 RTT',en:'Disconnect · 4 segments · 2 RTT'},
+  'cfg.full':{zh:'完整生命周期',en:'Full lifecycle'},
+  'cfg.fullSub':{zh:'握手 + 数据传输 + 挥手',en:'Handshake + data + close'},
+  'cfg.isnC':{zh:'客户端 ISN',en:'Client ISN'},
+  'cfg.isnS':{zh:'服务端 ISN',en:'Server ISN'},
+  'cfg.loss':{zh:'模拟第 3 个 ACK 丢失',en:'Simulate lost 3rd ACK'},
+  'cfg.hint':{zh:'提示：序号只是演示用的具体数值，408 题目里通常写成 x、y、u、v、w。SYN 与 FIN 各消耗一个序号，纯 ACK 不消耗。',en:'Note: the numbers are concrete examples; exams usually write x, y, u, v, w. SYN and FIN each consume one sequence number, a bare ACK does not.'},
+
+  'anim.title':{zh:'报文交互演示',en:'Segment exchange'},
+  'stat.seg':{zh:'已发送报文段',en:'Segments sent'},
+  'stat.phase':{zh:'当前阶段',en:'Phase'},
+  'stat.c':{zh:'客户端状态',en:'Client state'},
+  'stat.s':{zh:'服务端状态',en:'Server state'},
+  'phase.hs':{zh:'建立连接',en:'Handshake'},
+  'phase.data':{zh:'数据传输',en:'Data transfer'},
+  'phase.td':{zh:'释放连接',en:'Teardown'},
+  'phase.wait':{zh:'等待 2MSL',en:'2MSL wait'},
+
+  'lg.c2s':{zh:'客户端 → 服务端',en:'Client → Server'},
+  'lg.s2c':{zh:'服务端 → 客户端',en:'Server → Client'},
+  'lg.ack':{zh:'纯 ACK 确认',en:'Pure ACK'},
+  'lg.fin':{zh:'FIN / 等待',en:'FIN / waiting'},
+  'lg.client':{zh:'客户端状态',en:'Client states'},
+  'lg.server':{zh:'服务端状态',en:'Server states'},
+  'lg.now':{zh:'刚刚发生的迁移',en:'Transition just taken'},
+
+  'ctrl.prev':{zh:'← 上一步',en:'← Prev'},
+  'ctrl.next':{zh:'下一步 →',en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放',en:'▶ Auto play'},
+  'ctrl.pause':{zh:'⏸ 暂停',en:'⏸ Pause'},
+  'ctrl.reset':{zh:'↺ 重置',en:'↺ Reset'},
+  'ctrl.speed':{zh:'速度',en:'Speed'},
+  'ctrl.step':{zh:'第',en:'Step'},
+  'ctrl.step2':{zh:'步',en:''},
+
+  'narr.readyT':{zh:'准备就绪',en:'Ready'},
+  'narr.readyB':{zh:'选好场景后，点 <b>下一步</b> 或 <b>自动播放</b> 开始。建议先完整看一遍三次握手，再切到四次挥手。',en:'Pick a scenario, then press <b>Next</b> or <b>Auto play</b>. Watch the handshake once, then switch to the close sequence.'},
+
+  'fsm.title':{zh:'TCP 状态机',en:'TCP state machine'},
+  'fsm.note':{zh:'左：客户端 FSM　右：服务端 FSM　高亮 = 当前所处状态',en:'Left: client FSM · Right: server FSM · highlighted = current state'},
+  'fsm.client':{zh:'客户端 FSM',en:'CLIENT FSM'},
+  'fsm.server':{zh:'服务端 FSM',en:'SERVER FSM'},
+
+  'tb.title':{zh:'11 个状态速查',en:'All 11 states'},
+  'tb.note':{zh:'408 选择题常考「某状态下收到什么会怎样」',en:'Exams love "what happens on receiving X in state Y"'},
+  'tb.h1':{zh:'状态',en:'State'},
+  'tb.h2':{zh:'含义',en:'Meaning'},
+  'tb.h3':{zh:'记忆要点',en:'Key point'},
+
+  'notes.title':{zh:'408 考点速记',en:'Exam notes'},
+  'footer.text':{zh:'408 可视化实验室 · 计算机网络',en:'408 Visual Lab · Computer Networks'}
+};
+
+function t(k){ var o=T[k]; return o?(o[LANG]||o.zh):k; }
+
+/* ===================== 数据 ===================== */
+var SCN='handshake';
+var ISN_C=1000, ISN_S=3000;
+var LOSS=false;
+
+var C_CHAIN=['CLOSED','SYN_SENT','ESTABLISHED','FIN_WAIT_1','FIN_WAIT_2','TIME_WAIT','CLOSED'];
+var S_CHAIN=['CLOSED','LISTEN','SYN_RCVD','ESTABLISHED','CLOSE_WAIT','LAST_ACK','CLOSED'];
+
+var C_NOTE=[
+  {zh:'初始 / 已关闭',en:'initial / closed'},
+  {zh:'已发 SYN，等 SYN+ACK',en:'SYN sent, waiting'},
+  {zh:'可双向传数据',en:'data can flow'},
+  {zh:'已发 FIN，等 ACK',en:'FIN sent, waiting ACK'},
+  {zh:'半关闭，等对方 FIN',en:'half-closed, wait FIN'},
+  {zh:'等 2MSL 后关闭',en:'waiting 2MSL'},
+  {zh:'彻底关闭',en:'fully closed'}
+];
+var S_NOTE=[
+  {zh:'初始 / 已关闭',en:'initial / closed'},
+  {zh:'被动打开，等 SYN',en:'passive open, wait SYN'},
+  {zh:'已回 SYN+ACK，等 ACK',en:'SYN+ACK sent, wait ACK'},
+  {zh:'可双向传数据',en:'data can flow'},
+  {zh:'等应用关闭',en:'wait for app close'},
+  {zh:'已发 FIN，等 ACK',en:'FIN sent, waiting ACK'},
+  {zh:'彻底关闭',en:'fully closed'}
+];
+
+var steps=[], cur=0, playing=false, timer=null;
+
+/* ===================== 步骤生成 ===================== */
+function pkt(o){
+  o.kind='pkt';
+  return o;
+}
+function recv(o){
+  o.kind='recv';
+  return o;
+}
+function noteStep(o){
+  o.kind='note';
+  return o;
+}
+
+/* 三次握手：x = 客户端 ISN，y = 服务端 ISN */
+function hsSteps(x,y,loss){
+  var out=[];
+  out.push(pkt({
+    dir:'C2S', flags:'SYN', seq:x, ack:null, len:0, phase:'hs',
+    ci:1, si:1, stateC:'SYN_SENT', stateS:'LISTEN', tc:[0,1], ts:null,
+    zh:{t:'客户端发送 SYN（第 1 次握手）',
+        b:'客户端主动打开连接，从 <b>CLOSED</b> 进入 <b>SYN_SENT</b>。SYN 段不携带数据，但要消耗一个序号：本段序号 x，客户端的下一个序号因此是 x+1。'},
+    en:{t:'Client sends SYN (handshake 1/3)',
+        b:'The client actively opens the connection: <b>CLOSED</b> → <b>SYN_SENT</b>. A SYN carries no data but still consumes one sequence number, so the client\'s next sequence number becomes x+1.'},
+    f:'SYN = 1, seq = x = '+x
+  }));
+  out.push(pkt({
+    dir:'S2C', flags:'SYN, ACK', seq:y, ack:x+1, len:0, phase:'hs',
+    ci:1, si:2, stateC:'SYN_SENT', stateS:'SYN_RCVD', tc:null, ts:[1,2],
+    zh:{t:'服务端回复 SYN+ACK（第 2 次握手）',
+        b:'服务端从 <b>LISTEN</b> 进入 <b>SYN_RCVD</b>。SYN 与 ACK 合并成一个报文段：ack = x+1 表示「已收到你的 SYN，下一个期待 x+1」，同时给出自己的初始序号 y。'},
+    en:{t:'Server replies SYN+ACK (handshake 2/3)',
+        b:'Server: <b>LISTEN</b> → <b>SYN_RCVD</b>. SYN and ACK are combined into one segment: ack = x+1 means "your SYN is received, next expected is x+1", while announcing its own ISN y.'},
+    f:'SYN = 1, ACK = 1, seq = y = '+y+', ack = x+1 = '+(x+1)
+  }));
+  out.push(pkt({
+    dir:'C2S', flags:'ACK', seq:x+1, ack:y+1, len:0, phase:'hs',
+    ci:2, si:2, stateC:'ESTABLISHED', stateS:'SYN_RCVD', tc:[1,2], ts:null,
+    zh:{t:'客户端发送 ACK（第 3 次握手）',
+        b:'客户端确认服务端的 SYN（ack = y+1），自己先进入 <b>ESTABLISHED</b>，可以开始发送数据；但服务端还没收到这个 ACK，仍停在 SYN_RCVD —— 此刻只有一端认为连接已建立。'+(loss?'<b>（本演示中这个 ACK 会在网络中丢失）</b>':'')},
+    en:{t:'Client sends ACK (handshake 3/3)',
+        b:'The client acknowledges the server\'s SYN (ack = y+1) and enters <b>ESTABLISHED</b> first — it may already send data. The server has not received this ACK yet, so it stays in SYN_RCVD.'+(loss?' <b>(In this run the ACK is lost in the network.)</b>':'')},
+    f:'ACK = 1, seq = x+1 = '+(x+1)+', ack = y+1 = '+(y+1)
+  }));
+  if(loss){
+    out.push(noteStep({
+      phase:'hs', ci:2, si:2, stateC:'ESTABLISHED', stateS:'SYN_RCVD', tc:null, ts:null, warn:true,
+      zh:{t:'⚠️ 第 3 个 ACK 丢失',b:'客户端已进入 ESTABLISHED 并可能开始发送数据，服务端却仍在 SYN_RCVD 等 ACK。它会启动超时重传定时器。'},
+      en:{t:'⚠️ The 3rd ACK is lost',b:'The client is already ESTABLISHED and may be sending data, while the server still waits in SYN_RCVD. It arms a retransmission timer.'},
+      f:'ACK lost'
+    }));
+    out.push(pkt({
+      dir:'S2C', flags:'SYN, ACK', seq:y, ack:x+1, len:0, retry:true, phase:'hs',
+      ci:2, si:2, stateC:'ESTABLISHED', stateS:'SYN_RCVD', tc:null, ts:null,
+      zh:{t:'服务端超时重传 SYN+ACK',
+          b:'重传的 SYN+ACK 序号不变（seq = y，ack = x+1）。这也解释了为什么握手必须是三次：网络中滞留的重复报文段必须能被识别出来并丢弃。'},
+      en:{t:'Server retransmits SYN+ACK after timeout',
+          b:'The retransmission keeps the same numbers (seq = y, ack = x+1). This is exactly why three packets are required: duplicate segments lingering in the network must be detectable and discarded.'},
+      f:'SYN = 1, ACK = 1, seq = y = '+y+', ack = x+1 = '+(x+1)
+    }));
+    out.push(pkt({
+      dir:'C2S', flags:'ACK', seq:x+1, ack:y+1, len:0, retry:true, phase:'hs',
+      ci:2, si:2, stateC:'ESTABLISHED', stateS:'SYN_RCVD', tc:null, ts:null,
+      zh:{t:'客户端重发 ACK',
+          b:'客户端收到重复的 SYN+ACK，识别出这是已建立连接的重复报文，于是再补一个 ACK（并丢弃重复 SYN 的数据含义）。'},
+      en:{t:'Client resends the ACK',
+          b:'The client recognises the duplicate SYN+ACK for an already established connection and simply sends another ACK, discarding the duplicate.'},
+      f:'ACK = 1, seq = x+1 = '+(x+1)+', ack = y+1 = '+(y+1)
+    }));
+    out.push(recv({
+      to:'S', phase:'hs', ci:2, si:3, stateC:'ESTABLISHED', stateS:'ESTABLISHED', tc:null, ts:[2,3],
+      zh:{t:'服务端收到 ACK，连接建立',
+          b:'服务端进入 <b>ESTABLISHED</b>。可见第 3 个 ACK 丢失并不会让连接失败，只是把建立时间推迟了一个重传周期。'},
+      en:{t:'Server receives the ACK — connection established',
+          b:'The server enters <b>ESTABLISHED</b>. A lost third ACK does not break the connection; it only delays establishment by one retransmission timeout.'},
+      f:'SYN_RCVD → ESTABLISHED'
+    }));
+  } else {
+    out.push(recv({
+      to:'S', phase:'hs', ci:2, si:3, stateC:'ESTABLISHED', stateS:'ESTABLISHED', tc:null, ts:[2,3],
+      zh:{t:'服务端收到 ACK，连接建立',
+          b:'服务端从 <b>SYN_RCVD</b> 进入 <b>ESTABLISHED</b>，三次握手完成，双方都可双向传输数据。合计 3 个报文段、1.5 个 RTT。'},
+      en:{t:'Server receives the ACK — connection established',
+          b:'<b>SYN_RCVD</b> → <b>ESTABLISHED</b>. The three-way handshake is complete and both sides may send data. Total: 3 segments, 1.5 RTT.'},
+      f:'三次握手完成 · 3 段 · 1.5 RTT'
+    }));
+  }
+  return out;
+}
+
+/* 数据传输：x/y 为双方 ISN */
+function dataSteps(x,y){
+  var out=[];
+  out.push(pkt({
+    dir:'C2S', flags:'PSH, ACK', seq:x+1, ack:y+1, len:100, phase:'data',
+    ci:2, si:3, stateC:'ESTABLISHED', stateS:'ESTABLISHED', tc:null, ts:null,
+    zh:{t:'数据传输：客户端发送 100 字节',
+        b:'连接建立后进入数据传输。数据段同样消耗序号：本次 seq = x+1，携带 100 字节，所以客户端下一个序号变成 x+101。'},
+    en:{t:'Data transfer: client sends 100 bytes',
+        b:'Data segments consume sequence numbers too: seq = x+1, carrying 100 bytes, so the client\'s next sequence number becomes x+101.'},
+    f:'seq = '+(x+1)+', len = 100, ack = '+(y+1)
+  }));
+  out.push(pkt({
+    dir:'S2C', flags:'ACK', seq:y+1, ack:x+101, len:0, phase:'data',
+    ci:2, si:3, stateC:'ESTABLISHED', stateS:'ESTABLISHED', tc:null, ts:null,
+    zh:{t:'服务端累积确认',
+        b:'服务端回 ACK，确认号 x+101 表示「x+101 之前的字节全部收到」。这是 TCP 的<b>累积确认</b>：一个 ACK 可以确认连续收到的多个报文段。'},
+    en:{t:'Server sends a cumulative ACK',
+        b:'ack = x+101 means "every byte before x+101 has arrived". This is TCP\'s <b>cumulative acknowledgement</b>: one ACK covers all contiguous segments received.'},
+    f:'ACK = 1, seq = '+(y+1)+', ack = '+(x+101)
+  }));
+  return out;
+}
+
+/* 四次挥手：u = 客户端下一个序号，v = 服务端下一个序号 */
+function tdSteps(u,v){
+  var out=[];
+  out.push(pkt({
+    dir:'C2S', flags:'FIN', seq:u, ack:v, len:0, phase:'td',
+    ci:3, si:3, stateC:'FIN_WAIT_1', stateS:'ESTABLISHED', tc:[2,3], ts:null,
+    zh:{t:'客户端发送 FIN（第 1 次挥手）',
+        b:'数据发送完毕，客户端主动关闭：<b>ESTABLISHED → FIN_WAIT_1</b>。FIN 同样不携带数据但消耗一个序号 u；此后客户端<b>不再发送数据，但仍可接收</b>。'},
+    en:{t:'Client sends FIN (close 1/4)',
+        b:'The client actively closes: <b>ESTABLISHED → FIN_WAIT_1</b>. FIN carries no data but consumes sequence number u. From now on the client sends no more data, <b>but can still receive</b>.'},
+    f:'FIN = 1, seq = u = '+u
+  }));
+  out.push(pkt({
+    dir:'S2C', flags:'ACK', seq:v, ack:u+1, len:0, phase:'td',
+    ci:3, si:4, stateC:'FIN_WAIT_1', stateS:'CLOSE_WAIT', tc:null, ts:[3,4],
+    zh:{t:'服务端回复 ACK（第 2 次挥手）',
+        b:'服务端收到 FIN，进入 <b>CLOSE_WAIT</b>：它知道客户端不再发数据了，但自己可能还有数据没发完，所以先只回一个 ACK，<b>不急着发 FIN</b>。这个纯 ACK 不携带数据，因此不消耗序号，服务端下一个序号仍是 v。'},
+    en:{t:'Server replies ACK (close 2/4)',
+        b:'The server enters <b>CLOSE_WAIT</b>: it knows the client will send no more data, but may still have data of its own, so it only acknowledges and <b>does not send FIN yet</b>. A bare ACK carries no data and consumes no sequence number — the server\'s next seq stays v.'},
+    f:'ACK = 1, seq = v = '+v+', ack = u+1 = '+(u+1)
+  }));
+  out.push(recv({
+    to:'C', phase:'td', ci:4, si:4, stateC:'FIN_WAIT_2', stateS:'CLOSE_WAIT', tc:[3,4], ts:null,
+    zh:{t:'客户端收到 ACK，进入 FIN_WAIT_2（半关闭）',
+        b:'客户端从 <b>FIN_WAIT_1 → FIN_WAIT_2</b>。此时连接处于<b>半关闭</b>：客户端 → 服务端方向已关闭，服务端 → 客户端方向仍在工作。'},
+    en:{t:'Client receives ACK → FIN_WAIT_2 (half-closed)',
+        b:'<b>FIN_WAIT_1 → FIN_WAIT_2</b>. The connection is now <b>half-closed</b>: the client→server direction is shut down while server→client still works.'},
+    f:'FIN_WAIT_1 → FIN_WAIT_2'
+  }));
+  out.push(pkt({
+    dir:'S2C', flags:'FIN, ACK', seq:v, ack:u+1, len:0, phase:'td',
+    ci:4, si:5, stateC:'FIN_WAIT_2', stateS:'LAST_ACK', tc:null, ts:[4,5],
+    zh:{t:'服务端发送 FIN（第 3 次挥手）',
+        b:'服务端数据发送完毕，才发出自己的 FIN：<b>CLOSE_WAIT → LAST_ACK</b>。注意 ack 仍然是 u+1，说明它一直在确认客户端那个 FIN。'},
+    en:{t:'Server sends FIN (close 3/4)',
+        b:'Once its own data is done, the server sends FIN: <b>CLOSE_WAIT → LAST_ACK</b>. The ack is still u+1, still acknowledging the client\'s FIN.'},
+    f:'FIN = 1, ACK = 1, seq = v = '+v+', ack = u+1 = '+(u+1)
+  }));
+  out.push(pkt({
+    dir:'C2S', flags:'ACK', seq:u+1, ack:v+1, len:0, phase:'td',
+    ci:5, si:5, stateC:'TIME_WAIT', stateS:'LAST_ACK', tc:[4,5], ts:null,
+    zh:{t:'客户端回复 ACK 并进入 TIME_WAIT（第 4 次挥手）',
+        b:'客户端收到 FIN，回 ACK（ack = v+1），状态从 <b>FIN_WAIT_2 → TIME_WAIT</b>。这个 ACK 可能是服务端收到的最后一个报文段。'},
+    en:{t:'Client ACKs and enters TIME_WAIT (close 4/4)',
+        b:'The client acknowledges the FIN (ack = v+1) and moves <b>FIN_WAIT_2 → TIME_WAIT</b>. This ACK may be the last segment the server ever receives.'},
+    f:'ACK = 1, seq = u+1 = '+(u+1)+', ack = v+1 = '+(v+1)
+  }));
+  out.push(recv({
+    to:'S', phase:'td', ci:5, si:6, stateC:'TIME_WAIT', stateS:'CLOSED', tc:null, ts:[5,6],
+    zh:{t:'服务端收到 ACK，连接关闭',
+        b:'服务端从 <b>LAST_ACK → CLOSED</b>，释放连接控制块，服务端这一侧彻底结束。'},
+    en:{t:'Server receives ACK — connection closed',
+        b:'<b>LAST_ACK → CLOSED</b>. The server releases the TCB; its side is completely finished.'},
+    f:'LAST_ACK → CLOSED'
+  }));
+  out.push({
+    kind:'wait', phase:'wait', ci:6, si:6, stateC:'CLOSED', stateS:'CLOSED', tc:[5,6], ts:null,
+    zh:{t:'客户端等待 2MSL 后才真正关闭',
+        b:'TIME_WAIT 必须维持 <b>2MSL</b>（MSL 为最长报文段寿命）。两个理由：① 若最后这个 ACK 丢失，服务端会重传 FIN，客户端还在 TIME_WAIT 就能再回一次 ACK；② 让本连接产生的所有报文段在网络中消失，避免它们干扰使用相同四元组的新连接。'},
+    en:{t:'Client waits 2MSL before actually closing',
+        b:'TIME_WAIT lasts <b>2MSL</b> (MSL = maximum segment lifetime). Two reasons: (1) if the final ACK is lost the server retransmits FIN, and the client can still answer it; (2) it lets every segment of this connection die out, so they cannot disturb a new connection reusing the same 4-tuple.'},
+    f:'TIME_WAIT → 2MSL → CLOSED'
+  });
+  return out;
+}
+
+function buildSteps(){
+  var x=ISN_C, y=ISN_S, arr=[];
+  if(SCN==='handshake'){
+    arr=hsSteps(x,y,LOSS);
+  } else if(SCN==='teardown'){
+    arr=tdSteps(x+1,y+1);
+  } else {
+    arr=hsSteps(x,y,false).concat(dataSteps(x,y)).concat(tdSteps(x+101,y+1));
+  }
+  steps=arr; cur=0; stopPlay();
+}
+
+/* ===================== 时序图 ===================== */
+var C_X=250, S_X=750, PILL_W=152;
+
+function svgEl(tag,attrs,parent){
+  var e=document.createElementNS(NS,tag);
+  if(attrs) for(var k in attrs) e.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+
+function pillColor(flags){
+  if(flags.indexOf('FIN')>=0) return 'a';
+  if(flags==='ACK') return 'g';
+  return null;
+}
+
+function renderSeq(last){
+  var svg=$('seq');
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var defs=svgEl('defs',null,svg);
+  var colors={c:'#0284c7',s:'#7c3aed',g:'#059669',a:'#d97706'};
+  for(var key in colors){
+    var m=svgEl('marker',{id:'arw-'+key,markerWidth:'9',markerHeight:'9',refX:'7',refY:'3.2',orient:'auto',markerUnits:'strokeWidth'},defs);
+    svgEl('path',{d:'M0,0 L7,3.2 L0,6.4 z',fill:colors[key]},m);
+  }
+
+  var list=steps.slice(0,cur);
+  var y=92, slots=[];
+  for(var i=0;i<list.length;i++){
+    slots.push(y);
+    y += (list[i].kind==='pkt')?66:((list[i].kind==='recv')?48:54);
+  }
+  var H=Math.max(380,y+64);
+  svg.setAttribute('viewBox','0 0 1000 '+H);
+  svg.setAttribute('height',H);
+
+  // 时间轴
+  svgEl('line',{x1:'32',y1:'78',x2:'32',y2:H-34,stroke:'#c7d7e3','stroke-width':'1.6','stroke-dasharray':'4 5'},svg);
+  var at=svgEl('text',{x:'32',y:H-16,'text-anchor':'middle',class:'axis-txt'},svg);
+  at.textContent=(LANG==='zh')?'时间':'time';
+
+  // 生命线
+  svgEl('line',{x1:C_X,y1:'56',x2:C_X,y2:H-30,class:'life'},svg);
+  svgEl('line',{x1:S_X,y1:'56',x2:S_X,y2:H-30,class:'life'},svg);
+
+  // 头部
+  var snapC='CLOSED', snapS='LISTEN';
+  if(list.length){ snapC=list[list.length-1].stateC; snapS=list[list.length-1].stateS; }
+  [[C_X,'c'],[S_X,'s']].forEach(function(p){
+    var isC=(p[1]==='c');
+    svgEl('rect',{x:p[0]-110,y:'10',width:'220',height:'48',rx:'13',class:'hdr '+(isC?'hdr-c':'hdr-s')},svg);
+    var nm=svgEl('text',{x:p[0],y:'32',class:'hdr-name',fill:isC?'#075985':'#5b21b6'},svg);
+    nm.textContent=isC?((LANG==='zh')?'客户端':'Client'):((LANG==='zh')?'服务端':'Server');
+    var st=svgEl('text',{x:p[0],y:'48',class:'hdr-state',fill:isC?'#0369a1':'#6d28d9'},svg);
+    st.textContent=(isC?snapC:snapS);
+  });
+
+  // 逐个报文
+  var pktCount=0;
+  for(var i=0;i<list.length;i++){
+    var st=list[i], yy=slots[i];
+    if(st.kind==='pkt'){
+      pktCount++;
+      var isC2S=(st.dir==='C2S');
+      var col=isC2S?'c':'s';
+      if(st.flags==='ACK') col='g';
+      if(st.flags.indexOf('FIN')>=0) col='a';
+      var x1=isC2S?C_X:S_X, x2=isC2S?S_X:C_X;
+      var off=isC2S?-1:1;
+      var path=svgEl('path',{
+        d:'M'+x1+','+yy+' L'+(x2+off*10)+','+yy,
+        class:'pline p-'+col+(st.retry?' p-retry':''),
+        'marker-end':'url(#arw-'+col+')'
+      },svg);
+      path.setAttribute('style','animation:pin .38s ease both');
+
+      // flags 药丸
+      var fw=st.flags.length*7.4+22;
+      var pc=pillColor(st.flags)||col;
+      var pillCls={c:'#0284c7',s:'#7c3aed',g:'#059669',a:'#d97706'}[pc];
+      svgEl('rect',{x:500-fw/2,y:yy-40,width:fw,height:'19',rx:'9.5',fill:pillCls,opacity:'.14'},svg);
+      var pt=svgEl('text',{x:'500',y:yy-30,'text-anchor':'middle',class:'pill-txt',fill:pillCls},svg);
+      pt.textContent=st.flags+(st.retry?((LANG==='zh')?' · 重传':' · retry'):'');
+
+      // 序号文本
+      var txt='seq = '+st.seq+'　ack = '+(st.ack==null?'—':st.ack)+(st.len?('　len = '+st.len):'');
+      var tt=svgEl('text',{x:'500',y:yy-13,class:'pkt-txt'+((i===list.length-1)?' last':'')},svg);
+      tt.textContent=txt;
+
+    } else if(st.kind==='recv'){
+      var isS=(st.to==='S');
+      var cx=isS?S_X:C_X;
+      svgEl('path',{d:'M'+(cx-13)+','+(yy-4)+' L'+(cx-3)+','+(yy+6)+' L'+(cx+13)+','+(yy-11),class:'tick'},svg);
+      var rc=svgEl('text',{
+        x:isS?(S_X-46):(C_X+46), y:yy+5,
+        'text-anchor':isS?'end':'start', class:'pkt-txt'
+      },svg);
+      rc.textContent=(LANG==='zh'?'✓ 收到 ACK':'✓ ACK received');
+    } else if(st.kind==='note'){
+      svgEl('rect',{x:'268',y:yy-20,width:'464',height:'40',rx:'11',class:'note-box'},svg);
+      var nt=svgEl('text',{x:'500',y:yy+5,class:'note-txt'},svg);
+      nt.textContent=(LANG==='zh'?'⚠ 报文段丢失：连接仍可继续':'⚠ Segment lost: the connection continues');
+    } else if(st.kind==='wait'){
+      svgEl('rect',{x:'250',y:yy-24,width:'500',height:'46',rx:'12',class:'wait-box'},svg);
+      var wt=svgEl('text',{x:'500',y:yy+3,class:'wait-txt'},svg);
+      wt.textContent=(LANG==='zh'?'⏳ TIME_WAIT：等待 2MSL（最长报文段寿命的 2 倍）':'⏳ TIME_WAIT: waiting 2MSL (2 × max segment lifetime)');
+      var wt2=svgEl('text',{x:'500',y:yy+22,'text-anchor':'middle',class:'axis-txt'},svg);
+      wt2.textContent=(LANG==='zh'?'期间仍可重发最后的 ACK':'the final ACK can still be retransmitted');
+    }
+
+    // 状态变化处画药丸（统一在每步末尾处理）
+    var pv=list[i-1];
+    var pvC=pv?pv.stateC:'CLOSED', pvS=pv?pv.stateS:'LISTEN';
+    if(st.stateC!==pvC) drawStatePill(svg,'c',yy,st.stateC);
+    if(st.stateS!==pvS) drawStatePill(svg,'s',yy,st.stateS);
+  }
+  if(!list.length){
+    var hint=svgEl('text',{x:'500',y:'200','text-anchor':'middle',fill:'#9db2c2','font-size':'14','font-weight':'700'},svg);
+    hint.textContent=(LANG==='zh'?'点「下一步」开始发送第一个报文段':'Press "Next" to send the first segment');
+  }
+  $('stageNote').textContent=stageNote();
+}
+
+function drawStatePill(svg,side,y,state){
+  var isC=(side==='c');
+  var x=isC?(C_X-PILL_W-18):(S_X+18);
+  svgEl('rect',{x:x,y:y-14,width:PILL_W,height:'28',rx:'9',class:'spill '+(isC?'spill-c':'spill-s')},svg);
+  var tx=svgEl('text',{x:x+PILL_W/2,y:y,class:'spill-txt '+(isC?'st-c':'st-s')},svg);
+  tx.textContent=state;
+}
+
+/* ===================== 状态机 ===================== */
+var NODE_W=196, NODE_H=46, CX=225, SX=775;
+var C_Y=[62,134,206,278,350,422,494];
+var S_Y=[62,134,206,278,350,422,494];
+
+var C_TRANS=[
+  {i:0,j:1,lab:{zh:'发送 SYN',en:'send SYN'}},
+  {i:1,j:2,lab:{zh:'收到 SYN+ACK / 发 ACK',en:'recv SYN+ACK / send ACK'}},
+  {i:2,j:3,lab:{zh:'发送 FIN',en:'send FIN'}},
+  {i:3,j:4,lab:{zh:'收到 ACK',en:'recv ACK'}},
+  {i:4,j:5,lab:{zh:'收到 FIN / 发 ACK',en:'recv FIN / send ACK'}},
+  {i:5,j:6,lab:{zh:'2MSL 超时',en:'2MSL timeout'}}
+];
+var S_TRANS=[
+  {i:0,j:1,lab:{zh:'被动打开（listen）',en:'passive open (listen)'}},
+  {i:1,j:2,lab:{zh:'收到 SYN / 发 SYN+ACK',en:'recv SYN / send SYN+ACK'}},
+  {i:2,j:3,lab:{zh:'收到 ACK',en:'recv ACK'}},
+  {i:3,j:4,lab:{zh:'收到 FIN / 发 ACK',en:'recv FIN / send ACK'}},
+  {i:4,j:5,lab:{zh:'发送 FIN',en:'send FIN'}},
+  {i:5,j:6,lab:{zh:'收到 ACK',en:'recv ACK'}}
+];
+
+function renderFsm(last){
+  var svg=$('fsm');
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var defs=svgEl('defs',null,svg);
+  ['#cfdde8','#7cc4e4','#d97706'].forEach(function(c,idx){
+    var m=svgEl('marker',{id:'fa-'+idx,markerWidth:'8',markerHeight:'8',refX:'6',refY:'3',orient:'auto',markerUnits:'strokeWidth'},defs);
+    svgEl('path',{d:'M0,0 L6,3 L0,6 z',fill:c},m);
+  });
+
+  var ci=last?last.ci:0, si=last?last.si:1;
+  var tc=last?last.tc:null, ts=last?last.ts:null;
+  var doneC=last?last.stateC:'CLOSED', doneS=last?last.stateS:'LISTEN';
+
+  var t1=svgEl('text',{x:CX,y:'24',class:'fside'},svg);
+  t1.textContent=t('fsm.client');
+  var t2=svgEl('text',{x:SX,y:'24',class:'fside'},svg);
+  t2.textContent=t('fsm.server');
+
+  // 箭头（先画，压在节点下）
+  C_TRANS.forEach(function(tr,idx){
+    var on=tc&&tc[0]===tr.i&&tc[1]===tr.j;
+    var done=tr.j<=ci;
+    var y1=C_Y[tr.i]+NODE_H/2, y2=C_Y[tr.j]-NODE_H/2;
+    svgEl('path',{d:'M'+CX+','+y1+' L'+CX+','+y2,class:'fa'+(on?' on':(done?' done':''))+'','marker-end':'url(#fa-'+(on?2:(done?1:0))+')'},svg);
+    var lb=svgEl('text',{x:CX+NODE_W/2+10,y:(y1+y2)/2+4,class:'flabel'+(on?' on':(done?' done':''))},svg);
+    lb.textContent=tr.lab[LANG]||tr.lab.zh;
+  });
+  S_TRANS.forEach(function(tr,idx){
+    var on=ts&&ts[0]===tr.i&&ts[1]===tr.j;
+    var done=tr.j<=si;
+    var y1=S_Y[tr.i]+NODE_H/2, y2=S_Y[tr.j]-NODE_H/2;
+    svgEl('path',{d:'M'+SX+','+y1+' L'+SX+','+y2,class:'fa'+(on?' on':(done?' done':''))+'','marker-end':'url(#fa-'+(on?2:(done?1:0))+')'},svg);
+    var lb=svgEl('text',{x:SX-NODE_W/2-10,y:(y1+y2)/2+4,class:'flabel'+(on?' on':(done?' done':''))},svg);
+    lb.setAttribute('text-anchor','end');
+    lb.textContent=tr.lab[LANG]||tr.lab.zh;
+  });
+
+  // CLOSING 分支
+  var clOn=tc&&(tc[0]===3&&tc[1]===99);
+  svgEl('path',{d:'M'+(CX+NODE_W/2)+','+C_Y[3]+' C420,278 420,300 418,300',class:'fa','stroke-dasharray':'5 4','marker-end':'url(#fa-0)'},svg);
+  svgEl('path',{d:'M500,323 C500,382 400,422 '+(CX+NODE_W/2)+','+C_Y[5],class:'fa','stroke-dasharray':'5 4','marker-end':'url(#fa-0)'},svg);
+  var cl=svgEl('text',{x:'520',y:'268',class:'flabel','text-anchor':'middle'},svg);
+  cl.textContent=(LANG==='zh'?'同时关闭才会走此分支':'only on simultaneous close');
+
+  // 节点
+  function node(x,y,state,note,active,side){
+    var g=svgEl('g',{class:'fsm-node'+(active?' act-'+side:'')},svg);
+    svgEl('rect',{x:x-NODE_W/2,y:y-NODE_H/2,width:NODE_W,height:NODE_H,rx:'11'},g);
+    var nm=svgEl('text',{x:x,y:y-3,class:'nm'},g); nm.textContent=state;
+    var nt=svgEl('text',{x:x,y:y+13,class:'nt'},g); nt.textContent=note[LANG]||note.zh;
+    return g;
+  }
+  for(var i=0;i<C_CHAIN.length;i++){
+    var act=(i===ci);
+    node(CX,C_Y[i],C_CHAIN[i],C_NOTE[i],act,'c');
+  }
+  for(var j=0;j<S_CHAIN.length;j++){
+    var act2=(j===si);
+    node(SX,S_Y[j],S_CHAIN[j],S_NOTE[j],act2,'s');
+  }
+  // CLOSING
+  var gc=svgEl('g',{class:'fsm-node'},svg);
+  svgEl('rect',{x:'420',y:'286',width:'160',height:'40',rx:'10',fill:'#fbfdff',stroke:'#cfdde8','stroke-width':'1.6','stroke-dasharray':'5 4'},gc);
+  var cn=svgEl('text',{x:'500',y:'304',class:'nm','font-size':'13.5'},gc); cn.textContent='CLOSING';
+  var ct=svgEl('text',{x:'500',y:'319',class:'nt'},gc); ct.textContent=(LANG==='zh'?'同时关闭时出现':'on simultaneous close');
+
+  $('statC').textContent=doneC;
+  $('statS').textContent=doneS;
+}
+
+/* ===================== 旁白 / 统计 ===================== */
+function stageNote(){
+  if(SCN==='handshake') return (LANG==='zh'?'三次握手':'3-way handshake')+(LOSS?(LANG==='zh'?' · ACK 丢失':' · lost ACK'):'');
+  if(SCN==='teardown') return (LANG==='zh'?'四次挥手':'4-way close');
+  return (LANG==='zh'?'完整生命周期':'Full lifecycle');
+}
+
+function renderStats(last){
+  var n=0;
+  for(var i=0;i<cur;i++) if(steps[i].kind==='pkt') n++;
+  $('statSeg').textContent=n;
+  var ph=last?last.phase:'';
+  var cls={hs:'b-sky',data:'b-green',td:'b-amber',wait:'b-amber'}[ph]||'b-gray';
+  $('statPhase').className='badge '+cls;
+  $('statPhase').textContent=ph?t('phase.'+ph):'—';
+}
+
+function renderNarr(last){
+  if(!last){
+    $('narrBadge').textContent='—';
+    $('narrTitle').textContent=t('narr.readyT');
+    $('narrBody').innerHTML=t('narr.readyB');
+    $('narrFormula').textContent='';
+    return;
+  }
+  $('narrBadge').textContent=String(cur);
+  $('narrTitle').textContent=last[LANG].t;
+  $('narrBody').innerHTML=last[LANG].b;
+  $('narrFormula').textContent=last.f||'';
+}
+
+function render(){
+  var last=cur>0?steps[cur-1]:null;
+  renderSeq(last);
+  renderStats(last);
+  renderFsm(last);
+  renderNarr(last);
+  $('stepNow').textContent=cur;
+  $('stepTotal').textContent=steps.length;
+  $('progressBar').style.width=(steps.length?(cur/steps.length*100):0)+'%';
+  $('btnPrev').disabled=(cur<=0);
+  $('btnNext').disabled=(cur>=steps.length);
+  $('btnAuto').disabled=(cur>=steps.length);
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+}
+
+/* ===================== 语言切换 ===================== */
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent=t(nodes[i].getAttribute('data-i18n'));
+  $('stageNote').textContent=stageNote();
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+  buildTable();
+  buildNotes();
+  render();
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+
+/* ===================== 状态表 / 考点 ===================== */
+var STATE_ROWS=[
+  {s:'CLOSED', zh:{m:'关闭状态，没有任何连接',k:'一切从这里开始，也在这里结束'}, en:{m:'No connection exists',k:'Start and end of every connection'}},
+  {s:'LISTEN', zh:{m:'服务端等待连接请求',k:'被动打开；收到 SYN 才动'}, en:{m:'Server waits for a connection request',k:'Passive open; reacts to SYN'}},
+  {s:'SYN_SENT', zh:{m:'已发 SYN，等对方的 SYN+ACK',k:'客户端主动打开后的第一个状态'}, en:{m:'SYN sent, waiting for SYN+ACK',k:'First state after active open'}},
+  {s:'SYN_RCVD', zh:{m:'已收 SYN 并回 SYN+ACK，等 ACK',k:'第三次握手未完成，连接尚未建立'}, en:{m:'SYN received, SYN+ACK sent, waiting ACK',k:'Handshake incomplete; not established yet'}},
+  {s:'ESTABLISHED', zh:{m:'连接已建立，可双向传输数据',k:'唯一「可以传数据」的状态'}, en:{m:'Connection established; data can flow',k:'The only state where data may be sent'}},
+  {s:'FIN_WAIT_1', zh:{m:'已发 FIN，等待 ACK',k:'主动关闭方的第一步'}, en:{m:'FIN sent, waiting for ACK',k:'Active closer, step 1'}},
+  {s:'FIN_WAIT_2', zh:{m:'已收 ACK，等对方的 FIN',k:'半关闭：只剩一个方向可传'}, en:{m:'ACK received, waiting for the peer FIN',k:'Half-closed: one direction still open'}},
+  {s:'TIME_WAIT', zh:{m:'等 2MSL 后真正关闭',k:'高频考点：为什么等、等多久'}, en:{m:'Waiting 2MSL before closing',k:'Classic exam point: why and how long'}},
+  {s:'CLOSE_WAIT', zh:{m:'已收 FIN 并回 ACK，等本端应用关闭',k:'被动关闭方，可能还有数据要发'}, en:{m:'FIN received and ACKed; waiting for the local app',k:'Passive closer; may still have data'}},
+  {s:'LAST_ACK', zh:{m:'已发 FIN，等最后一个 ACK',k:'被动关闭方的收尾'}, en:{m:'FIN sent, waiting for the last ACK',k:'Passive closer wrapping up'}},
+  {s:'CLOSING', zh:{m:'双方几乎同时发 FIN 时出现',k:'少见但常作为选项出现'}, en:{m:'Both sides sent FIN almost simultaneously',k:'Rare, but a common exam distractor'}}
+];
+
+function buildTable(){
+  var tb=$('stateTbody');
+  tb.innerHTML='';
+  var last=cur>0?steps[cur-1]:null;
+  for(var i=0;i<STATE_ROWS.length;i++){
+    var r=STATE_ROWS[i], tr=document.createElement('tr');
+    var hot=last&&(r.s===last.stateC||r.s===last.stateS);
+    if(hot) tr.className='hot';
+    var m=r[LANG]?r[LANG].m:r.zh.m, k=r[LANG]?r[LANG].k:r.zh.k;
+    tr.innerHTML='<td class="st">'+r.s+'</td><td>'+m+'</td><td>'+k+'</td>';
+    tb.appendChild(tr);
+  }
+}
+
+var NOTES=[
+  {zh:'三次握手共 <b>3 个报文段、1.5 RTT</b>；四次挥手无数据时共 <b>4 个报文段、2 RTT</b>。',en:'Handshake: <b>3 segments, 1.5 RTT</b>. Teardown without data: <b>4 segments, 2 RTT</b>.'},
+  {zh:'SYN 和 FIN 都<b>不携带数据但各消耗一个序号</b>；纯 ACK 不携带数据也不消耗序号。',en:'SYN and FIN carry no data but <b>each consume one sequence number</b>; a bare ACK consumes none.'},
+  {zh:'为什么是三次：防止<b>已失效的连接请求报文段</b>突然又传到服务端，让服务端白白分配资源。',en:'Why three: to prevent a <b>stale connection request</b> from suddenly arriving and making the server allocate resources for nothing.'},
+  {zh:'为什么是四次：服务端收到 FIN 后可能<b>还有数据要发</b>，所以 ACK 与 FIN 不能合并成一个报文段。',en:'Why four: after receiving FIN the server <b>may still have data to send</b>, so ACK and FIN cannot be merged.'},
+  {zh:'TIME_WAIT 等 <b>2MSL</b>：① 保证最后那个 ACK 丢失时还能重发；② 让旧连接的报文段在网络中消亡，不干扰新连接。',en:'TIME_WAIT lasts <b>2MSL</b>: (1) the final ACK can be retransmitted if lost; (2) old segments die out before a new connection reuses the 4-tuple.'},
+  {zh:'<b>半关闭</b>出现在 FIN_WAIT_2：本端不再发数据，但仍能接收，这是「四次」而不是「两次」的直接后果。',en:'<b>Half-close</b> appears in FIN_WAIT_2: this side stops sending but can still receive — a direct consequence of closing in four steps.'},
+  {zh:'只有 <b>ESTABLISHED</b> 状态可以传输数据；收到 FIN 并不代表连接立刻消失，CLOSE_WAIT 还能继续发。',en:'Only <b>ESTABLISHED</b> carries data; receiving FIN does not kill the connection — CLOSE_WAIT can still send.'},
+  {zh:'状态记忆：客户端 <code>SYN_SENT → ESTABLISHED → FIN_WAIT_1 → FIN_WAIT_2 → TIME_WAIT</code>；服务端 <code>LISTEN → SYN_RCVD → ESTABLISHED → CLOSE_WAIT → LAST_ACK</code>。',en:'Memorise: client <code>SYN_SENT → ESTABLISHED → FIN_WAIT_1 → FIN_WAIT_2 → TIME_WAIT</code>; server <code>LISTEN → SYN_RCVD → ESTABLISHED → CLOSE_WAIT → LAST_ACK</code>.'}
+];
+
+function buildNotes(){
+  var ul=$('notesList');
+  ul.innerHTML='';
+  for(var i=0;i<NOTES.length;i++){
+    var li=document.createElement('li');
+    li.innerHTML=NOTES[i][LANG]||NOTES[i].zh;
+    ul.appendChild(li);
+  }
+}
+
+/* ===================== 控制 ===================== */
+function go(n){
+  if(n<0) n=0;
+  if(n>steps.length) n=steps.length;
+  cur=n; render();
+}
+
+function stopPlay(){
+  playing=false;
+  if(timer){ clearInterval(timer); timer=null; }
+  $('btnAuto').textContent=t('ctrl.auto');
+}
+
+function startPlay(){
+  if(cur>=steps.length) return;
+  playing=true;
+  $('btnAuto').textContent=t('ctrl.pause');
+  var delay=760-(parseInt($('speed').value,10)-1)*130;
+  timer=setInterval(function(){
+    if(cur>=steps.length){ stopPlay(); return; }
+    go(cur+1);
+    if(cur>=steps.length){ stopPlay(); }
+  },delay);
+}
+
+$('btnNext').addEventListener('click',function(){ stopPlay(); go(cur+1); });
+$('btnPrev').addEventListener('click',function(){ stopPlay(); go(cur-1); });
+$('btnReset').addEventListener('click',function(){ stopPlay(); go(0); });
+$('btnAuto').addEventListener('click',function(){
+  if(playing){ stopPlay(); } else { startPlay(); }
+});
+$('speed').addEventListener('input',function(){
+  if(playing){ stopPlay(); startPlay(); }
+});
+
+var scnBtns=document.querySelectorAll('[data-scn]');
+for(var i=0;i<scnBtns.length;i++){
+  scnBtns[i].addEventListener('click',function(){
+    SCN=this.getAttribute('data-scn');
+    for(var k=0;k<scnBtns.length;k++) scnBtns[k].classList.toggle('active',scnBtns[k]===this);
+    syncLossState();
+    buildSteps(); go(0);
+  });
+}
+
+function syncLossState(){
+  var dis=(SCN==='teardown');
+  $('lossChk').disabled=dis;
+  $('lossWrap').classList.toggle('off',dis);
+  LOSS=(!dis)&&$('lossChk').checked;
+}
+
+$('lossChk').addEventListener('change',function(){
+  LOSS=this.checked && SCN!=='teardown';
+  buildSteps(); go(0);
+});
+
+function readIsn(){
+  var a=parseInt($('isnC').value,10), b=parseInt($('isnS').value,10);
+  if(isNaN(a)||a<0||a>99999) a=1000;
+  if(isNaN(b)||b<0||b>99999) b=3000;
+  ISN_C=a; ISN_S=b;
+}
+$('isnC').addEventListener('change',function(){ readIsn(); buildSteps(); go(0); });
+$('isnS').addEventListener('change',function(){ readIsn(); buildSteps(); go(0); });
+
+$('langZh').addEventListener('click',function(){
+  if(LANG!=='zh'){ LANG='zh'; $('langZh').classList.add('active'); $('langEn').classList.remove('active'); applyLang(); }
+});
+$('langEn').addEventListener('click',function(){
+  if(LANG!=='en'){ LANG='en'; $('langEn').classList.add('active'); $('langZh').classList.remove('active'); applyLang(); }
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); stopPlay(); go(cur+1); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); go(cur-1); }
+  else if(e.key===' '){ e.preventDefault(); if(playing) stopPlay(); else startPlay(); }
+});
+
+/* ===================== 启动 ===================== */
+(function init(){
+  if(LANG==='en'){ $('langZh').classList.remove('active'); $('langEn').classList.add('active'); }
+  readIsn();
+  syncLossState();
+  buildSteps();
+  applyLang();
+  go(0);
+})();
+</script>
+</body>
+</html>
