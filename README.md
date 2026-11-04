@@ -25,6 +25,7 @@
 | 知识点 · 排序算法可视化：直接/折半插入、希尔、冒泡、快速、简单选择、堆、归并（2/3/4 路）、基数，共 9 种。支持自定义序列、随机生成、参数配置，附复杂度与稳定性对比表 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/sorting-algorithms.html) |
 | 知识点 · 堆的构建与删除：大根堆/小根堆自底向上建堆（O(n)），删除堆顶或任意关键字后自动判断上滤/下滤，树形 + 数组双视图，逐步统计比较与交换次数 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/heap-operations.html) |
 | 知识点 · 图算法四合一：Dijkstra 单源最短路、Floyd 全对最短路（矩阵逐轮演化）、Prim 与 Kruskal 最小生成树（并查集判环、连通分量染色），同一张图切换对比，支持自定义/随机/教材经典图，有向无向可切 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
+| 知识点 · TCP 三次握手 / 四次挥手 / 状态机：时序图逐段发报文 + 双侧 FSM 同步点亮，可模拟第 3 个 ACK 丢失后的超时重传，含 11 个状态速查表与 408 考点 | 计算机网络 | [打开](https://zzuli-ljz.github.io/408-visual-lab/computer-networks/tcp-handshake.html) |
 
 更多演示持续添加中（每周更新）。More demos are added regularly.
 
@@ -61,6 +62,17 @@ cd 408-visual-lab
 演示文件命名规范：`年份-题号-主题.html`，例如 `2015-q4-binary-tree.html`。
 File naming: `year-qN-topic.html`.
 
+### 四科配色规范 / Subject Color Scheme
+
+为让访问者一眼分辨科目，四个科目目录的演示各用一套主色，版式与交互保持一致：
+
+| 科目 Subject | 主色 Primary | 色值 Hex | 辅助色 Accents |
+| --- | --- | --- | --- |
+| 数据结构 Data Structures | 靛蓝 Indigo | `#4f46e5` | 紫 `#7c3aed`（枢轴/当前结点） |
+| 操作系统 Operating Systems | 翠绿 Emerald | `#059669` | 青绿 `#0d9488`（进程/帧） |
+| 计算机组成原理 Computer Organization | 琥珀 Amber | `#d97706` | 橙红 `#ea580c`（数据通路/总线） |
+| 计算机网络 Computer Networks | 天青 Sky | `#0284c7` | 青 `#0891b2`；客户端蓝 / 服务端紫 `#7c3aed` |
+
 ### 如何添加新演示 / Adding a New Demo
 
 1. 在对应科目目录下新建 `年份-题号-主题.html`；
@@ -91,6 +103,7 @@ Subjects: Data Structures, Operating Systems, Computer Networks, Computer Organi
 | Topic · Sorting Algorithms Visualized: straight/binary insertion, Shell, bubble, quick, selection, heap, merge (2/3/4-way), radix — 9 in total. Custom sequences, random generation, configurable parameters, plus a complexity & stability table | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/sorting-algorithms.html) |
 | Topic · Heap Build & Deletion: bottom-up build (O(n)) for max/min-heaps, delete the root or any key with automatic sift-up/sift-down; tree + array views with per-step comparison & swap counts | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/heap-operations.html) |
 | Topic · Graph Algorithms Combined: Dijkstra (single-source), Floyd (all-pairs, evolving matrix), Prim & Kruskal (MST with union-find cycle detection and component coloring) — switch algorithms on the same graph; custom / random / textbook presets, directed or undirected | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
+| Topic · TCP 3-way Handshake / 4-way Close / State Machine: sequence diagram + live dual FSM, with a lost-3rd-ACK retransmission scenario, an 11-state cheat sheet and exam notes | Computer Networks | [Open](https://zzuli-ljz.github.io/408-visual-lab/computer-networks/tcp-handshake.html) |
 
 More demos are added regularly.
 
