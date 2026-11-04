@@ -26,6 +26,7 @@
 | 知识点 · 堆的构建与删除：大根堆/小根堆自底向上建堆（O(n)），删除堆顶或任意关键字后自动判断上滤/下滤，树形 + 数组双视图，逐步统计比较与交换次数 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/heap-operations.html) |
 | 知识点 · 图算法四合一：Dijkstra 单源最短路、Floyd 全对最短路（矩阵逐轮演化）、Prim 与 Kruskal 最小生成树（并查集判环、连通分量染色），同一张图切换对比，支持自定义/随机/教材经典图，有向无向可切 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
 | 知识点 · TCP 三次握手 / 四次挥手 / 状态机：时序图逐段发报文 + 双侧 FSM 同步点亮，可模拟第 3 个 ACK 丢失后的超时重传，含 11 个状态速查表与 408 考点 | 计算机网络 | [打开](https://zzuli-ljz.github.io/408-visual-lab/computer-networks/tcp-handshake.html) |
+| 知识点 · 存储层次地址翻译：虚拟地址 → TLB → 页表 → 物理地址 → Cache → 主存全链路逐步追踪；VA/PA 位域按页式与 Cache 双视角拆解，可配置地址位数、页大小、一/二级页表、TLB 与 Cache 的容量/相联度/替换策略，含缺页调页、块装入与 AMAT 平均访问时间计算 | 计算机组成原理 | [打开](https://zzuli-ljz.github.io/408-visual-lab/computer-organization/memory-hierarchy.html) |
 
 更多演示持续添加中（每周更新）。More demos are added regularly.
 
@@ -45,7 +46,7 @@ cd 408-visual-lab
 开启 Pages 后可直接访问，例如：
 `https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html`
 
-（首次开启：仓库 Settings → Pages → Source 选择 `main` 分支根目录。）
+（已配置 GitHub Actions：每次 push 到 `main` 会自动部署全站，无需手动操作。）
 
 ### 目录结构 / Directory Structure
 
@@ -104,6 +105,7 @@ Subjects: Data Structures, Operating Systems, Computer Networks, Computer Organi
 | Topic · Heap Build & Deletion: bottom-up build (O(n)) for max/min-heaps, delete the root or any key with automatic sift-up/sift-down; tree + array views with per-step comparison & swap counts | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/heap-operations.html) |
 | Topic · Graph Algorithms Combined: Dijkstra (single-source), Floyd (all-pairs, evolving matrix), Prim & Kruskal (MST with union-find cycle detection and component coloring) — switch algorithms on the same graph; custom / random / textbook presets, directed or undirected | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
 | Topic · TCP 3-way Handshake / 4-way Close / State Machine: sequence diagram + live dual FSM, with a lost-3rd-ACK retransmission scenario, an 11-state cheat sheet and exam notes | Computer Networks | [Open](https://zzuli-ljz.github.io/408-visual-lab/computer-networks/tcp-handshake.html) |
+| Topic · Memory Hierarchy Address Translation: VA → TLB → page table → PA → cache → main memory, step by step; paging-view and cache-view bit-field breakdown, configurable VA/PA widths, page size, 1/2-level page tables, TLB & cache size / associativity / replacement, page faults, block fills and AMAT | Computer Organization | [Open](https://zzuli-ljz.github.io/408-visual-lab/computer-organization/memory-hierarchy.html) |
 
 More demos are added regularly.
 
@@ -124,7 +126,7 @@ cd 408-visual-lab
 Once Pages is enabled, demos are available online, e.g.:
 `https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html`
 
-(To enable: repo Settings → Pages → Source: `main` branch, root.)
+(GitHub Actions is configured: every push to `main` deploys the whole site automatically.)
 
 ### Directory Structure
 

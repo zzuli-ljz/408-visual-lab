@@ -361,7 +361,7 @@ var T={
   'footer.text':{zh:'408 可视化实验室 · 计算机网络',en:'408 Visual Lab · Computer Networks'}
 };
 
-function t(k){ var o=T[k]; return o?(o[LANG]||o.zh):k; }
+function t(k){ var o=T[k]; return o?(o[LANG]!==undefined?o[LANG]:o.zh):k; }
 
 /* ===================== 数据 ===================== */
 var SCN='handshake';

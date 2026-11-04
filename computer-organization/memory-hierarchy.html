@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 计算机组成原理 · 存储层次地址翻译（TLB / 页表 / Cache / 主存）</title>
+<style>
+  /* 主题：计算机组成原理 = 琥珀 Amber #d97706（四科配色规范见 README） */
+  :root{
+    --bg:#fdf8f0; --card:#ffffff; --ink:#2b2117; --muted:#7d6b57;
+    --amber:#d97706; --amber-deep:#b45309; --amber-soft:#fef4e3; --amber-line:#f2cf95;
+    --orange:#ea580c; --orange-soft:#fff0e5; --orange-line:#f8c9a6;
+    --indigo:#4f46e5; --indigo-soft:#eef0ff;
+    --violet:#7c3aed; --violet-soft:#f3edff;
+    --sky:#0284c7; --sky-soft:#e6f3fc;
+    --teal:#0d9488; --teal-soft:#e5f6f3;
+    --green:#059669; --green-soft:#e7f7f1;
+    --rose:#e11d48; --rose-soft:#ffe9ee;
+    --line:#eee1ce;
+    --mono:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    --shadow:0 10px 30px rgba(120,75,20,.09);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 6% -12%, #fbeacb 0%, transparent 60%),
+      radial-gradient(820px 500px at 104% 4%, #ffeedc 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);line-height:1.78;font-size:16.5px;padding:30px 16px 64px;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  code{font-family:var(--mono);background:#fff6e9;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.92em;color:#92400e;white-space:nowrap}
+  .mono{font-family:var(--mono)}
+  .lang-switch{display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 10px rgba(120,75,20,.09)}
+  .lang-btn{border:none;background:transparent;border-radius:999px;padding:6px 18px;font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+  .lang-btn.active{background:linear-gradient(135deg,var(--amber),#f59e0b);color:#fff;box-shadow:0 3px 10px rgba(217,119,6,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{font-size:13.5px;font-weight:700;color:var(--amber-deep);background:var(--amber-soft);border:1px solid var(--amber-line);border-radius:999px;padding:4px 14px}
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.42;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);border:1px solid rgba(238,225,206,.9);padding:24px 26px;margin-bottom:22px}
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 配置 ---------- */
+  .addr-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .addr-input{
+    flex:1 1 380px;min-width:240px;border:1.5px solid var(--line);border-radius:11px;padding:10px 14px;
+    font-size:15px;font-family:var(--mono);font-weight:700;color:var(--ink);background:#fffdf9;outline:none;
+  }
+  .addr-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.12)}
+  .preset-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
+  .mini-btn{border:1.5px solid var(--line);background:#fffdf9;border-radius:10px;padding:7px 14px;font-size:14px;font-weight:700;color:var(--amber-deep);cursor:pointer;transition:all .18s;font-family:inherit}
+  .mini-btn:hover{border-color:var(--amber);background:var(--amber-soft)}
+  .cfg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+  .cfg-group{background:#fffdf9;border:1.5px solid var(--line);border-radius:13px;padding:13px 15px}
+  .cfg-group h3{font-size:14.5px;font-weight:800;color:var(--amber-deep);margin-bottom:9px;letter-spacing:.2px}
+  .cfg-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;font-size:13.8px;font-weight:700;color:var(--muted)}
+  .cfg-line select,.cfg-line input[type=number]{
+    border:1.5px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13.5px;font-weight:700;
+    font-family:inherit;color:var(--ink);background:#fff;outline:none;min-width:92px;
+  }
+  .cfg-line select:focus,.cfg-line input:focus{border-color:var(--amber)}
+  .cfg-line input[type=number]{font-family:var(--mono);max-width:92px}
+  .cfg-err{margin-top:11px;font-size:14.5px;font-weight:700;color:var(--rose);min-height:0}
+  .cfg-err:empty{display:none}
+  .cfg-hint{font-size:13.5px;color:var(--muted);font-weight:600;margin-top:9px;line-height:1.7}
+  .btn-apply{
+    margin-top:14px;border:none;border-radius:12px;padding:11px 26px;font-size:15.5px;font-weight:800;
+    color:#fff;background:linear-gradient(135deg,var(--amber),#f59e0b);cursor:pointer;font-family:inherit;
+    box-shadow:0 6px 16px rgba(217,119,6,.3);transition:transform .18s,box-shadow .18s;
+  }
+  .btn-apply:hover{transform:translateY(-2px);box-shadow:0 9px 20px rgba(217,119,6,.4)}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:12px}
+  .stat{border:1.5px solid var(--line);border-radius:13px;padding:9px 10px;background:#fffdf9;text-align:center;overflow:hidden}
+  .stat-k{display:block;font-size:12.6px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .stat-v{display:block;font-size:20px;font-weight:800;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--amber-deep)}
+  .stat-v.sm{font-size:17px}
+  .b-hit{color:var(--green)} .b-miss{color:var(--rose)} .b-info{color:var(--amber-deep)}
+  /* ---------- 链路流程 ---------- */
+  .flow{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;margin:8px 0 4px}
+  .fn{
+    flex:1 1 106px;min-width:104px;border:1.6px solid var(--line);border-radius:12px;background:#fffdf9;
+    padding:9px 6px;text-align:center;transition:all .28s;position:relative;
+  }
+  .fn .fi{font-size:11px;font-weight:800;color:#b9a68d;letter-spacing:.6px}
+  .fn .fnm{font-size:13.6px;font-weight:800;color:#7d6b57;line-height:1.4;margin-top:2px}
+  .fn.active{border-color:var(--amber);background:var(--amber-soft);box-shadow:0 5px 16px rgba(217,119,6,.22);transform:translateY(-3px)}
+  .fn.active .fnm{color:var(--amber-deep)} .fn.active .fi{color:var(--amber)}
+  .fn.hit{border-color:var(--green);background:var(--green-soft)}
+  .fn.hit .fnm,.fn.hit .fi{color:var(--green)}
+  .fn.miss{border-color:var(--orange);background:var(--orange-soft)}
+  .fn.miss .fnm,.fn.miss .fi{color:var(--orange)}
+  .fn.done{border-color:#e6d4b8;background:#fffaf1}
+  .fn.done .fnm{color:#9a8567}
+  .fn.skip{opacity:.42}
+  .farr{display:flex;align-items:center;justify-content:center;width:19px;flex:0 0 19px;color:#d3bd9e;font-size:16px;font-weight:800}
+  /* ---------- 位域带 ---------- */
+  .bitband-box{background:linear-gradient(180deg,#fffdf9,#fff8ed);border:1.5px solid var(--line);border-radius:15px;padding:14px 16px;margin-bottom:12px}
+  .bb-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+  .bb-title{font-size:15px;font-weight:800;color:var(--amber-deep)}
+  .bb-val{font-family:var(--mono);font-size:14.5px;font-weight:800;color:var(--ink)}
+  .bb-val:empty{display:none}
+  .band{display:flex;gap:3px;width:100%}
+  .bf{border-radius:9px;padding:7px 6px 8px;text-align:center;color:#fff;min-width:0;overflow:hidden;transition:all .3s;box-shadow:0 2px 6px rgba(80,50,10,.12)}
+  .bf .bk{display:block;font-size:11.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bf .bv{display:block;font-family:var(--mono);font-size:13.2px;font-weight:800;margin-top:3px;white-space:normal;word-break:break-all;line-height:1.4}
+  .bf .bn{display:block;font-size:10.5px;font-weight:700;opacity:.85;margin-top:1px}
+  .c-vpn{background:linear-gradient(135deg,#4f46e5,#6366f1)}
+  .c-pdx{background:linear-gradient(135deg,#4338ca,#6366f1)}
+  .c-ptx{background:linear-gradient(135deg,#7c3aed,#8b5cf6)}
+  .c-off{background:linear-gradient(135deg,#0d9488,#14b8a6)}
+  .c-pfn{background:linear-gradient(135deg,#7c3aed,#9333ea)}
+  .c-tag{background:linear-gradient(135deg,#d97706,#f59e0b)}
+  .c-idx{background:linear-gradient(135deg,#0284c7,#0ea5e9)}
+  .c-bo{background:linear-gradient(135deg,#e11d48,#fb7185)}
+  .c-idle{background:#eee6d8;color:#a89479;box-shadow:none}
+  .bb-foot{font-size:12.8px;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.65}
+  /* ---------- 控制 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px 20px;
+    font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(120,75,20,.15)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--amber),#f59e0b);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(217,119,6,.32)}
+  .btn-play{background:linear-gradient(135deg,var(--orange),#f97316);color:#fff;border-color:transparent}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--amber);cursor:pointer;width:108px}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--amber-deep);font-size:18px}
+  .progress{height:9px;background:#f5ead7;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--amber),#fbbf24);transition:width .4s cubic-bezier(.22,.9,.32,1)}
+  .narr{border-radius:16px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fffdf9,#fff7ea);padding:18px 22px}
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{background:var(--amber);color:#fff;font-size:13px;font-weight:800;border-radius:999px;padding:3px 13px;white-space:nowrap}
+  .narr-title{font-size:18px;font-weight:800;line-height:1.55}
+  .narr-body{font-size:16px;color:#4b3a28}
+  .narr-body b{color:#2b2117}
+  .narr-formula{
+    margin-top:12px;font-family:var(--mono);background:#fff;border:1.5px dashed var(--amber-line);
+    border-radius:10px;padding:8px 14px;display:inline-block;color:var(--amber-deep);font-weight:700;font-size:14.3px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 存储表 ---------- */
+  .mem-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .mem-box{border:1.5px solid var(--line);border-radius:14px;background:#fffdf9;overflow:hidden;display:flex;flex-direction:column}
+  .mem-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:10px 13px;background:#fff5e5;border-bottom:1.5px solid var(--line);flex-wrap:wrap}
+  .mem-head b{font-size:14.6px;font-weight:800;color:var(--amber-deep)}
+  .mem-head span{font-size:12.3px;font-weight:600;color:var(--muted)}
+  .mem-scroll{max-height:340px;overflow:auto}
+  .rtable{width:100%;border-collapse:collapse;font-size:13.2px}
+  .rtable th,.rtable td{border-bottom:1px solid #f1e7d6;padding:5px 8px;text-align:left;white-space:nowrap}
+  .rtable th{background:#fffaf1;font-weight:800;color:#8a7359;font-size:12.2px;position:sticky;top:0;z-index:1}
+  .rtable td{font-family:var(--mono);font-weight:700;color:#5b4a37}
+  .rtable tr.hot td{background:var(--amber-soft);color:var(--amber-deep)}
+  .rtable tr.hit td{background:var(--green-soft);color:var(--green)}
+  .rtable tr.repl td{background:var(--orange-soft);color:var(--orange)}
+  .rtable tr.inv td{color:#b9a88f}
+  .rtable td.ok{color:var(--green)} .rtable td.no{color:var(--rose)}
+  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:12px;font-size:13.2px;color:var(--muted);font-weight:600}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .dot-vpn{background:var(--indigo)} .dot-off{background:var(--teal)} .dot-tag{background:var(--amber)}
+  .dot-idx{background:var(--sky)} .dot-bo{background:var(--rose)} .dot-pfn{background:var(--violet)}
+  /* ---------- 考点 ---------- */
+  .summary li{margin:9px 0 9px 22px;font-size:15.5px}
+  .summary b{color:var(--amber-deep)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--amber-deep);font-weight:700;text-decoration:none}
+  @media (max-width:900px){
+    .cfg-grid,.mem-grid{grid-template-columns:1fr}
+    .stat-row{grid-template-columns:repeat(3,1fr)}
+  }
+  @media (max-width:720px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 15px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .step-info{margin-left:0;width:100%}
+    .fn{flex:1 1 88px;min-width:86px}
+    .farr{width:12px;flex-basis:12px;font-size:13px}
+    .bf .bv{font-size:11.5px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">计算机组成原理 · 存储系统</span>
+        <span class="tag" data-i18n="tag.scope">TLB · 页表 · Cache · 主存</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">位域拆解 + 全链路逐步追踪</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">一个虚拟地址如何变成数据：TLB → 页表 → 物理地址 → Cache → 主存</h1>
+    <p class="sub" data-i18n="hero.sub">把 408 计组最难的综合题拆成一条能走通的地址流：每个二进制位属于哪个字段、哪一级命中、哪一级缺失、为什么这个地址会替换掉那一行，以及这一趟访问到底花了多少时间。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cfg.title">访问与硬件配置</span> <span class="title-note" id="stageNote"></span></h2>
+    <div class="addr-row">
+      <input class="addr-input" id="addrInput" spellcheck="false" aria-label="Virtual addresses" value="0x0040 0x0044 0x1A3C 0x0040 0x2B10 0x1A3C 0x3C28 0x0040">
+      <button class="btn btn-primary" id="btnApply" type="button" data-i18n="cfg.apply">应用并生成演示</button>
+    </div>
+    <div class="preset-row">
+      <button class="mini-btn" id="btnClassic" type="button" data-i18n="cfg.classic">📖 教材经典序列</button>
+      <button class="mini-btn" id="btnScan" type="button" data-i18n="cfg.scan">📈 连续扫描（看冲突）</button>
+      <button class="mini-btn" id="btnRandom" type="button" data-i18n="cfg.random">🎲 随机地址</button>
+      <span class="cfg-hint" style="margin:0;align-self:center" data-i18n="cfg.addrHint">多个地址用空格或逗号分隔；支持 0x 十六进制或十进制</span>
+    </div>
+
+    <div class="cfg-grid">
+      <div class="cfg-group">
+        <h3 data-i18n="cfg.g1">① 地址与页表 / Address &amp; Page Table</h3>
+        <div class="cfg-line"><span data-i18n="cfg.vaBits">虚拟地址位数</span><select id="cfgVaBits"><option>12</option><option>16</option><option selected>24</option><option>32</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.paBits">物理地址位数</span><select id="cfgPaBits"><option>12</option><option>16</option><option selected>20</option><option>24</option><option>32</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.page">页大小</span><select id="cfgPage"><option value="256">256 B</option><option value="1024" selected>1 KB</option><option value="4096">4 KB</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.level">页表级数</span><select id="cfgLevel"><option value="1" selected>1 级</option><option value="2">2 级</option></select></div>
+      </div>
+      <div class="cfg-group">
+        <h3 data-i18n="cfg.g2">② TLB / 快表</h3>
+        <div class="cfg-line"><span data-i18n="cfg.tlbN">总项数</span><select id="cfgTlbN"><option>4</option><option selected>8</option><option>16</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.tlbA">相联度（路数）</span><select id="cfgTlbA"><option value="1">1 路（直接）</option><option value="2" selected>2 路</option><option value="4">4 路</option><option value="8">全相联</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.tlbR">替换策略</span><select id="cfgTlbR"><option value="LRU" selected>LRU</option><option value="FIFO">FIFO</option><option value="RAND">Random</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.tTlb">TLB 查找耗时 (ns)</span><input id="cfgTTlb" type="number" min="0" step="0.5" value="1"></div>
+      </div>
+      <div class="cfg-group">
+        <h3 data-i18n="cfg.g3">③ Cache / 主存</h3>
+        <div class="cfg-line"><span data-i18n="cfg.cN">Cache 行数</span><select id="cfgCN"><option>8</option><option selected>16</option><option>32</option><option>64</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.cA">相联度（路数）</span><select id="cfgCA"><option value="1">1 路（直接）</option><option value="2" selected>2 路</option><option value="4">4 路</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.blk">块大小</span><select id="cfgBlk"><option value="16">16 B</option><option value="32" selected>32 B</option><option value="64">64 B</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.cR">替换策略</span><select id="cfgCR"><option value="LRU" selected>LRU</option><option value="FIFO">FIFO</option><option value="RAND">Random</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.tCache">Cache 命中 (ns)</span><input id="cfgTCache" type="number" min="0" step="0.5" value="1"></div>
+        <div class="cfg-line"><span data-i18n="cfg.tMem">主存访问 (ns)</span><input id="cfgTMem" type="number" min="0" step="1" value="100"></div>
+        <div class="cfg-line"><span data-i18n="cfg.tDisk">缺页调页 (ns)</span><input id="cfgTDisk" type="number" min="0" step="100" value="1000"></div>
+      </div>
+    </div>
+    <div class="cfg-err" id="cfgErr"></div>
+    <p class="cfg-hint" data-i18n="cfg.hint">提示：页大小决定页内偏移位数；Cache 组数 = 行数 ÷ 路数，块大小决定块内地址位数。改任一参数，位域宽度会自动重算。TLB 与页表在主存中，未命中时都要多花一次主存访问时间。</p>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="anim.title">地址翻译全链路</span> <span class="title-note" data-i18n="anim.note">当前步骤会点亮所处环节；绿色 = 命中，橙色 = 缺失</span></h2>
+    <div class="stat-row">
+      <div class="stat"><span class="stat-k" data-i18n="stat.acc">访问序号</span><span class="stat-v" id="statAcc">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.tlb">TLB 命中率</span><span class="stat-v" id="statTlb">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.fault">缺页次数</span><span class="stat-v" id="statFault">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.cache">Cache 命中率</span><span class="stat-v" id="statCache">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.amat">AMAT (ns)</span><span class="stat-v" id="statAmat">—</span></div>
+    </div>
+    <div class="flow" id="flowNodes"></div>
+    <div class="ctrl-row">
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-primary" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">↺ 重置</button>
+      <label class="speed-box"><span data-i18n="ctrl.speed">速度</span><input id="speedRange" type="range" min="1" max="10" value="6"></label>
+      <span class="step-info"><span data-i18n="ctrl.step">第</span> <b id="stepNow">0</b> / <span id="stepTotal">0</span> <span data-i18n="ctrl.step2">步</span></span>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="narr">
+      <div class="narr-head"><span class="narr-badge" id="narrBadge">—</span><span class="narr-title" id="narrTitle"></span></div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="bit.title">地址位域拆解</span> <span class="title-note" data-i18n="bit.note">同一个物理地址，页式视角与 Cache 视角的切法完全不同</span></h2>
+    <div class="bitband-box">
+      <div class="bb-head"><span class="bb-title" data-i18n="bit.va">虚拟地址 VA</span><span class="bb-val" id="vaVal"></span></div>
+      <div class="band" id="vaBand"></div>
+      <div class="bb-foot" id="vaFoot"></div>
+    </div>
+    <div class="bitband-box">
+      <div class="bb-head"><span class="bb-title" data-i18n="bit.pa">物理地址 PA（页式视角）</span><span class="bb-val" id="paVal"></span></div>
+      <div class="band" id="paBand"></div>
+      <div class="bb-foot" id="paFoot"></div>
+    </div>
+    <div class="bitband-box" style="margin-bottom:0">
+      <div class="bb-head"><span class="bb-title" data-i18n="bit.cache">物理地址 PA（Cache 视角）</span><span class="bb-val" id="cacheVal"></span></div>
+      <div class="band" id="cacheBand"></div>
+      <div class="bb-foot" id="cacheFoot"></div>
+    </div>
+    <div class="legend">
+      <span><i class="dot dot-vpn"></i><span data-i18n="lg.vpn">虚页号 VPN</span></span>
+      <span><i class="dot dot-pfn"></i><span data-i18n="lg.pfn">页帧号 PFN</span></span>
+      <span><i class="dot dot-off"></i><span data-i18n="lg.off">页内偏移</span></span>
+      <span><i class="dot dot-tag"></i><span data-i18n="lg.tag">Cache 标记 Tag</span></span>
+      <span><i class="dot dot-idx"></i><span data-i18n="lg.idx">组号 / 行号</span></span>
+      <span><i class="dot dot-bo"></i><span data-i18n="lg.bo">块内地址</span></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="mem.title">三级存储实时状态</span> <span class="title-note" data-i18n="mem.note">高亮行 = 本步正在查询或装入的表项</span></h2>
+    <div class="mem-grid">
+      <div class="mem-box">
+        <div class="mem-head"><b data-i18n="mem.tlb">TLB 快表</b><span id="tlbMeta"></span></div>
+        <div class="mem-scroll"><table class="rtable"><thead><tr>
+          <th data-i18n="tb.set">组</th><th data-i18n="tb.way">路</th><th data-i18n="tb.v">有效</th><th data-i18n="tb.vpn">VPN</th><th data-i18n="tb.pfn">PFN</th><th data-i18n="tb.lru">LRU/序号</th>
+        </tr></thead><tbody id="tlbBody"></tbody></table></div>
+      </div>
+      <div class="mem-box">
+        <div class="mem-head"><b data-i18n="mem.pt">页表（驻留子集）</b><span id="ptMeta"></span></div>
+        <div class="mem-scroll"><table class="rtable"><thead><tr>
+          <th data-i18n="tb.vpn">VPN</th><th data-i18n="tb.v">有效</th><th data-i18n="tb.pfn">PFN</th><th data-i18n="tb.st">状态</th>
+        </tr></thead><tbody id="ptBody"></tbody></table></div>
+      </div>
+      <div class="mem-box">
+        <div class="mem-head"><b data-i18n="mem.cache">Cache</b><span id="cacheMeta"></span></div>
+        <div class="mem-scroll"><table class="rtable"><thead><tr>
+          <th data-i18n="tb.set">组</th><th data-i18n="tb.way">路</th><th data-i18n="tb.v">有效</th><th data-i18n="tb.tag">Tag</th><th data-i18n="tb.block">主存块地址</th><th data-i18n="tb.lru">LRU/序号</th>
+        </tr></thead><tbody id="cacheBody"></tbody></table></div>
+      </div>
+      <div class="mem-box">
+        <div class="mem-head"><b data-i18n="mem.mem">主存页帧</b><span id="memMeta"></span></div>
+        <div class="mem-scroll"><table class="rtable"><thead><tr>
+          <th data-i18n="tb.pfn">页帧 PFN</th><th data-i18n="tb.frame">起始地址</th><th data-i18n="tb.st">状态</th>
+        </tr></thead><tbody id="memBody"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="notes.title">408 考点速记</span> <span class="title-note" data-i18n="notes.note">地址翻译综合题的六个必答点</span></h2>
+    <ul class="summary" id="notesList"></ul>
+  </section>
+
+  <p class="footer"><span data-i18n="footer.text">408 可视化实验室 · 计算机组成原理</span> · <a href="https://github.com/zzuli-ljz/408-visual-lab">GitHub</a></p>
+</div>
+
+<script>
+/* =========================================================
+   408 存储层次地址翻译 · TLB / 页表 / Cache / 主存
+   科目主题：计算机组成原理 · Amber #d97706
+   ========================================================= */
+function $(id){ return document.getElementById(id); }
+
+var LANG='zh';
+try{ LANG=localStorage.getItem('408lab-lang')||'zh'; }catch(e){}
+
+var T={
+  'tag.subj':{zh:'计算机组成原理 · 存储系统',en:'Computer Organization · Memory Hierarchy'},
+  'tag.scope':{zh:'TLB · 页表 · Cache · 主存',en:'TLB · Page Table · Cache · Main Memory'},
+  'tag.inter':{zh:'位域拆解 + 全链路逐步追踪',en:'Bit-field breakdown + full-path tracing'},
+  'hero.h1':{zh:'一个虚拟地址如何变成数据：TLB → 页表 → 物理地址 → Cache → 主存',en:'From a virtual address to data: TLB → Page Table → Physical Address → Cache → Main Memory'},
+  'hero.sub':{zh:'把 408 计组最难的综合题拆成一条能走通的地址流：每个二进制位属于哪个字段、哪一级命中、哪一级缺失、为什么这个地址会替换掉那一行，以及这一趟访问到底花了多少时间。',en:'The hardest 408 problem, unfolded into a traceable path: which bits belong to which field, where it hits or misses, why a line gets replaced, and exactly how many nanoseconds the access costs.'},
+
+  'cfg.title':{zh:'访问与硬件配置',en:'Access & Hardware Setup'},
+  'cfg.apply':{zh:'应用并生成演示',en:'Apply & Build Trace'},
+  'cfg.classic':{zh:'📖 教材经典序列',en:'📖 Textbook trace'},
+  'cfg.scan':{zh:'📈 连续扫描（看冲突）',en:'📈 Sequential scan (conflicts)'},
+  'cfg.random':{zh:'🎲 随机地址',en:'🎲 Random addresses'},
+  'cfg.addrHint':{zh:'多个地址用空格或逗号分隔；支持 0x 十六进制或十进制',en:'Separate addresses with spaces or commas; 0x hex or decimal'},
+  'cfg.g1':{zh:'① 地址与页表 / Address & Page Table',en:'① Address & Page Table'},
+  'cfg.g2':{zh:'② TLB / 快表',en:'② TLB'},
+  'cfg.g3':{zh:'③ Cache / 主存',en:'③ Cache & Main Memory'},
+  'cfg.vaBits':{zh:'虚拟地址位数',en:'VA bits'},
+  'cfg.paBits':{zh:'物理地址位数',en:'PA bits'},
+  'cfg.page':{zh:'页大小',en:'Page size'},
+  'cfg.level':{zh:'页表级数',en:'Page table levels'},
+  'cfg.tlbN':{zh:'总项数',en:'Entries'},
+  'cfg.tlbA':{zh:'相联度（路数）',en:'Associativity (ways)'},
+  'cfg.tlbR':{zh:'替换策略',en:'Replacement'},
+  'cfg.tTlb':{zh:'TLB 查找耗时 (ns)',en:'TLB lookup (ns)'},
+  'cfg.cN':{zh:'Cache 行数',en:'Cache lines'},
+  'cfg.cA':{zh:'相联度（路数）',en:'Associativity (ways)'},
+  'cfg.blk':{zh:'块大小',en:'Block size'},
+  'cfg.cR':{zh:'替换策略',en:'Replacement'},
+  'cfg.tCache':{zh:'Cache 命中 (ns)',en:'Cache hit (ns)'},
+  'cfg.tMem':{zh:'主存访问 (ns)',en:'Memory access (ns)'},
+  'cfg.tDisk':{zh:'缺页调页 (ns)',en:'Page fault (ns)'},
+  'cfg.hint':{zh:'提示：页大小决定页内偏移位数；Cache 组数 = 行数 ÷ 路数，块大小决定块内地址位数。改任一参数，位域宽度会自动重算。TLB 与页表在主存中，未命中时都要多花一次主存访问时间。',en:'Hint: page size fixes the offset bits; cache sets = lines / ways; block size fixes the block-offset bits. Every parameter change recomputes all field widths. A TLB or page-table miss costs an extra main-memory access.'},
+
+  'anim.title':{zh:'地址翻译全链路',en:'Full address-translation path'},
+  'anim.note':{zh:'当前步骤会点亮所处环节；绿色 = 命中，橙色 = 缺失',en:'The active stage lights up; green = hit, orange = miss'},
+  'stat.acc':{zh:'访问序号',en:'Access #'},
+  'stat.tlb':{zh:'TLB 命中率',en:'TLB hit rate'},
+  'stat.fault':{zh:'缺页次数',en:'Page faults'},
+  'stat.cache':{zh:'Cache 命中率',en:'Cache hit rate'},
+  'stat.amat':{zh:'AMAT (ns)',en:'AMAT (ns)'},
+
+  'flow.cpu':{zh:'CPU',en:'CPU'},
+  'flow.va':{zh:'VA 位域',en:'VA fields'},
+  'flow.tlb':{zh:'TLB',en:'TLB'},
+  'flow.pt':{zh:'页表',en:'Page Table'},
+  'flow.pa':{zh:'PA 位域',en:'PA fields'},
+  'flow.cache':{zh:'Cache',en:'Cache'},
+  'flow.mem':{zh:'主存 / 磁盘',en:'Memory / Disk'},
+  'flow.ret':{zh:'返回数据',en:'Data'},
+
+  'bit.title':{zh:'地址位域拆解',en:'Address bit fields'},
+  'bit.note':{zh:'同一个物理地址，页式视角与 Cache 视角的切法完全不同',en:'The same PA is sliced differently by paging and by the cache'},
+  'bit.va':{zh:'虚拟地址 VA',en:'Virtual Address (VA)'},
+  'bit.pa':{zh:'物理地址 PA（页式视角）',en:'Physical Address (paging view)'},
+  'bit.cache':{zh:'物理地址 PA（Cache 视角）',en:'Physical Address (cache view)'},
+  'bit.vpn':{zh:'虚页号 VPN',en:'VPN'},
+  'bit.pdx':{zh:'页目录号',en:'Page-dir index'},
+  'bit.ptx':{zh:'页表号',en:'Page-table index'},
+  'bit.off':{zh:'页内偏移',en:'Page offset'},
+  'bit.pfn':{zh:'页帧号 PFN',en:'PFN'},
+  'bit.tag':{zh:'标记 Tag',en:'Tag'},
+  'bit.idx':{zh:'组号 / 行号',en:'Set / Line index'},
+  'bit.bo':{zh:'块内地址',en:'Block offset'},
+  'bit.waitVa':{zh:'等待读取虚拟地址…',en:'Waiting for a virtual address…'},
+  'bit.waitPa':{zh:'页表查询完成后才能得到物理地址',en:'PA is available after the page-table walk'},
+  'bit.vaFoot':{zh:'VA = 虚页号 × 页大小 + 页内偏移；页内偏移在翻译前后保持不变。',en:'VA = VPN × page size + offset; the page offset is unchanged by translation.'},
+  'bit.paFoot':{zh:'PA = 页帧号 × 页大小 + 页内偏移；页帧号由 TLB 或页表给出。',en:'PA = PFN × page size + offset; the PFN comes from the TLB or the page table.'},
+  'bit.cacheFoot':{zh:'Tag 用于组内比对，组号决定查哪一组，块内地址决定取块内哪个字节。',en:'Tag is compared within the set; the index selects the set; the block offset selects the byte.'},
+  'lg.vpn':{zh:'虚页号 VPN',en:'VPN'}, 'lg.pfn':{zh:'页帧号 PFN',en:'PFN'},
+  'lg.off':{zh:'页内偏移',en:'Page offset'}, 'lg.tag':{zh:'Cache 标记 Tag',en:'Cache Tag'},
+  'lg.idx':{zh:'组号 / 行号',en:'Set / line index'}, 'lg.bo':{zh:'块内地址',en:'Block offset'},
+
+  'mem.title':{zh:'三级存储实时状态',en:'Live state of the memory hierarchy'},
+  'mem.note':{zh:'高亮行 = 本步正在查询或装入的表项',en:'Highlighted rows are being looked up or filled'},
+  'mem.tlb':{zh:'TLB 快表',en:'TLB'},
+  'mem.pt':{zh:'页表（驻留子集）',en:'Page Table (resident subset)'},
+  'mem.cache':{zh:'Cache',en:'Cache'},
+  'mem.mem':{zh:'主存页帧',en:'Main-memory frames'},
+  'tb.set':{zh:'组',en:'Set'}, 'tb.way':{zh:'路',en:'Way'}, 'tb.v':{zh:'有效',en:'V'},
+  'tb.vpn':{zh:'VPN',en:'VPN'}, 'tb.pfn':{zh:'PFN',en:'PFN'}, 'tb.lru':{zh:'LRU/序号',en:'LRU/seq'},
+  'tb.st':{zh:'状态',en:'State'}, 'tb.tag':{zh:'Tag',en:'Tag'},
+  'tb.block':{zh:'主存块地址',en:'Block address'}, 'tb.frame':{zh:'起始地址',en:'Base address'},
+  'tb.resident':{zh:'已在主存',en:'Resident'}, 'tb.faulted':{zh:'缺页调入',en:'Fetched on fault'},
+  'tb.empty':{zh:'空',en:'Empty'},
+
+  'ctrl.prev':{zh:'← 上一步',en:'← Prev'}, 'ctrl.next':{zh:'下一步 →',en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放',en:'▶ Auto play'}, 'ctrl.pause':{zh:'⏸ 暂停',en:'⏸ Pause'},
+  'ctrl.reset':{zh:'↺ 重置',en:'↺ Reset'}, 'ctrl.speed':{zh:'速度',en:'Speed'},
+  'ctrl.step':{zh:'第',en:'Step'}, 'ctrl.step2':{zh:'步',en:''},
+  'narr.readyT':{zh:'准备就绪',en:'Ready'},
+  'narr.readyB':{zh:'填好虚拟地址序列与硬件参数，点 <b>应用并生成演示</b>，然后用 <b>下一步</b> 逐阶段观察：VA 拆分 → 查 TLB → 查页表 → 合成 PA → 查 Cache → 访存。',en:'Set the address list and hardware parameters, press <b>Apply &amp; Build Trace</b>, then step through: VA split → TLB → page table → PA → cache → memory.'},
+
+  'notes.title':{zh:'408 考点速记',en:'Exam notes'},
+  'notes.note':{zh:'地址翻译综合题的六个必答点',en:'Six points every address-translation problem wants'},
+  'footer.text':{zh:'408 可视化实验室 · 计算机组成原理',en:'408 Visual Lab · Computer Organization'}
+};
+function t(k){ var o=T[k]; return o?(o[LANG]!==undefined?o[LANG]:o.zh):k; }
+
+/*TEST-BEGIN*/
+/* ============ 纯逻辑层：配置推导 / 状态机 / 步骤生成（不依赖 DOM） ============ */
+function pow2(n){ return Math.pow(2,n); }
+function log2i(n){ return Math.round(Math.log(n)/Math.LN2); }
+function isPow2(n){ return n>0 && Math.floor(n)===n && (n&(n-1))===0; }
+function field(v,shift,width){ return Math.floor(v/pow2(shift))%pow2(width); }
+function binStr(v,w){ var s=Number(v).toString(2); while(s.length<w) s='0'+s; if(s.length>w) s=s.slice(s.length-w); return s; }
+function binGroup(s){ return s.replace(/(\d{4})(?=\d)/g,'$1 '); }
+function hex(v,w){ var s=Number(v).toString(16).toUpperCase(); var target=Math.max(1,Math.ceil(w/4)); while(s.length<target) s='0'+s; return '0x'+s; }
+
+function derive(cfg){
+  var d={};
+  d.offBits=log2i(cfg.pageSize);
+  d.vpnBits=cfg.vaBits-d.offBits;
+  d.pfnBits=cfg.paBits-d.offBits;
+  d.pdxBits=(cfg.ptLevel===2)?Math.ceil(d.vpnBits/2):0;
+  d.ptxBits=(cfg.ptLevel===2)?(d.vpnBits-d.pdxBits):d.vpnBits;
+  d.tlbSets=cfg.tlbEntries/cfg.tlbAssoc;
+  d.tlbSetBits=log2i(d.tlbSets);
+  d.cacheSets=cfg.cacheLines/cfg.cacheAssoc;
+  d.idxBits=log2i(d.cacheSets);
+  d.blkBits=log2i(cfg.blockSize);
+  d.tagBits=cfg.paBits-d.idxBits-d.blkBits;
+  d.frames=pow2(d.pfnBits);
+  d.blocks=pow2(cfg.paBits-d.blkBits);
+  return d;
+}
+
+function validate(cfg){
+  var d=derive(cfg);
+  if(!isPow2(cfg.pageSize)||!isPow2(cfg.blockSize)) return 'PAGE_BLOCK_POW2';
+  if(cfg.vaBits>32||cfg.paBits>32||cfg.vaBits<8||cfg.paBits<8) return 'BITS_RANGE';
+  if(d.offBits<=0||d.vpnBits<=0) return 'VA_TOO_SHORT';
+  if(d.pfnBits<2) return 'PA_TOO_SHORT';
+  if(d.tagBits<=0) return 'TAG_TOO_SHORT';
+  if(cfg.tlbEntries%cfg.tlbAssoc!==0||!isPow2(d.tlbSets)) return 'TLB_SETS';
+  if(cfg.cacheLines%cfg.cacheAssoc!==0||!isPow2(d.cacheSets)) return 'CACHE_SETS';
+  if(d.pfnBits>30) return 'TOO_MANY_FRAMES';
+  return null;
+}
+
+function initState(cfg,d){
+  var st={
+    tlb:[], pt:{}, cache:[], mem:{},
+    usedFrames:{}, nextFrame:1, stamp:0, rng:12345,
+    stats:{acc:0,tlbHit:0,tlbMiss:0,fault:0,cacheHit:0,cacheMiss:0,time:0},
+    view:null
+  };
+  var i;
+  for(i=0;i<cfg.tlbEntries;i++) st.tlb.push({valid:false,vpn:-1,pfn:-1,stamp:0});
+  for(i=0;i<cfg.cacheLines;i++) st.cache.push({valid:false,tag:-1,block:-1,stamp:0});
+  /* 预置若干已在主存的页：PFN 与 VPN 故意不同，便于观察翻译。
+     预置数量始终小于页帧总数，避免把主存占满导致无法演示缺页调页。 */
+  var maxVpn=Math.min(pow2(d.vpnBits)-1,40);
+  var seeds=[0,1,2,3,4,5,6,7,8,10,12,16,20,24];
+  var quota=Math.min(seeds.length,Math.max(1,Math.floor(d.frames/2)));
+  var placed=0;
+  for(i=0;i<seeds.length&&placed<quota;i++){
+    var vpn=seeds[i];
+    if(vpn>maxVpn) continue;
+    var pfn=(vpn*7+3)%d.frames, guard=0;
+    while(st.usedFrames[pfn]&&guard<d.frames){ pfn=(pfn+1)%d.frames; guard++; }
+    if(guard>=d.frames) break;
+    st.usedFrames[pfn]=true;
+    st.pt[vpn]={pfn:pfn,valid:true};
+    st.mem[pfn]=true;
+    placed++;
+    if(pfn>=st.nextFrame) st.nextFrame=(pfn+1)%d.frames;
+  }
+  return st;
+}
+
+function rand(st){ st.rng=(Math.imul(st.rng,1103515245)+12345)&0x7fffffff; return st.rng; }
+
+function pickVictim(arr,lo,hi,repl,st){
+  var i,best=lo;
+  if(repl==='RAND') return lo+(rand(st)%(hi-lo));
+  for(i=lo+1;i<hi;i++){
+    if(!arr[i].valid){ return i; }
+    if(arr[i].stamp<arr[best].stamp) best=i;
+  }
+  if(!arr[best].valid) return best;
+  return best;
+}
+
+function cloneView(v){
+  if(!v) return null;
+  return JSON.parse(JSON.stringify(v));
+}
+
+function snapshot(st,d,cfg,step){
+  var i,o={
+    tlb:[],cache:[],pt:{},mem:{},stats:{},view:cloneView(st.view),hl:step.hl||{}
+  };
+  for(i=0;i<st.tlb.length;i++) o.tlb.push({valid:st.tlb[i].valid,vpn:st.tlb[i].vpn,pfn:st.tlb[i].pfn,stamp:st.tlb[i].stamp});
+  for(i=0;i<st.cache.length;i++) o.cache.push({valid:st.cache[i].valid,tag:st.cache[i].tag,block:st.cache[i].block,stamp:st.cache[i].stamp});
+  for(var k in st.pt) if(st.pt.hasOwnProperty(k)) o.pt[k]={pfn:st.pt[k].pfn,valid:st.pt[k].valid};
+  for(var m in st.mem) if(st.mem.hasOwnProperty(m)) o.mem[m]=true;
+  for(var s in st.stats) if(st.stats.hasOwnProperty(s)) o.stats[s]=st.stats[s];
+  o.cfg={vaBits:cfg.vaBits,paBits:cfg.paBits,pageSize:cfg.pageSize,ptLevel:cfg.ptLevel,
+         tlbEntries:cfg.tlbEntries,tlbAssoc:cfg.tlbAssoc,tlbRepl:cfg.tlbRepl,
+         cacheLines:cfg.cacheLines,cacheAssoc:cfg.cacheAssoc,blockSize:cfg.blockSize,cacheRepl:cfg.cacheRepl,
+         tTLB:cfg.tTLB,tCache:cfg.tCache,tMem:cfg.tMem,tDisk:cfg.tDisk};
+  o.d={offBits:d.offBits,vpnBits:d.vpnBits,pfnBits:d.pfnBits,pdxBits:d.pdxBits,ptxBits:d.ptxBits,
+       tlbSets:d.tlbSets,tlbSetBits:d.tlbSetBits,cacheSets:d.cacheSets,idxBits:d.idxBits,
+       blkBits:d.blkBits,tagBits:d.tagBits,frames:d.frames};
+  return o;
+}
+
+function S(zhT,zhB,zhF,enT,enB,enF){ return {zh:{t:zhT,b:zhB,f:zhF||''},en:{t:enT,b:enB,f:enF||''}}; }
+function HX(v,w){ return hex(v,w); }
+
+function simulate(cfg,addrs){
+  var d=derive(cfg), st=initState(cfg,d), steps=[], k, i;
+  function push(txt,stage,hl,skip){
+    var o={stage:stage,hl:hl||{},skip:skip||[],txt:txt};
+    o.snap=snapshot(st,d,cfg,o);
+    steps.push(o);
+  }
+  function addTime(x){ st.stats.time+=x; }
+
+  for(k=0;k<addrs.length;k++){
+    var va=addrs[k];
+    st.stats.acc++;
+    var vpn=field(va,d.offBits,d.vpnBits);
+    var off=field(va,0,d.offBits);
+    var pdx=(cfg.ptLevel===2)?field(va,d.offBits+d.ptxBits,d.pdxBits):0;
+    var ptx=(cfg.ptLevel===2)?field(va,d.offBits,d.ptxBits):0;
+    var vaBits=binStr(va,cfg.vaBits);
+
+    st.view={
+      va:va,vaReady:true,
+      vaFields:cfg.ptLevel===2?[
+        {k:'bit.pdx',cls:'c-pdx',bits:d.pdxBits,val:pdx,bin:binStr(pdx,d.pdxBits)},
+        {k:'bit.ptx',cls:'c-ptx',bits:d.ptxBits,val:ptx,bin:binStr(ptx,d.ptxBits)},
+        {k:'bit.off',cls:'c-off',bits:d.offBits,val:off,bin:binStr(off,d.offBits)}
+      ]:[
+        {k:'bit.vpn',cls:'c-vpn',bits:d.vpnBits,val:vpn,bin:binStr(vpn,d.vpnBits)},
+        {k:'bit.off',cls:'c-off',bits:d.offBits,val:off,bin:binStr(off,d.offBits)}
+      ],
+      pa:-1,paReady:false,paFields:[],cacheFields:[],
+      vpn:vpn,off:off,pdx:pdx,ptx:ptx,pfn:-1,tag:-1,idx:-1,boff:-1,
+      tlbSet:-1,cacheSet:-1
+    };
+
+    /* 1. 拆分 VA */
+    push(S(
+      '第 '+(k+1)+' 次访问：拆分虚拟地址 '+HX(va,cfg.vaBits),
+      '把 <b>'+cfg.vaBits+' 位</b>虚拟地址切成虚页号与页内偏移。页大小 '+cfg.pageSize+' B = 2<sup>'+d.offBits+'</sup>，所以低 <b>'+d.offBits+' 位</b>是页内偏移，高 <b>'+d.vpnBits+' 位</b>是虚页号。'+(cfg.ptLevel===2?'二级页表再把 VPN 切成页目录号 '+d.pdxBits+' 位 + 页表号 '+d.ptxBits+' 位。':''),
+      'VA = '+binGroup(vaBits)+'　VPN = '+HX(vpn,d.vpnBits)+' = '+vpn+'　offset = '+HX(off,d.offBits)+' = '+off,
+      'Access '+(k+1)+': split virtual address '+HX(va,cfg.vaBits),
+      'Split the <b>'+cfg.vaBits+'-bit</b> VA into a virtual page number and a page offset. Page size '+cfg.pageSize+' B = 2<sup>'+d.offBits+'</sup>, so the low <b>'+d.offBits+' bits</b> are the offset and the high <b>'+d.vpnBits+' bits</b> are the VPN.'+(cfg.ptLevel===2?' A two-level page table further splits the VPN into a '+d.pdxBits+'-bit directory index and a '+d.ptxBits+'-bit table index.':''),
+      'VA = '+binGroup(vaBits)+'　VPN = '+HX(vpn,d.vpnBits)+' = '+vpn+'　offset = '+HX(off,d.offBits)+' = '+off
+    ),'va',{ptVpn:vpn});
+
+    /* 2. 查 TLB */
+    var tlbSet=vpn%d.tlbSets;
+    var lo=tlbSet*cfg.tlbAssoc, hi=lo+cfg.tlbAssoc;
+    var hitWay=-1;
+    for(i=lo;i<hi;i++) if(st.tlb[i].valid&&st.tlb[i].vpn===vpn){ hitWay=i; break; }
+    st.view.tlbSet=tlbSet;
+    addTime(cfg.tTLB);
+    var tlbHit=hitWay>=0;
+
+    if(tlbHit){
+      if(cfg.tlbRepl==='LRU') st.tlb[hitWay].stamp=++st.stamp;
+      st.stats.tlbHit++;
+      push(S(
+        '✓ TLB 命中！直接得到页帧号','查第 <b>'+tlbSet+'</b> 组的 '+cfg.tlbAssoc+' 个表项，第 <b>'+(hitWay-lo)+'</b> 路的有效位为 1 且 VPN = '+vpn+'，命中 → 页帧号 <b>PFN = '+st.tlb[hitWay].pfn+'</b>。TLB 命中就<b>不必查页表</b>，这是快表存在的意义。',
+        'TLB set = VPN mod '+d.tlbSets+' = '+vpn+' mod '+d.tlbSets+' = '+tlbSet+'　→ PFN = '+st.tlb[hitWay].pfn+'　耗时 +'+cfg.tTLB+' ns',
+        '✓ TLB hit: PFN obtained directly',
+        'Look up '+cfg.tlbAssoc+' entries in set <b>'+tlbSet+'</b>: way <b>'+(hitWay-lo)+'</b> is valid and holds VPN = '+vpn+', so <b>PFN = '+st.tlb[hitWay].pfn+'</b>. A TLB hit <b>skips the page-table walk</b> — that is the whole point of the TLB.',
+        'TLB set = VPN mod '+d.tlbSets+' = '+vpn+' mod '+d.tlbSets+' = '+tlbSet+'　→ PFN = '+st.tlb[hitWay].pfn+'　cost +'+cfg.tTLB+' ns'
+      ),'tlb',{tlbKey:hitWay,tone:'hit',ptVpn:vpn},['pt']);
+    }else{
+      st.stats.tlbMiss++;
+      addTime(cfg.tMem);   /* 页表在主存，TLB 未命中多一次主存访问 */
+      push(S(
+        '✗ TLB 未命中 → 必须查主存中的页表','第 <b>'+tlbSet+'</b> 组 '+cfg.tlbAssoc+' 路中没有任何表项的 VPN 等于 '+vpn+'（或有效位为 0）。只能去主存查页表，<b>多花一次主存访问</b>。',
+        'TLB set = '+vpn+' mod '+d.tlbSets+' = '+tlbSet+'　→ MISS　耗时 +'+cfg.tTLB+' ns（TLB 查找）+ '+cfg.tMem+' ns（页表）',
+        '✗ TLB miss → walk the page table in memory',
+        'None of the '+cfg.tlbAssoc+' ways in set <b>'+tlbSet+'</b> holds VPN = '+vpn+' with a valid bit. The page table in main memory must be consulted, which costs <b>one extra memory access</b>.',
+        'TLB set = '+vpn+' mod '+d.tlbSets+' = '+tlbSet+'　→ MISS　cost +'+cfg.tTLB+' ns (TLB) + '+cfg.tMem+' ns (page table)'
+      ),'tlb',{tlbSet:tlbSet,tone:'miss',ptVpn:vpn});
+    }
+
+    var pfn, ent;
+    var fault=false;
+    if(tlbHit){
+      pfn=st.tlb[hitWay].pfn;
+    }else{
+      ent=st.pt[vpn];
+      if(!ent||!ent.valid){
+        fault=true;
+        st.stats.fault++;
+        addTime(cfg.tDisk);
+        push(S(
+          '⚠ 缺页异常：该页不在主存','页表中 VPN = '+vpn+' 的有效位为 <b>0</b>，说明这一页还在磁盘上。CPU 触发<b>缺页异常</b>，由操作系统从磁盘把页调入主存，再更新页表有效位与页帧号。',
+          'PT['+vpn+'].valid = 0　→ page fault　耗时 +'+cfg.tDisk+' ns',
+          '⚠ Page fault: the page is not resident',
+          'Page-table entry VPN = '+vpn+' has <b>valid = 0</b>, so the page still lives on disk. The CPU raises a <b>page fault</b>; the OS fetches the page into main memory and updates the entry.',
+          'PT['+vpn+'].valid = 0　→ page fault　cost +'+cfg.tDisk+' ns'
+        ),'mem',{ptVpn:vpn,tone:'miss'});
+        var f=st.nextFrame, guard=0, evictedVpn=-1;
+        while(st.usedFrames[f]&&guard<d.frames){ f=(f+1)%d.frames; guard++; }
+        if(guard>=d.frames){
+          /* 所有页帧都被占用：按轮转换出一页，并把它的页表项置无效、冲刷 TLB 中旧映射 */
+          f=st.nextFrame%d.frames;
+          for(var pv in st.pt) if(st.pt.hasOwnProperty(pv)&&st.pt[pv].valid&&st.pt[pv].pfn===f){
+            st.pt[pv].valid=false; evictedVpn=Number(pv); break;
+          }
+          for(var tw=0;tw<st.tlb.length;tw++) if(st.tlb[tw].valid&&st.tlb[tw].pfn===f) st.tlb[tw].valid=false;
+        }
+        st.usedFrames[f]=true;
+        st.nextFrame=(f+1)%d.frames;
+        st.mem[f]=true;
+        st.pt[vpn]={pfn:f,valid:true};
+        pfn=f;
+        push(S(
+          '✓ 调页完成：页表登记新页帧','操作系统分配<b>页帧 '+f+'</b>'+(evictedVpn>=0?'（主存已满，换出第 '+evictedVpn+' 页，其页表项置无效、TLB 对应项被冲刷）':'')+'，把磁盘上的第 '+vpn+' 页装入主存（该页起始地址 '+HX(f*cfg.pageSize,cfg.paBits)+'），并把页表项置为有效。注意页内偏移 '+off+' 始终不变。',
+          'PT['+vpn+'] = { valid:1, PFN:'+f+' }　→ 主存页帧 '+f,
+          '✓ Page fetched: page table updated',
+          'The OS allocates <b>frame '+f+'</b>'+(evictedVpn>=0?' (memory was full, so page '+evictedVpn+' is swapped out and its PTE and TLB entry are invalidated)':'')+', loads page '+vpn+' from disk (frame base '+HX(f*cfg.pageSize,cfg.paBits)+') and marks the entry valid. The page offset '+off+' never changes.',
+          'PT['+vpn+'] = { valid:1, PFN:'+f+' }　→ frame '+f
+        ),'pt',{ptVpn:vpn,memPfn:f,tone:'repl'});
+      }else{
+        pfn=ent.pfn;
+        if(cfg.ptLevel===2){
+          push(S(
+            '✓ 二级页表查询成功','先用页目录号 <b>PDX = '+pdx+'</b> 找到页目录项（得到对应页表的基址），再用页表号 <b>PTX = '+ptx+'</b> 索引到页表项：有效位为 1，页帧号 <b>PFN = '+pfn+'</b>。二级页表的好处是页表本身不必连续、不必全部常驻。',
+            'PDX = '+pdx+'　PTX = '+ptx+'　PT[...].PFN = '+pfn+'　耗时 +'+cfg.tMem+' ns',
+            '✓ Two-level page table walk succeeds',
+            'The directory index <b>PDX = '+pdx+'</b> selects a page-directory entry (base of a page table); the table index <b>PTX = '+ptx+'</b> then selects the entry: valid = 1, <b>PFN = '+pfn+'</b>. Two-level tables need not be contiguous or fully resident.',
+            'PDX = '+pdx+'　PTX = '+ptx+'　PT[...].PFN = '+pfn+'　cost +'+cfg.tMem+' ns'
+          ),'pt',{ptVpn:vpn,tone:'hit'});
+        }else{
+          push(S(
+            '✓ 页表命中：得到页帧号','以 <b>VPN = '+vpn+'</b> 为索引查页表：PT['+vpn+'] = { valid:1, <b>PFN = '+pfn+'</b> }。页表在主存中，这一步耗时 '+cfg.tMem+' ns。',
+            'PT['+vpn+'].PFN = '+pfn+'　耗时 +'+cfg.tMem+' ns',
+            '✓ Page table hit: PFN obtained',
+            'Index the page table with <b>VPN = '+vpn+'</b>: PT['+vpn+'] = { valid:1, <b>PFN = '+pfn+'</b> }. The page table lives in main memory, so this costs '+cfg.tMem+' ns.',
+            'PT['+vpn+'].PFN = '+pfn+'　cost +'+cfg.tMem+' ns'
+          ),'pt',{ptVpn:vpn,tone:'hit'});
+        }
+      }
+      /* 回填 TLB */
+      var vic=pickVictim(st.tlb,lo,hi,cfg.tlbRepl,st);
+      var oldVpn=st.tlb[vic].vpn;
+      var replaced=st.tlb[vic].valid;
+      st.tlb[vic]={valid:true,vpn:vpn,pfn:pfn,stamp:++st.stamp};
+      push(S(
+        '回填 TLB：把新映射装进快表','把 <b>VPN '+vpn+' → PFN '+pfn+'</b> 写入第 '+tlbSet+' 组第 '+(vic-lo)+' 路'+(replaced?'（按 '+cfg.tlbRepl+' 替换掉原来的 VPN '+oldVpn+'）':'（原本为空，直接装入）')+'。下次访问同一页就能命中 TLB。',
+        cfg.tlbRepl+' → TLB['+tlbSet+']['+(vic-lo)+'] = { V:1, VPN:'+vpn+', PFN:'+pfn+' }',
+        'Fill the TLB with the new translation',
+        'Write <b>VPN '+vpn+' → PFN '+pfn+'</b> into way '+(vic-lo)+' of set '+tlbSet+(replaced?' (an old entry is evicted by '+cfg.tlbRepl+')':' (the way was empty)')+'. The next access to this page will hit the TLB.',
+        cfg.tlbRepl+' → TLB['+tlbSet+']['+(vic-lo)+'] = { V:1, VPN:'+vpn+', PFN:'+pfn+' }'
+      ),'tlb',{tlbKey:vic,tone:'repl',ptVpn:vpn});
+    }
+
+    /* 3. 合成 PA */
+    var pa=pfn*cfg.pageSize+off;
+    var tag=field(pa,d.blkBits+d.idxBits,d.tagBits);
+    var idx=field(pa,d.blkBits,d.idxBits);
+    var boff=field(pa,0,d.blkBits);
+    var blockAddr=Math.floor(pa/cfg.blockSize);
+    st.view.pa=pa; st.view.paReady=true; st.view.pfn=pfn; st.view.tag=tag;
+    st.view.idx=idx; st.view.boff=boff; st.view.cacheSet=idx; st.view.blockAddr=blockAddr;
+    st.view.paFields=[
+      {k:'bit.pfn',cls:'c-pfn',bits:d.pfnBits,val:pfn,bin:binStr(pfn,d.pfnBits)},
+      {k:'bit.off',cls:'c-off',bits:d.offBits,val:off,bin:binStr(off,d.offBits)}
+    ];
+    st.view.cacheFields=[
+      {k:'bit.tag',cls:'c-tag',bits:d.tagBits,val:tag,bin:binStr(tag,d.tagBits)},
+      {k:'bit.idx',cls:'c-idx',bits:d.idxBits,val:idx,bin:binStr(idx,d.idxBits)},
+      {k:'bit.bo',cls:'c-bo',bits:d.blkBits,val:boff,bin:binStr(boff,d.blkBits)}
+    ];
+    push(S(
+      '合成物理地址，并按 Cache 视角重新切位','<b>PA = PFN × 页大小 + 页内偏移 = '+pfn+' × '+cfg.pageSize+' + '+off+' = '+HX(pa,cfg.paBits)+'</b>。注意：Cache 不认识「页」，它把 PA 切成 <b>Tag '+d.tagBits+' 位 / '+(d.idxBits?('组号 '+d.idxBits+' 位'):'直接映射无组号位')+' / 块内地址 '+d.blkBits+' 位</b>（块大小 '+cfg.blockSize+' B，组数 '+d.cacheSets+'）。',
+      'PA = '+HX(pa,cfg.paBits)+' = '+binGroup(binStr(pa,cfg.paBits))+'　Tag = '+tag+'　Set = '+idx+'　BlockOff = '+boff,
+      'Build the PA, then re-slice it for the cache',
+      '<b>PA = PFN × page size + offset = '+pfn+' × '+cfg.pageSize+' + '+off+' = '+HX(pa,cfg.paBits)+'</b>. The cache knows nothing about pages: it slices the PA into <b>Tag '+d.tagBits+' bits / '+(d.idxBits?('set index '+d.idxBits+' bits'):'no index bits (direct-mapped)')+' / block offset '+d.blkBits+' bits</b> (block '+cfg.blockSize+' B, '+d.cacheSets+' sets).',
+      'PA = '+HX(pa,cfg.paBits)+' = '+binGroup(binStr(pa,cfg.paBits))+'　Tag = '+tag+'　Set = '+idx+'　BlockOff = '+boff
+    ),'pa',{ptVpn:vpn,memPfn:pfn,cacheSet:idx});
+
+    /* 4. 查 Cache */
+    var clo=idx*cfg.cacheAssoc, chi=clo+cfg.cacheAssoc;
+    var cWay=-1;
+    for(i=clo;i<chi;i++) if(st.cache[i].valid&&st.cache[i].tag===tag){ cWay=i; break; }
+    addTime(cfg.tCache);
+    if(cWay>=0){
+      if(cfg.cacheRepl==='LRU') st.cache[cWay].stamp=++st.stamp;
+      st.stats.cacheHit++;
+      push(S(
+        '✓ Cache 命中，数据就在块内第 '+boff+' 字节','第 <b>'+idx+'</b> 组内逐路比较 Tag：第 <b>'+(cWay-clo)+'</b> 路有效位为 1 且 Tag = '+tag+'，命中。CPU 直接取块内偏移 <b>'+boff+'</b> 处的字节，<b>不用访问主存</b>。',
+        'Cache set '+idx+', way '+(cWay-clo)+': V=1, Tag='+tag+'　→ HIT　耗时 +'+cfg.tCache+' ns',
+        '✓ Cache hit: data is at byte '+boff+' of the block',
+        'Compare tags in set <b>'+idx+'</b>: way <b>'+(cWay-clo)+'</b> is valid with Tag = '+tag+'. The CPU reads byte <b>'+boff+'</b> inside the block — <b>no main-memory access</b>.',
+        'Cache set '+idx+', way '+(cWay-clo)+': V=1, Tag='+tag+'　→ HIT　cost +'+cfg.tCache+' ns'
+      ),'cache',{cacheKey:cWay,cacheSet:idx,tone:'hit',memPfn:pfn});
+    }else{
+      st.stats.cacheMiss++;
+      addTime(cfg.tMem);   /* Cache 未命中，从主存调块 */
+      push(S(
+        '✗ Cache 未命中：需要从主存调入整个块','第 <b>'+idx+'</b> 组 '+cfg.cacheAssoc+' 路都没有 Tag = '+tag+' 的有效行。Cache 以<b>块</b>为单位调数据：主存块地址 <b>'+HX(blockAddr,cfg.paBits-d.blkBits)+'</b>（该块包含 '+HX(blockAddr*cfg.blockSize,cfg.paBits)+' 起的 '+cfg.blockSize+' 字节），整块搬入 Cache。',
+        'block address = PA / '+cfg.blockSize+' = '+blockAddr+'　→ MISS　耗时 +'+cfg.tCache+' ns（Cache 查找）+ '+cfg.tMem+' ns（主存）',
+        '✗ Cache miss: fetch the whole block from memory',
+        'No valid line in set <b>'+idx+'</b> has Tag = '+tag+'. Caches move <b>whole blocks</b>: block address <b>'+HX(blockAddr,cfg.paBits-d.blkBits)+'</b> (the '+cfg.blockSize+' bytes starting at '+HX(blockAddr*cfg.blockSize,cfg.paBits)+') is copied into the cache.',
+        'block address = PA / '+cfg.blockSize+' = '+blockAddr+'　→ MISS　cost +'+cfg.tCache+' ns (lookup) + '+cfg.tMem+' ns (memory)'
+      ),'cache',{cacheSet:idx,tone:'miss',memPfn:pfn});
+      var cvic=pickVictim(st.cache,clo,chi,cfg.cacheRepl,st);
+      var cevicted=st.cache[cvic].valid;
+      st.cache[cvic]={valid:true,tag:tag,block:blockAddr,stamp:++st.stamp};
+      st.mem[pfn]=true;
+      push(S(
+        '从主存取块并装入 Cache','把主存块 '+HX(blockAddr,cfg.paBits-d.blkBits)+' 装入第 '+idx+' 组第 '+(cvic-clo)+' 路'+(cevicted?'（按 '+cfg.cacheRepl+' 替换掉原 Tag 的旧行，发生冲突/容量缺失）':'（该路原本为空，属于冷缺失）')+'，有效位置 1、写入 Tag = '+tag+'。之后 CPU 再从该块的第 '+boff+' 字节取数。',
+        cfg.cacheRepl+' → Cache['+idx+']['+(cvic-clo)+'] = { V:1, Tag:'+tag+', Block:'+HX(blockAddr,cfg.paBits-d.blkBits)+' }　耗时 +'+cfg.tMem+' ns',
+        'Fetch the block and fill the cache line',
+        'Load block '+HX(blockAddr,cfg.paBits-d.blkBits)+' into way '+(cvic-clo)+' of set '+idx+(cevicted?' (evicting an old line by '+cfg.cacheRepl+' — a conflict/capacity miss)':' (the way was empty — a cold miss)')+'; set V=1 and Tag='+tag+'. The CPU then reads byte '+boff+'.',
+        cfg.cacheRepl+' → Cache['+idx+']['+(cvic-clo)+'] = { V:1, Tag:'+tag+', Block:'+HX(blockAddr,cfg.paBits-d.blkBits)+' }　cost +'+cfg.tMem+' ns'
+      ),'mem',{cacheKey:cvic,cacheSet:idx,tone:'repl',memPfn:pfn});
+    }
+
+    /* 5. 完成 */
+    var cost=cfg.tTLB+(tlbHit?0:(cfg.tMem+(fault?cfg.tDisk:0)))+cfg.tCache+(cWay>=0?0:cfg.tMem);
+    push(S(
+      '✓ 第 '+(k+1)+' 次访问完成，本次耗时 '+cost+' ns','<b>'+HX(va,cfg.vaBits)+' → '+HX(pa,cfg.paBits)+'</b>：'+(tlbHit?'TLB 命中':'TLB 未命中'+(fault?' + 缺页调页':' + 查页表'))+'，'+(cWay>=0?'Cache 命中':'Cache 未命中 + 访存调块')+'。累计耗时 '+st.stats.time+' ns，平均访问时间 AMAT ≈ <b>'+(st.stats.time/st.stats.acc).toFixed(1)+' ns</b>。',
+      'AMAT = 累计耗时 / 访问次数 = '+st.stats.time+' / '+st.stats.acc+' = '+(st.stats.time/st.stats.acc).toFixed(1)+' ns',
+      '✓ Access '+(k+1)+' finished in '+cost+' ns','<b>'+HX(va,cfg.vaBits)+' → '+HX(pa,cfg.paBits)+'</b>: '+(tlbHit?'TLB hit':'TLB miss'+(fault?' + page fault':' + page-table walk'))+', '+(cWay>=0?'cache hit':'cache miss + block fetch')+'. Total time '+st.stats.time+' ns, AMAT ≈ <b>'+(st.stats.time/st.stats.acc).toFixed(1)+' ns</b>.',
+      'AMAT = total time / accesses = '+st.stats.time+' / '+st.stats.acc+' = '+(st.stats.time/st.stats.acc).toFixed(1)+' ns'
+    ),'ret',{tone:'hit',ptVpn:vpn,memPfn:pfn});
+  }
+  return {steps:steps,derive:d};
+}
+/*TEST-END*/
+
+/* ===================== 页面状态 ===================== */
+var CFG={
+  vaBits:24,paBits:20,pageSize:1024,ptLevel:1,
+  tlbEntries:8,tlbAssoc:2,tlbRepl:'LRU',
+  cacheLines:16,cacheAssoc:2,blockSize:32,cacheRepl:'LRU',
+  tTLB:1,tCache:1,tMem:100,tDisk:1000
+};
+var ADDRS=[], STEPS=[], cur=0, playing=false, timer=null;
+var STAGES=['cpu','va','tlb','pt','pa','cache','mem','ret'];
+
+var NOTES=[
+  {zh:'<b>页内偏移位数 = log₂(页大小)</b>，<b>虚拟页号位数 = VA 位数 − 偏移位数</b>；页帧号位数 = PA 位数 − 偏移位数。翻译只改页号，<b>偏移原样照抄</b>。',en:'<b>Offset bits = log₂(page size)</b>, <b>VPN bits = VA bits − offset bits</b>, PFN bits = PA bits − offset bits. Translation changes only the page number; <b>the offset is copied verbatim</b>.'},
+  {zh:'<b>Cache 位域 = 标记 Tag + 组号（或行号）+ 块内地址</b>，其中组号位数 = log₂(行数 ÷ 路数)，块内地址位数 = log₂(块大小)。直接映射只有 1 路，全相联没有组号位。',en:'<b>Cache fields = Tag + set/line index + block offset</b>, with index bits = log₂(lines / ways) and block-offset bits = log₂(block size). Direct-mapped has one way; fully associative has no index bits.'},
+  {zh:'<b>TLB 命中</b>可跳过页表，但<b>页表在主存</b>，TLB 未命中通常要多一次主存访问；缺页还要加上磁盘调页时间，这是 AMAT 计算里最容易漏的一项。',en:'A <b>TLB hit</b> skips the page table, but <b>the page table lives in memory</b>: a TLB miss usually adds one memory access, and a page fault adds disk time — the easiest term to forget in AMAT.'},
+  {zh:'<b>AMAT = 命中时间 + 缺失率 × 缺失惩罚</b>。多级存储要逐级展开：TLB 未命中率 × 页表访问，Cache 未命中率 × 主存访问，缺页率 × 调页时间。',en:'<b>AMAT = hit time + miss rate × miss penalty</b>. Unfold every level: TLB miss rate × page-table access, cache miss rate × memory access, page-fault rate × disk fetch.'},
+  {zh:'<b>页表项数 = 2<sup>VPN位数</sup></b>，<b>页表总大小 = 项数 × 每项字节数</b>；二级页表把 VPN 拆成页目录号 + 页表号，使页表可以离散存放、不必全部常驻。',en:'<b>PT entries = 2<sup>VPN bits</sup></b>, <b>PT size = entries × entry size</b>. A two-level table splits the VPN into directory and table indices so page tables need not be contiguous or fully resident.'},
+  {zh:'<b>Cache 三种缺失</b>：冷缺失（首次访问，行空）、冲突缺失（组内路数不够，被 LRU 挤出）、容量缺失（Cache 总容量不足）。连续扫描大数组最容易触发冲突缺失。',en:'<b>Three cache misses</b>: cold (empty line), conflict (not enough ways, evicted by LRU), capacity (cache too small). Sequential scans of large arrays are the classic conflict-miss trigger.'},
+  {zh:'<b>TLB 是 Cache 的一种</b>：它缓存的是「VPN → PFN」的页表项，不是数据。因此 TLB 命中后仍要访问 Cache/主存才能取到数据。',en:'<b>A TLB is itself a cache</b> — of page-table entries (VPN → PFN), not of data. Even after a TLB hit, the cache or memory must still be accessed to fetch the data.'},
+  {zh:'<b>写操作</b>还要考虑 Cache 的写回/写直达与页表的脏位、修改位；读操作则只需有效位。408 常把「有效位、脏位、引用位、LRU 位」混在一起考位数计算。',en:'<b>Writes</b> additionally involve write-back / write-through, plus dirty and modified bits in the page table. 408 exams love asking you to count valid, dirty, reference and LRU bits.'}
+];
+
+/* ===================== 渲染 ===================== */
+function buildFlow(){
+  var box=$('flowNodes'); box.innerHTML='';
+  for(var i=0;i<STAGES.length;i++){
+    if(i>0){ var ar=document.createElement('div'); ar.className='farr'; ar.textContent='›'; box.appendChild(ar); }
+    var d=document.createElement('div');
+    d.className='fn'; d.setAttribute('data-stage',STAGES[i]);
+    d.innerHTML='<div class="fi">'+String(i+1).padStart(2,'0')+'</div><div class="fnm">'+t('flow.'+STAGES[i])+'</div>';
+    box.appendChild(d);
+  }
+}
+
+function renderFlow(last){
+  var nodes=document.querySelectorAll('.fn');
+  var active=last?last.stage:'';
+  var idx=STAGES.indexOf(active);
+  for(var i=0;i<nodes.length;i++){
+    var st=STAGES[i], cls='fn';
+    if(i<idx) cls+=' done';
+    if(st===active){
+      cls+=' active';
+      if(last.hl&&last.hl.tone==='hit') cls+=' hit';
+      if(last.hl&&last.hl.tone==='miss') cls+=' miss';
+    }
+    if(last&&last.skip&&last.skip.indexOf(st)>=0) cls+=' skip';
+    nodes[i].className=cls;
+  }
+}
+
+function bandHTML(fields,total){
+  if(!fields||!fields.length) return '<div class="bf c-idle" style="flex:1"><span class="bk">—</span></div>';
+  var h='';
+  for(var i=0;i<fields.length;i++){
+    var f=fields[i];
+    h+='<div class="bf '+f.cls+'" style="flex:'+f.bits+' 1 0"><span class="bk">'+t(f.k)+' · '+f.bits+'b</span>'+
+       '<span class="bv">'+binGroup(f.bin)+'</span><span class="bn">= '+f.val+'</span></div>';
+  }
+  return h;
+}
+
+function renderBits(last){
+  var v=last?last.snap.view:null;
+  if(!v||!v.vaReady){
+    $('vaBand').innerHTML='<div class="bf c-idle" style="flex:1"><span class="bk">'+t('bit.waitVa')+'</span></div>';
+    $('vaVal').textContent=''; $('vaFoot').textContent='';
+  }else{
+    $('vaBand').innerHTML=bandHTML(v.vaFields,last.snap.cfg.vaBits);
+    $('vaVal').textContent=hex(v.va,last.snap.cfg.vaBits)+' = '+v.va;
+    $('vaFoot').textContent=t('bit.vaFoot');
+  }
+  if(!v||!v.paReady){
+    $('paBand').innerHTML='<div class="bf c-idle" style="flex:1"><span class="bk">'+t('bit.waitPa')+'</span></div>';
+    $('cacheBand').innerHTML='<div class="bf c-idle" style="flex:1"><span class="bk">'+t('bit.waitPa')+'</span></div>';
+    $('paVal').textContent=''; $('cacheVal').textContent='';
+    $('paFoot').textContent=''; $('cacheFoot').textContent='';
+  }else{
+    $('paBand').innerHTML=bandHTML(v.paFields,last.snap.cfg.paBits);
+    $('cacheBand').innerHTML=bandHTML(v.cacheFields,last.snap.cfg.paBits);
+    $('paVal').textContent=hex(v.pa,last.snap.cfg.paBits)+' = '+v.pa;
+    $('cacheVal').textContent=hex(v.pa,last.snap.cfg.paBits);
+    $('paFoot').textContent=t('bit.paFoot')+'  Tag '+v.tag+' / Set '+v.idx+' / BlockOff '+v.boff;
+    $('cacheFoot').textContent=t('bit.cacheFoot');
+  }
+}
+
+function trHTML(cells,cls){ return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+cells.join('</td><td>')+'</td></tr>'; }
+
+function renderTLB(last){
+  var s=last?last.snap:null, tb=$('tlbBody');
+  if(!s){ tb.innerHTML=''; $('tlbMeta').textContent=''; return; }
+  var c=s.cfg,d=s.d,h='',i;
+  for(i=0;i<s.tlb.length;i++){
+    var e=s.tlb[i], set=Math.floor(i/c.tlbAssoc), way=i%c.tlbAssoc;
+    var cls='';
+    if(e.valid===false) cls='inv';
+    if(last&&last.hl&&last.hl.tlbKey===i) cls=(last.hl.tone==='hit')?'hit':(last.hl.tone==='repl')?'repl':'hot';
+    else if(last&&last.hl&&last.hl.tlbSet===set&&last.hl.tlbKey===undefined&&last.stage==='tlb') cls='hot';
+    h+=trHTML([set,way,e.valid?'<span class="ok">1</span>':'<span class="no">0</span>',
+               e.valid?e.vpn:'—',e.valid?e.pfn:'—',e.valid?e.stamp:'—'],cls);
+  }
+  tb.innerHTML=h;
+  $('tlbMeta').textContent=c.tlbEntries+' '+(LANG==='zh'?'项':'entries')+' · '+d.tlbSets+' '+(LANG==='zh'?'组 × ':'sets × ')+c.tlbAssoc+' '+(LANG==='zh'?'路':'ways')+' · '+c.tlbRepl;
+}
+
+function renderPT(last){
+  var s=last?last.snap:null, tb=$('ptBody');
+  if(!s){ tb.innerHTML=''; $('ptMeta').textContent=''; return; }
+  var keys=[],inKeys={},i;
+  var focus=last&&last.hl?last.hl.ptVpn:undefined;
+  if(focus!==undefined&&focus!==null){ keys.push(focus); inKeys[focus]=true; }
+  var all=Object.keys(s.pt).map(Number).sort(function(a,b){return a-b;});
+  for(i=0;i<all.length&&keys.length<14;i++) if(!inKeys[all[i]]){ keys.push(all[i]); inKeys[all[i]]=true; }
+  keys.sort(function(a,b){return a-b;});
+  var h='';
+  for(i=0;i<keys.length;i++){
+    var v=keys[i], e=s.pt[v], cls='';
+    if(!e) cls='inv';
+    if(v===focus) cls=(last.hl.tone==='hit')?'hit':(last.hl.tone==='repl')?'repl':'hot';
+    if(last&&last.snap.view&&last.snap.view.vpn===v&&v!==focus) cls=cls||'hot';
+    h+=trHTML([v,e?(e.valid?'<span class="ok">1</span>':'<span class="no">0</span>'):'<span class="no">0</span>',
+               e&&e.valid?e.pfn:'—',
+               !e?(LANG==='zh'?'不在页表 / 缺页':'Not present / fault'):(e.valid?t('tb.resident'):t('tb.faulted'))],cls);
+  }
+  tb.innerHTML=h;
+  $('ptMeta').textContent=(LANG==='zh'?'共 ':'')+all.length+(LANG==='zh'?' 个有效表项（仅列出相关项）':' resident entries (relevant ones shown)');
+}
+
+function renderCache(last){
+  var s=last?last.snap:null, tb=$('cacheBody');
+  if(!s){ tb.innerHTML=''; $('cacheMeta').textContent=''; return; }
+  var c=s.cfg,d=s.d,h='',i;
+  for(i=0;i<s.cache.length;i++){
+    var e=s.cache[i], set=Math.floor(i/c.cacheAssoc), way=i%c.cacheAssoc, cls='';
+    if(!e.valid) cls='inv';
+    if(last&&last.hl&&last.hl.cacheKey===i) cls=(last.hl.tone==='hit')?'hit':(last.hl.tone==='repl')?'repl':'hot';
+    else if(last&&last.hl&&last.hl.cacheSet===set&&last.hl.cacheKey===undefined&&last.stage==='cache') cls='hot';
+    h+=trHTML([set,way,e.valid?'<span class="ok">1</span>':'<span class="no">0</span>',
+               e.valid?e.tag:'—',e.valid?hex(e.block,c.paBits-d.blkBits):'—',e.valid?e.stamp:'—'],cls);
+  }
+  tb.innerHTML=h;
+  $('cacheMeta').textContent=c.cacheLines+' '+(LANG==='zh'?'行 · ':'lines · ')+d.cacheSets+' '+(LANG==='zh'?'组 × ':'sets × ')+c.cacheAssoc+' '+(LANG==='zh'?'路 · ':'ways · ')+c.blockSize+' B · '+c.cacheRepl;
+}
+
+function renderMem(last){
+  var s=last?last.snap:null, tb=$('memBody');
+  if(!s){ tb.innerHTML=''; $('memMeta').textContent=''; return; }
+  var frames=Object.keys(s.mem).map(Number).sort(function(a,b){return a-b;});
+  var focus=last&&last.hl?last.hl.memPfn:undefined;
+  var shown=frames.slice(0,16);
+  if(focus!==undefined&&focus!==null&&shown.indexOf(focus)<0){ shown.unshift(focus); shown=shown.slice(0,16); }
+  shown.sort(function(a,b){return a-b;});
+  var h='';
+  for(var i=0;i<shown.length;i++){
+    var f=shown[i], cls=(f===focus)?'hot':'';
+    h+=trHTML([f,hex(f*s.cfg.pageSize,s.cfg.paBits),t('tb.resident')],cls);
+  }
+  tb.innerHTML=h;
+  $('memMeta').textContent=frames.length+' / '+s.d.frames+' '+(LANG==='zh'?'个页帧已装入':'frames resident');
+}
+
+function renderStats(last){
+  var s=last?last.snap.stats:null;
+  if(!s){
+    $('statAcc').textContent='—'; $('statTlb').textContent='—';
+    $('statFault').textContent='—'; $('statCache').textContent='—'; $('statAmat').textContent='—';
+    return;
+  }
+  var n=s.tlbHit+s.tlbMiss, c=s.cacheHit+s.cacheMiss;
+  $('statAcc').textContent=s.acc;
+  $('statTlb').textContent=n?(s.tlbHit/n*100).toFixed(0)+'%':'-';
+  $('statTlb').className='stat-v '+(n&&s.tlbHit/n>=0.5?'b-hit':'b-miss');
+  $('statFault').textContent=s.fault;
+  $('statFault').className='stat-v '+(s.fault?'b-miss':'b-hit');
+  $('statCache').textContent=c?(s.cacheHit/c*100).toFixed(0)+'%':'-';
+  $('statCache').className='stat-v '+(c&&s.cacheHit/c>=0.5?'b-hit':'b-miss');
+  $('statAmat').textContent=(s.time/s.acc).toFixed(1);
+}
+
+function renderNarr(last){
+  if(!last){
+    $('narrBadge').textContent='—';
+    $('narrTitle').textContent=t('narr.readyT');
+    $('narrBody').innerHTML=t('narr.readyB');
+    $('narrFormula').textContent='';
+    return;
+  }
+  var x=last.txt[LANG];
+  $('narrBadge').textContent=String(cur);
+  $('narrTitle').textContent=x.t;
+  $('narrBody').innerHTML=x.b;
+  $('narrFormula').textContent=x.f;
+}
+
+function render(){
+  var last=cur>0?STEPS[cur-1]:null;
+  renderFlow(last); renderBits(last); renderStats(last);
+  renderTLB(last); renderPT(last); renderCache(last); renderMem(last); renderNarr(last);
+  $('stepNow').textContent=cur;
+  $('stepTotal').textContent=STEPS.length;
+  $('progressBar').style.width=(STEPS.length?(cur/STEPS.length*100):0)+'%';
+  $('btnPrev').disabled=(cur<=0);
+  $('btnNext').disabled=(cur>=STEPS.length);
+  $('btnAuto').disabled=(cur>=STEPS.length);
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+}
+
+/* ===================== 配置 / 应用 ===================== */
+function readCfg(){
+  return {
+    vaBits:parseInt($('cfgVaBits').value,10),
+    paBits:parseInt($('cfgPaBits').value,10),
+    pageSize:parseInt($('cfgPage').value,10),
+    ptLevel:parseInt($('cfgLevel').value,10),
+    tlbEntries:parseInt($('cfgTlbN').value,10),
+    tlbAssoc:($('cfgTlbA').value==='8')?parseInt($('cfgTlbN').value,10):parseInt($('cfgTlbA').value,10),
+    tlbRepl:$('cfgTlbR').value,
+    cacheLines:parseInt($('cfgCN').value,10),
+    cacheAssoc:parseInt($('cfgCA').value,10),
+    blockSize:parseInt($('cfgBlk').value,10),
+    cacheRepl:$('cfgCR').value,
+    tTLB:parseFloat($('cfgTTlb').value)||0,
+    tCache:parseFloat($('cfgTCache').value)||0,
+    tMem:parseFloat($('cfgTMem').value)||0,
+    tDisk:parseFloat($('cfgTDisk').value)||0
+  };
+}
+var ERR_MSG={
+  zh:{PAGE_BLOCK_POW2:'页大小与块大小必须是 2 的幂。',BITS_RANGE:'VA / PA 位数需在 8~32 之间。',VA_TOO_SHORT:'虚拟地址位数不足以容纳页内偏移，请增大 VA 位数或减小页大小。',PA_TOO_SHORT:'物理地址位数不足以容纳页内偏移，请增大 PA 位数。',TAG_TOO_SHORT:'Cache 的 Tag 位数算出来 ≤ 0，请增大 PA 位数 / 减小 Cache 行数 / 减小块大小。',TLB_SETS:'TLB 项数必须能被路数整除，且组数是 2 的幂。',CACHE_SETS:'Cache 行数必须能被路数整除，且组数是 2 的幂。',PA_LT_VA:'本演示假设物理地址位数不小于虚拟地址位数（页帧号要能装下虚页号）。',TOO_MANY_FRAMES:'页帧数过多，请减小 PA 位数。',ADDR_EMPTY:'请至少输入一个虚拟地址。',ADDR_RANGE:'地址超出 VA 位数可表示的范围。'},
+  en:{PAGE_BLOCK_POW2:'Page size and block size must be powers of two.',BITS_RANGE:'VA / PA bits must be between 8 and 32.',VA_TOO_SHORT:'VA bits cannot hold the page offset; increase VA bits or shrink the page.',PA_TOO_SHORT:'PA bits cannot hold the page offset; increase PA bits.',TAG_TOO_SHORT:'Cache Tag bits ≤ 0; increase PA bits, or reduce cache lines / block size.',TLB_SETS:'TLB entries must be divisible by the way count and the set count must be a power of two.',CACHE_SETS:'Cache lines must be divisible by the way count and the set count must be a power of two.',PA_LT_VA:'This demo assumes PA bits ≥ VA bits.',TOO_MANY_FRAMES:'Too many frames; reduce PA bits.',ADDR_EMPTY:'Enter at least one virtual address.',ADDR_RANGE:'An address exceeds the range representable by the VA width.'}
+};
+function err(k){ $('cfgErr').textContent=(ERR_MSG[LANG]&&ERR_MSG[LANG][k])||k; }
+
+function parseAddrs(txt,vaBits){
+  var parts=txt.split(/[\s,;]+/).filter(function(x){return x.length>0;});
+  var out=[];
+  for(var i=0;i<parts.length;i++){
+    var p=parts[i].trim(), v;
+    if(/^0x[0-9a-f]+$/i.test(p)) v=parseInt(p.slice(2),16);
+    else if(/^[0-9]+$/.test(p)) v=parseInt(p,10);
+    else return null;
+    if(!isFinite(v)||v<0) return null;
+    out.push(v);
+  }
+  if(!out.length) return [];
+  var max=pow2(vaBits);
+  for(var j=0;j<out.length;j++) if(out[j]>=max) return 'RANGE';
+  return out;
+}
+
+function applyAll(){
+  stopPlay();
+  var cfg=readCfg();
+  var bad=validate(cfg);
+  if(bad){ err(bad); return; }
+  var a=parseAddrs($('addrInput').value,cfg.vaBits);
+  if(a===null||a.length===0){ err('ADDR_EMPTY'); return; }
+  if(a==='RANGE'){ err('ADDR_RANGE'); return; }
+  $('cfgErr').textContent='';
+  CFG=cfg; ADDRS=a;
+  var r=simulate(CFG,ADDRS);
+  STEPS=r.steps; cur=0;
+  buildFlow(); render(); buildNotes();
+  $('stageNote').textContent=stageNote();
+}
+
+function stageNote(){
+  var d=derive(CFG);
+  var zhVA=(CFG.ptLevel===2)
+    ?('VA '+CFG.vaBits+'b = 页目录号 '+d.pdxBits+'b + 页表号 '+d.ptxBits+'b + 偏移 '+d.offBits+'b')
+    :('VA '+CFG.vaBits+'b = VPN '+d.vpnBits+'b + 偏移 '+d.offBits+'b');
+  var enVA=(CFG.ptLevel===2)
+    ?('VA '+CFG.vaBits+'b = dir '+d.pdxBits+'b + table '+d.ptxBits+'b + offset '+d.offBits+'b')
+    :('VA '+CFG.vaBits+'b = VPN '+d.vpnBits+'b + offset '+d.offBits+'b');
+  var pa='PA '+CFG.paBits+'b = PFN '+d.pfnBits+'b + '+(LANG==='zh'?'偏移':'offset')+' '+d.offBits+'b';
+  var ca='Cache Tag '+d.tagBits+'b + '+(LANG==='zh'?'组号':'index')+' '+d.idxBits+'b + '+(LANG==='zh'?'块内':'block')+' '+d.blkBits+'b';
+  return (LANG==='zh'?zhVA:enVA)+'　|　'+pa+'　|　'+ca;
+}
+
+function buildNotes(){
+  var ul=$('notesList'); ul.innerHTML='';
+  for(var i=0;i<NOTES.length;i++){
+    var li=document.createElement('li');
+    li.innerHTML=NOTES[i][LANG]||NOTES[i].zh;
+    ul.appendChild(li);
+  }
+}
+
+/* ===================== 播放控制 ===================== */
+function stopPlay(){ if(timer){ clearInterval(timer); timer=null; } playing=false; }
+function next(){ if(cur<STEPS.length){ cur++; render(); if(cur>=STEPS.length) stopPlay(); } }
+function startPlay(){
+  if(cur>=STEPS.length) cur=0;
+  playing=true; render();
+  var ms=1150-parseInt($('speedRange').value,10)*95;
+  timer=setInterval(function(){ if(cur>=STEPS.length){ stopPlay(); render(); return; } next(); },ms);
+}
+
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent=t(nodes[i].getAttribute('data-i18n'));
+  $('langZh').classList.toggle('active',LANG==='zh');
+  $('langEn').classList.toggle('active',LANG==='en');
+  $('stageNote').textContent=stageNote();
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+  buildFlow(); buildNotes(); render();
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+
+function preset(kind){
+  var vaBits=CFG.vaBits, max=pow2(vaBits), ps=CFG.pageSize;
+  var a=[];
+  if(kind==='classic'){
+    var base=Math.min(0x40,max-1);
+    a=[base,base+4,Math.min(ps*6+0x3C,max-1),base,Math.min(ps*10+0x10,max-1),Math.min(ps*6+0x3C,max-1),Math.min(ps*15+0x28,max-1),base];
+  }else if(kind==='scan'){
+    for(var j=0;j<10;j++) a.push(Math.min(0x40+j*CFG.blockSize*2,max-1));
+  }else{
+    var seeds=[0,1,2,3,4,5,6,7,8,10,12,16,20,24];
+    for(var q=0;q<8;q++){
+      var vp=seeds[Math.floor(Math.random()*seeds.length)];
+      var of=Math.floor(Math.random()*CFG.pageSize);
+      var v=vp*CFG.pageSize+of;
+      if(v>=max) v=Math.floor(Math.random()*max);
+      a.push(v);
+    }
+  }
+  $('addrInput').value=a.map(function(v){return '0x'+v.toString(16).toUpperCase();}).join(' ');
+  applyAll();
+}
+
+function bind(){
+  $('btnApply').addEventListener('click',applyAll);
+  $('btnClassic').addEventListener('click',function(){preset('classic');});
+  $('btnScan').addEventListener('click',function(){preset('scan');});
+  $('btnRandom').addEventListener('click',function(){preset('random');});
+  $('btnNext').addEventListener('click',function(){stopPlay();next();});
+  $('btnPrev').addEventListener('click',function(){stopPlay();if(cur>0){cur--;render();}});
+  $('btnReset').addEventListener('click',function(){stopPlay();cur=0;render();});
+  $('btnAuto').addEventListener('click',function(){ if(playing){stopPlay();render();} else startPlay(); });
+  $('speedRange').addEventListener('input',function(){ if(playing){ stopPlay(); startPlay(); } });
+  $('langZh').addEventListener('click',function(){ LANG='zh';applyLang(); });
+  $('langEn').addEventListener('click',function(){ LANG='en';applyLang(); });
+  document.addEventListener('keydown',function(e){
+    if(e.target&&/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault();stopPlay();next(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault();stopPlay();if(cur>0){cur--;render();} }
+  });
+}
+
+/* ===================== 启动 ===================== */
+bind();
+LANG=(LANG==='en')?'en':'zh';
+applyLang();
+applyAll();
+</script>
+</body>
+</html>
