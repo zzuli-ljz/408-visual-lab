@@ -7,6 +7,9 @@
 
 [中文](#中文说明) · [English](#english)
 
+> 🏠 **站点首页 / Site Home**：https://zzuli-ljz.github.io/408-visual-lab/ —— 卡片式导航，按四科分组，每张卡带配色缩略图与一句话说明，支持搜索和科目筛选，中英双语。
+> Card-based navigation grouped by the four subjects, with a color-coded thumbnail and one-line description per demo; searchable, bilingual.
+
 ---
 
 ## 中文说明
@@ -16,6 +19,8 @@
 这是一个**交互式动画演示合集**：每道重难点题目都被做成一个网页，用环形图、指针箭头、实时公式验算和「下一步」分步讲解，把抽象的文字答案变成看得见的动画。所有演示默认中文，可一键切换英文（右上角 中文 / EN），语言选择会被记住。
 
 覆盖科目 / Subjects：数据结构、操作系统、计算机网络、计算机组成原理。
+
+**站点首页** `index.html` 提供卡片式导航：按四科分组、每卡一张按科目主色渲染的缩略图，支持关键词搜索与科目筛选。首页完全由 `DEMOS` 数组驱动，新增演示只需往数组里加一条，卡片、计数与筛选会自动更新。
 
 ### 演示列表 / Demo List
 
@@ -52,6 +57,7 @@ cd 408-visual-lab
 
 ```
 408-visual-lab/
+├── index.html                # 站点首页（数据驱动卡片导航）
 ├── data-structure/          # 数据结构 Data Structures
 ├── operating-system/         # 操作系统 Operating Systems
 ├── computer-organization/    # 计算机组成原理 Computer Organization
@@ -79,7 +85,8 @@ File naming: `year-qN-topic.html`.
 1. 在对应科目目录下新建 `年份-题号-主题.html`；
 2. 保持**单文件、零外部依赖**（CSS / JS 全部内联），保证离线可用；
 3. 页面默认中文，并提供中英切换（参考现有演示的 `data-i18n` 写法）；
-4. 提交并发起 Pull Request，或直接 push 到 `main`。
+4. 在 `index.html` 的 `DEMOS` 数组末尾加一条（字段示例见首页「添加新演示」区块），首页卡片、分组计数、搜索与筛选会自动更新；
+5. 把新演示补进上面的中英文演示表，然后提交 Pull Request，或直接 push 到 `main`。
 
 ### 致谢 / Acknowledgements
 
@@ -95,6 +102,8 @@ Problems are from the official CS 408 postgraduate entrance exam papers.
 A collection of **interactive animated demos**: each hard problem becomes a single web page that walks you through the solution with ring diagrams, pointer arrows, live formula checking and a "Next" button — turning abstract textual answers into visible animations. All demos default to Chinese with a one-click English toggle (top-right 中文 / EN), and your language choice is remembered.
 
 Subjects: Data Structures, Operating Systems, Computer Networks, Computer Organization.
+
+The **site home page** `index.html` is a card-based navigation: demos grouped by subject, each with a subject-colored thumbnail and a one-line description, plus keyword search and subject filters. It is fully driven by the `DEMOS` array — append one object and the cards, counts and filters update themselves.
 
 ### Demo List
 
@@ -123,21 +132,22 @@ cd 408-visual-lab
 
 **Option 2: GitHub Pages**
 
-Once Pages is enabled, demos are available online, e.g.:
+Demos are available online, e.g.:
 `https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html`
 
 (GitHub Actions is configured: every push to `main` deploys the whole site automatically.)
 
 ### Directory Structure
 
-See the tree above. English folder names, bilingual README, Chinese-first content.
+See the tree above. `index.html` is the site home page (data-driven card navigation). English folder names, bilingual README, Chinese-first content.
 
 ### Adding a New Demo
 
 1. Create `year-qN-topic.html` under the subject folder;
 2. Keep it a **single file with zero external dependencies** so it works offline;
 3. Default to Chinese, with a Chinese/English toggle (follow the `data-i18n` pattern of the existing demo);
-4. Open a Pull Request, or push directly to `main`.
+4. Append one object to the `DEMOS` array in `index.html` (the home page shows a field template) — cards, counts, search and filters update automatically;
+5. Add a row to the bilingual demo tables above, then open a Pull Request or push directly to `main`.
 
 ### License
 
