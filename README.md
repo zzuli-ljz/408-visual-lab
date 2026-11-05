@@ -53,6 +53,12 @@ cd 408-visual-lab
 
 （已配置 GitHub Actions：每次 push 到 `main` 会自动部署全站，无需手动操作。）
 
+### 宽屏一屏式布局 / Wide-screen Dashboard
+
+在平板横屏与桌面浏览器（宽度 ≥ 1024px、高度 ≥ 600px）打开时，演示页会自动变成**三栏仪表盘**：左侧配置与参数、中间动画与播放控制、右侧结果与考点，所有板块同屏可见，整页不再上下滚动；内容较长的板块在卡片内部独立滚动，标题吸顶。手机和窄屏（< 1024px）保持原来的单列长页，方便纵向滑动。
+
+这套布局只由每个 HTML `<style>` 末尾的一段 `@media (min-width:1024px) and (min-height:600px)` CSS Grid 规则实现，HTML 结构、文案与动画逻辑均未改动。新增演示时用 `.wrap > .card:nth-of-type(n)` 指定卡片所在行列即可复用。
+
 ### 目录结构 / Directory Structure
 
 ```
@@ -136,6 +142,12 @@ Demos are available online, e.g.:
 `https://zzuli-ljz.github.io/408-visual-lab/data-structure/2014-q3-circular-deque.html`
 
 (GitHub Actions is configured: every push to `main` deploys the whole site automatically.)
+
+### Wide-screen Dashboard
+
+On tablets in landscape and desktop browsers (width >= 1024px, height >= 600px), every demo switches to a **three-column dashboard**: settings on the left, animation and playback controls in the middle, results and exam notes on the right. All panels stay within one screen — the page itself never scrolls; longer panels scroll independently inside their own card with a sticky heading. Phones and narrow viewports (< 1024px) keep the original single-column layout for comfortable vertical scrolling.
+
+This is pure CSS: one `@media (min-width:1024px) and (min-height:600px)` Grid block at the end of each page's `<style>`. No HTML, copy or JavaScript was changed. For new demos, place cards with `.wrap > .card:nth-of-type(n)` in the same block.
 
 ### Directory Structure
 
