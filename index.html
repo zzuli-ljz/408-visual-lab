@@ -340,6 +340,15 @@ var DEMOS = [
           en:'FCFS / SSTF / SCAN / C-SCAN / LOOK / C-LOOK on the same request queue. A track map plus a step-by-step seek trajectory, with total and average seek length computed for you.'},
     tags:{zh:['6 种算法','磁头轨迹','平均寻道'], en:['6 algorithms','Head trajectory','Avg. seek']},
     keys:'disk scheduling 磁盘调度 磁头 fcfs sstf scan cscan look clook 电梯算法 循环扫描 寻道时间 平均寻道长度 磁道 track head cylinder 空程'
+  },
+  {
+    id:'pv', subject:'os', path:'operating-system/pv-semaphore.html',
+    kind:'topic', thumb:'pv', date:'2026-11-05',
+    title:{zh:'PV 操作同步：信号量与经典同步问题', en:'PV Synchronization: Semaphores & Classic Problems'},
+    desc:{zh:'记录型信号量逐语句模拟 P / V：值怎么变、谁被阻塞、被谁唤醒、何时死锁都看得见。覆盖生产者-消费者、读者-写者、哲学家进餐、前驱同步，还能故意颠倒 P 顺序复现死锁。',
+          en:'A statement-by-statement record-semaphore simulator: value changes, wait queues, wakeups and deadlock, all visible. Producer–consumer, reader–writer, dining philosophers and precedence graphs, plus a switch that reverses the P order to reproduce deadlock.'},
+    tags:{zh:['4 个经典问题','阻塞队列','死锁复现'], en:['4 classic problems','Wait queues','Deadlock']},
+    keys:'pv semaphore 信号量 同步 互斥 wait signal 生产者消费者 producer consumer 读者写者 reader writer 哲学家 dining philosophers 前驱图 司机售票员 死锁 deadlock 记录型 阻塞队列 readcount mutex'
   }
 ];
 
@@ -347,8 +356,8 @@ var DEMOS = [
 var PLANNED = {
   ds:{zh:['哈希表 ASL 计算','AVL 四种旋转','KMP 的 next 数组','B 树插入与分裂','哈夫曼树与编码'],
       en:['Hash Table ASL','AVL Rotations','KMP next Array','B-Tree Insert','Huffman Coding']},
-  os:{zh:['进程调度甘特图','页面置换算法','PV 同步与信号量','银行家算法','文件系统索引'],
-      en:['CPU Scheduling Gantt','Page Replacement','PV Semaphores','Banker\'s Algorithm','File Indexing']},
+  os:{zh:['进程调度甘特图','页面置换算法','银行家算法','文件系统索引'],
+      en:['CPU Scheduling Gantt','Page Replacement','Banker\'s Algorithm','File Indexing']},
   co:{zh:['Cache 三种映射','五段流水线时空图','IEEE 754 位域拆解','补码运算与溢出'],
       en:['Cache Mapping Modes','5-Stage Pipeline','IEEE 754 Bit Fields','Two\'s Complement & Overflow']},
   cn:{zh:['TCP 拥塞控制曲线','GBN / SR 滑动窗口','子网划分与 CIDR','CSMA/CD 退避'],
@@ -539,6 +548,24 @@ var THUMBS = {
     out+='<path d="M222,121 l-7,-4 l0,8 z" fill="'+s.accent+'"/>';
     out+='<text x="28" y="141" font-size="10" font-weight="800" fill="'+s.color+'" font-family="monospace">0</text>';
     out+='<text x="292" y="141" text-anchor="end" font-size="10" font-weight="800" fill="'+s.color+'" font-family="monospace">199</text>';
+    return out;
+  },
+  pv:function(s){
+    var out='',i,labs=['empty','full','mutex'],vals=['+2','0','+1'];
+    for(i=0;i<3;i++){
+      var x=28+i*92;
+      out+='<rect x="'+x+'" y="24" width="82" height="54" rx="9" fill="#fff" stroke="'+s.line+'" stroke-width="1.6"/>';
+      out+='<text x="'+(x+41)+'" y="43" text-anchor="middle" font-size="11" font-weight="800" fill="'+s.color+'" font-family="monospace">'+labs[i]+'</text>';
+      out+='<text x="'+(x+41)+'" y="69" text-anchor="middle" font-size="22" font-weight="800" fill="'+(i===1?s.accent:s.color)+'" font-family="monospace">'+vals[i]+'</text>';
+    }
+    out+='<line x1="28" y1="91" x2="292" y2="91" stroke="'+s.line+'" stroke-width="1" opacity=".6"/>';
+    out+='<rect x="28" y="99" width="122" height="27" rx="7" fill="'+s.tint+'" stroke="'+s.color+'" stroke-width="1.6"/>';
+    out+='<text x="38" y="117" font-size="11.5" font-weight="800" fill="'+s.color+'" font-family="monospace">P: P(empty)</text>';
+    out+='<rect x="160" y="99" width="132" height="27" rx="7" fill="#ffe9ee" stroke="#e11d48" stroke-width="1.6"/>';
+    out+='<text x="170" y="117" font-size="11.5" font-weight="800" fill="#e11d48" font-family="monospace">C: wait(full)</text>';
+    out+='<path d="M150,112 l8,0" stroke="'+s.accent+'" stroke-width="2"/>';
+    out+='<path d="M158,112 l-6,-4 l0,8 z" fill="'+s.accent+'"/>';
+    out+='<text x="160" y="144" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+s.accent+'" font-family="monospace">P(S) / V(S)</text>';
     return out;
   }
 };
