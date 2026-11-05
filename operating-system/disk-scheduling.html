@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 操作系统 · 磁盘调度算法（FCFS / SSTF / SCAN / C-SCAN / LOOK / C-LOOK）</title>
+<style>
+  /* 主题：操作系统 = 翠绿 Emerald #059669（四科配色规范见 README） */
+  :root{
+    --bg:#f4fbf7; --card:#ffffff; --ink:#14291f; --muted:#5d7969;
+    --em:#059669; --em-deep:#047857; --em-soft:#e7f7f1; --em-line:#bfe8d7;
+    --teal:#0d9488; --teal-soft:#e5f6f3;
+    --orange:#ea580c; --orange-soft:#fff0e5;
+    --rose:#e11d48; --rose-soft:#ffe9ee;
+    --line:#dcefe5;
+    --mono:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+    --shadow:0 10px 30px rgba(6,90,60,.09);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 6% -12%, #d9f3e6 0%, transparent 60%),
+      radial-gradient(820px 500px at 104% 4%, #dff5f0 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);line-height:1.78;font-size:16.5px;padding:30px 16px 64px;
+  }
+  .wrap{max-width:1120px;margin:0 auto}
+  code{font-family:var(--mono);background:#eefaf4;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.92em;color:var(--em-deep);white-space:nowrap}
+  .mono{font-family:var(--mono)}
+  .lang-switch{display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 10px rgba(6,90,60,.09)}
+  .lang-btn{border:none;background:transparent;border-radius:999px;padding:6px 18px;font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+  .lang-btn.active{background:linear-gradient(135deg,var(--em),#10b981);color:#fff;box-shadow:0 3px 10px rgba(5,150,105,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{font-size:13.5px;font-weight:700;color:var(--em-deep);background:var(--em-soft);border:1px solid var(--em-line);border-radius:999px;padding:4px 14px}
+  .tag-ans{color:var(--teal);background:var(--teal-soft);border-color:#b7e5dd}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.42;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);border:1px solid rgba(220,239,229,.9);padding:24px 26px;margin-bottom:22px}
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 配置 ---------- */
+  .algo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}
+  .algo-btn{
+    border:1.6px solid var(--line);background:#fff;border-radius:12px;padding:9px 8px;cursor:pointer;
+    text-align:center;font-family:inherit;transition:all .18s;color:var(--ink);
+  }
+  .algo-btn .ak{display:block;font-family:var(--mono);font-size:15.5px;font-weight:800;letter-spacing:.3px}
+  .algo-btn .an{display:block;font-size:12.2px;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.35}
+  .algo-btn:hover{border-color:var(--em);background:var(--em-soft)}
+  .algo-btn.active{border-color:var(--em);background:linear-gradient(135deg,var(--em),#10b981);box-shadow:0 5px 14px rgba(5,150,105,.28)}
+  .algo-btn.active .ak,.algo-btn.active .an{color:#fff}
+  .addr-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .seq-input{
+    flex:1 1 380px;min-width:240px;border:1.5px solid var(--line);border-radius:11px;padding:10px 14px;
+    font-size:15px;font-family:var(--mono);font-weight:700;color:var(--ink);background:#fbfffd;outline:none;
+  }
+  .seq-input:focus{border-color:var(--em);box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+  .preset-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
+  .mini-btn{border:1.5px solid var(--line);background:#fbfffd;border-radius:10px;padding:7px 14px;font-size:14px;font-weight:700;color:var(--em-deep);cursor:pointer;transition:all .18s;font-family:inherit}
+  .mini-btn:hover{border-color:var(--em);background:var(--em-soft)}
+  .cfg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+  .cfg-group{background:#fbfffd;border:1.5px solid var(--line);border-radius:13px;padding:13px 15px}
+  .cfg-group h3{font-size:14.5px;font-weight:800;color:var(--em-deep);margin-bottom:9px;letter-spacing:.2px}
+  .cfg-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;font-size:13.8px;font-weight:700;color:var(--muted)}
+  .cfg-line select,.cfg-line input[type=number]{
+    border:1.5px solid var(--line);border-radius:8px;padding:5px 8px;font-size:13.5px;font-weight:700;
+    font-family:inherit;color:var(--ink);background:#fff;outline:none;min-width:96px;
+  }
+  .cfg-line select:focus,.cfg-line input:focus{border-color:var(--em)}
+  .cfg-line input[type=number]{font-family:var(--mono);max-width:96px}
+  .cfg-line select:disabled,.cfg-line input:disabled{opacity:.45;cursor:not-allowed}
+  .cfg-err{margin-top:11px;font-size:14.5px;font-weight:700;color:var(--rose);min-height:0}
+  .cfg-err:empty{display:none}
+  .cfg-hint{font-size:13.5px;color:var(--muted);font-weight:600;margin-top:9px;line-height:1.7}
+  .btn-apply{
+    margin-top:14px;border:none;border-radius:12px;padding:11px 26px;font-size:15.5px;font-weight:800;
+    color:#fff;background:linear-gradient(135deg,var(--em),#10b981);cursor:pointer;font-family:inherit;
+    box-shadow:0 6px 16px rgba(5,150,105,.3);transition:transform .18s,box-shadow .18s;
+  }
+  .btn-apply:hover{transform:translateY(-2px);box-shadow:0 9px 20px rgba(5,150,105,.4)}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:12px}
+  .stat{border:1.5px solid var(--line);border-radius:13px;padding:9px 10px;background:#fbfffd;text-align:center;overflow:hidden}
+  .stat-k{display:block;font-size:12.6px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .stat-v{display:block;font-size:20px;font-weight:800;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--em-deep);font-family:var(--mono)}
+  .b-hot{color:var(--orange)} .b-info{color:var(--teal)} .b-ok{color:var(--em)}
+  /* ---------- 可视化 ---------- */
+  .disk-wrap{width:100%;margin:8px auto 2px;height:min(32vh,300px)}
+  .disk-svg{width:100%;height:100%;display:block}
+  .legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:10px;font-size:13.2px;color:var(--muted);font-weight:600}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+  .dot-serve{background:var(--em)} .dot-wait{background:#fff;border:2px solid var(--em)}
+  .dot-now{background:var(--orange)} .dot-empty{background:var(--teal)}
+  /* ---------- 控制 ---------- */
+  .ctrl-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:14px}
+  .btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px 20px;
+    font-size:15.5px;font-weight:700;cursor:pointer;color:var(--ink);transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit;
+  }
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(6,90,60,.15)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--em),#10b981);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(5,150,105,.32)}
+  .btn-play{background:linear-gradient(135deg,var(--teal),#14b8a6);color:#fff;border-color:transparent}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--em);cursor:pointer;width:108px}
+  .step-info{margin-left:auto;font-size:15px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--em-deep);font-size:18px}
+  .progress{height:9px;background:#e3f3eb;border-radius:999px;margin:16px 0 18px;overflow:hidden}
+  .progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--em),#34d399);transition:width .4s cubic-bezier(.22,.9,.32,1)}
+  .narr{border-radius:16px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fbfffd,#f0faf5);padding:18px 22px}
+  .narr-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .narr-badge{background:var(--em);color:#fff;font-size:13px;font-weight:800;border-radius:999px;padding:3px 13px;white-space:nowrap}
+  .narr-title{font-size:18px;font-weight:800;line-height:1.55}
+  .narr-body{font-size:16px;color:#2d4a3a}
+  .narr-body b{color:#14291f}
+  .narr-formula{
+    margin-top:12px;font-family:var(--mono);background:#fff;border:1.5px dashed var(--em-line);
+    border-radius:10px;padding:8px 14px;display:inline-block;color:var(--em-deep);font-weight:700;font-size:14.3px;
+  }
+  .narr-formula:empty{display:none}
+  /* ---------- 表格 ---------- */
+  .tbl-scroll{overflow:auto;max-height:340px}
+  .rtable,.tbl{width:100%;border-collapse:collapse;font-size:13.4px}
+  .rtable th,.rtable td,.tbl th,.tbl td{border-bottom:1px solid #e8f4ed;padding:6px 9px;text-align:left;white-space:nowrap}
+  .rtable th,.tbl th{background:#f0faf5;font-weight:800;color:#4e7a66;font-size:12.4px;position:sticky;top:0;z-index:1}
+  .rtable td,.tbl td{font-family:var(--mono);font-weight:700;color:#345446}
+  .rtable tr.hot td,.tbl tr.hot td{background:var(--em-soft);color:var(--em-deep)}
+  .rtable tr.total td{background:#f0faf5;color:var(--em-deep);font-weight:800}
+  .rtable td.empty,.tbl td.empty{color:var(--teal)}
+  .tbl tr{cursor:pointer;transition:background .15s}
+  .tbl tr:hover td{background:#f0faf5}
+  .tbl tr.hot:hover td{background:var(--em-soft)}
+  .tbl td.seq{white-space:normal;word-break:break-all;font-size:12px;line-height:1.5;min-width:190px}
+  .tbl td.best{color:var(--em);font-weight:800}
+  .tbl .algo-tag{font-family:var(--mono);font-weight:800;color:var(--em-deep)}
+  .cmp-note{font-size:13px;color:var(--muted);font-weight:600;margin-top:10px;line-height:1.7}
+  /* ---------- 考点 ---------- */
+  .summary li{margin:9px 0 9px 22px;font-size:15.5px}
+  .summary b{color:var(--em-deep)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--em-deep);font-weight:700;text-decoration:none}
+  @media (max-width:900px){
+    .cfg-grid{grid-template-columns:1fr}
+    .stat-row{grid-template-columns:repeat(3,1fr)}
+    .algo-row{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:720px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 15px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .step-info{margin-left:0;width:100%}
+    .disk-wrap{height:180px}
+    .ctrl-row{gap:8px}
+    .btn{padding:9px 14px;font-size:14px}
+    .tbl-scroll{max-height:none}
+  }
+  /* ===== 宽屏一屏式仪表盘（WIDE-DASHBOARD-BEGIN） ===== */
+  @media (min-width:1024px) and (min-height:600px){
+    html,body{height:100%}
+    body{padding:10px 14px;overflow:hidden;font-size:15.5px;line-height:1.65}
+    .wrap{
+      max-width:1920px;width:100%;height:calc(100vh - 20px);margin:0 auto;
+      display:grid;gap:11px;
+      grid-template-columns:minmax(255px,.9fr) minmax(0,1.6fr) minmax(285px,1fr);
+      grid-template-rows:auto minmax(0,1.1fr) minmax(0,.9fr) auto;
+    }
+    .hero{grid-column:1/-1;grid-row:1;margin:0;padding:0 2px}
+    .hero-top{align-items:center;gap:10px}
+    .tag-row{margin-bottom:4px;gap:6px}
+    .tag{font-size:12px;padding:2px 10px}
+    .hero h1{font-size:clamp(18px,1.55vw,25px);line-height:1.35}
+    .hero .sub{font-size:13.5px;margin-top:3px;line-height:1.5}
+    .lang-btn{padding:4px 13px;font-size:13px}
+    .wrap > .card,.wrap > .grid2{
+      grid-row:2 / span 2;margin:0;padding:13px 15px;min-width:0;min-height:0;
+      overflow:auto;overscroll-behavior:contain;
+      scrollbar-width:thin;scrollbar-color:#bfe0d1 transparent;
+    }
+    .wrap > .card::-webkit-scrollbar,.wrap > .grid2::-webkit-scrollbar{width:7px;height:7px}
+    .wrap > .card::-webkit-scrollbar-thumb,.wrap > .grid2::-webkit-scrollbar-thumb{background:#bfe0d1;border-radius:8px}
+    .card-title{position:sticky;top:0;z-index:3;background:var(--card);font-size:16.5px;margin-bottom:8px;gap:8px;padding:0 0 4px}
+    .title-note{font-size:12px}
+    .stat-row{gap:7px;margin-bottom:6px}
+    .stat{padding:6px 8px;border-radius:11px}
+    .stat-k{font-size:12px}
+    .stat-v{font-size:19px}
+    .type-row,.input-row,.ctrl-row,.cfg-line,.addr-row,.preset-row,.sb-row,.check-row,.del-row{gap:7px;margin-top:9px}
+    .ctrl-row{margin-top:10px}
+    .type-btn,.btn{padding:8px 13px;font-size:13.5px;border-radius:9px}
+    .btn-sm{padding:6px 10px;font-size:12.5px}
+    .type-btn small{font-size:10.5px}
+    .type-hint,.speed-box,.step-info{font-size:12.5px}
+    .step-info b{font-size:16px}
+    .seq-input{padding:7px 10px;font-size:13px;line-height:1.55}
+    select,.sb-input{font-size:13px;padding:6px 8px;border-radius:8px}
+    .progress{margin:8px 0 9px;height:7px}
+    .narr{padding:10px 13px;border-radius:12px}
+    .narr-head{gap:8px;margin-bottom:5px}
+    .narr-badge{font-size:11.5px;padding:2px 10px}
+    .narr-title{font-size:15.5px}
+    .narr-body{font-size:14px}
+    .narr-formula{font-size:12px;padding:5px 9px;margin-top:7px}
+    .legend{margin-top:7px;gap:9px;font-size:12px}
+    .panel-note,.cfg-note,.cfg-hint,.phase-note,.hint,.hint-sm{font-size:12px}
+    .input-msg,.cfg-err{font-size:12.5px;min-height:18px;margin-top:6px}
+    .summary li{font-size:13.5px;margin:4px 0 4px 18px;line-height:1.6}
+    .footer{grid-column:1/-1;grid-row:4;margin:0;font-size:11.5px;text-align:center}
+    table{font-size:13.2px}
+    .rtable th,.rtable td,.tbl th,.tbl td{padding:4px 7px}
+    code{font-size:.92em}
+
+    /* 左：算法与参数；中：动画 + 六算法对比；右：逐步明细 + 考点 */
+    .wrap{grid-template-columns:minmax(250px,.82fr) minmax(0,1.55fr) minmax(300px,1fr);
+      grid-template-rows:auto minmax(0,1.4fr) minmax(0,.6fr) auto}
+    .wrap > .card:nth-of-type(1){grid-column:1;grid-row:2 / span 2}
+    .wrap > .card:nth-of-type(2){grid-column:2;grid-row:2}
+    .wrap > .card:nth-of-type(3){grid-column:2;grid-row:3}
+    .wrap > .card:nth-of-type(4){grid-column:3;grid-row:2}
+    .wrap > .card:nth-of-type(5){grid-column:3;grid-row:3}
+    .algo-row{grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px}
+    .algo-btn{padding:5px 4px;border-radius:9px}
+    .algo-btn .ak{font-size:13px}
+    .algo-btn .an{font-size:10.5px;margin-top:0}
+    .cfg-grid{grid-template-columns:1fr 1fr;gap:5px;margin-top:8px;padding-top:8px}
+    .cfg-grid > *{min-width:0}
+    .cfg-group{padding:6px 8px}
+    .cfg-group h3{font-size:11.8px;margin-bottom:3px}
+    .cfg-line{gap:4px;flex-wrap:wrap;font-size:11.5px;margin:3px 0}
+    .cfg-line > span{flex:1 1 74px;min-width:0}
+    .cfg-line select,.cfg-line input[type=number]{flex:1 1 60px;min-width:0;max-width:100%;font-size:11.5px;padding:3px 4px}
+    .btn-apply{padding:8px 14px;font-size:13.5px;margin-top:9px}
+    .mini-btn{padding:5px 9px;font-size:12px}
+    /* 动画卡：压缩间距，保证图表 + 控制 + 旁白在同一屏内完整可见 */
+    .card-title{margin-bottom:6px}
+    .stat-row{gap:5px;margin-bottom:4px}
+    .stat{padding:4px 6px}
+    .stat-k{font-size:11px}
+    .stat-v{font-size:17px}
+    .disk-wrap{height:min(22vh,195px);margin:3px auto 0}
+    .legend{margin-top:5px;gap:8px;font-size:11px}
+    .ctrl-row{margin-top:7px}
+    .progress{margin:6px 0 7px;height:6px}
+    .narr{padding:7px 10px}
+    .narr-head{margin-bottom:2px}
+    .narr-title{font-size:14px}
+    .narr-body{font-size:12.5px;line-height:1.45}
+    .narr-formula{font-size:11.5px;padding:4px 8px;margin-top:4px}
+    .wrap > .card:nth-of-type(1) .preset-row > .cfg-hint{display:none}
+    .wrap > .card:nth-of-type(1) .cfg-hint{font-size:11px;line-height:1.5;margin-top:5px}
+    .wrap > .card:nth-of-type(1) .cfg-group{padding:5px 7px}
+    .tbl-scroll{max-height:19vh}
+    .tbl td.seq{font-size:11px;min-width:150px}
+    .cmp-note{font-size:11.5px;margin-top:6px}
+    .rtable,.tbl{font-size:12.2px}
+    .rtable th,.rtable td,.tbl th,.tbl td{padding:3px 5px}
+  }
+  /* ===== /WIDE-DASHBOARD-END ===== */
+  /* ===== 矮宽屏（如 1024×768 平板横屏）补充紧凑规则 ===== */
+  @media (min-width:1024px) and (min-height:600px) and (max-height:820px){
+    .wrap > .card{padding:9px 11px}
+    .disk-wrap{height:min(15vh,120px)}
+    .legend{display:none}
+    .stat{padding:2px 5px}
+    .stat-v{font-size:15px}
+    .ctrl-row{margin-top:5px}
+    .progress{margin:4px 0 5px}
+    .narr{padding:6px 9px}
+    .narr-title{font-size:13px}
+    .narr-body{font-size:11.5px;line-height:1.35}
+    .narr-formula{font-size:10.5px;margin-top:3px;padding:3px 7px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">操作系统 · I/O 管理</span>
+        <span class="tag" data-i18n="tag.scope">FCFS · SSTF · SCAN · C-SCAN · LOOK · C-LOOK</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">磁头轨迹 + 总寻道长度逐步统计</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">磁头该往哪边走：六种磁盘调度算法，把每一次寻道都画出来</h1>
+    <p class="sub" data-i18n="hero.sub">408 磁盘调度大题的本质是「按什么顺序服务请求」。同一组请求换一种算法，磁头移动总磁道数可能差一倍。这里把磁道分布、磁头当前位置、逐步寻道轨迹与平均值放在一起，还能一行切换六种算法横向对比。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cfg.title">调度算法与请求配置</span> <span class="title-note" id="stageNote"></span></h2>
+    <div class="algo-row" id="algoRow"></div>
+    <div class="addr-row">
+      <input class="seq-input" id="seqInput" spellcheck="false" aria-label="Track request queue" value="55 58 39 18 90 160 150 38 184">
+      <button class="btn btn-primary" id="btnApply" type="button" data-i18n="cfg.apply">应用并生成演示</button>
+    </div>
+    <div class="preset-row">
+      <button class="mini-btn" id="btnClassic" type="button" data-i18n="cfg.classic">📖 408 经典例题</button>
+      <button class="mini-btn" id="btnStarve" type="button" data-i18n="cfg.starve">🧲 密集请求（看 SSTF 饥饿）</button>
+      <button class="mini-btn" id="btnRandom" type="button" data-i18n="cfg.random">🎲 随机请求</button>
+      <span class="cfg-hint" style="margin:0;align-self:center" data-i18n="cfg.seqHint">多个磁道号用空格或逗号分隔（1~16 个）</span>
+    </div>
+
+    <div class="cfg-grid">
+      <div class="cfg-group">
+        <h3 data-i18n="cfg.g1">① 磁头初始状态 / Initial Head</h3>
+        <div class="cfg-line"><span data-i18n="cfg.start">当前磁头位置</span><input id="cfgStart" type="number" min="0" value="100"></div>
+        <div class="cfg-line"><span data-i18n="cfg.dir">初始移动方向</span><select id="cfgDir"><option value="1" selected data-i18n="cfg.dirUp">向磁道号增大 ↑</option><option value="-1" data-i18n="cfg.dirDown">向磁道号减小 ↓</option></select></div>
+      </div>
+      <div class="cfg-group">
+        <h3 data-i18n="cfg.g2">② 磁盘参数 / Disk Geometry</h3>
+        <div class="cfg-line"><span data-i18n="cfg.max">最大磁道号</span><select id="cfgMax"><option value="99">99</option><option value="199" selected data-i18n="cfg.max199">199（408 经典）</option><option value="200">200</option><option value="255">255</option><option value="499">499</option></select></div>
+        <div class="cfg-line"><span data-i18n="cfg.count">请求个数</span><span class="mono" id="reqCount">9</span></div>
+      </div>
+      <div class="cfg-group">
+        <h3 data-i18n="cfg.g3">③ 规则说明 / Rule</h3>
+        <div class="cfg-hint" style="margin:0" id="ruleText"></div>
+      </div>
+    </div>
+    <div class="cfg-err" id="cfgErr"></div>
+    <p class="cfg-hint" data-i18n="cfg.hint">方向只对 SCAN / C-SCAN / LOOK / C-LOOK 生效。当反方向仍有请求时，SCAN / C-SCAN 必须扫到磁盘端点（空程也计入总寻道长度）；LOOK / C-LOOK 只走到该方向最远的请求就折返。若所有请求都在当前方向，服务完即停，不额外空跑。</p>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="anim.title">磁头移动轨迹</span> <span class="title-note" data-i18n="anim.note">上方是磁道分布与磁头位置，下方是按服务顺序绘制的寻道折线</span></h2>
+    <div class="stat-row">
+      <div class="stat"><span class="stat-k" data-i18n="stat.head">当前磁头</span><span class="stat-v" id="statHead">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.move">本步移动</span><span class="stat-v" id="statMove">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.cum">累计寻道</span><span class="stat-v" id="statCum">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.avg">平均寻道长度</span><span class="stat-v" id="statAvg">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.done">已服务请求</span><span class="stat-v" id="statDone">—</span></div>
+    </div>
+    <div class="disk-wrap"><svg class="disk-svg" id="diskSvg" viewBox="0 0 760 370" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Disk track map and head movement chart"></svg></div>
+    <div class="legend">
+      <span><i class="dot dot-serve"></i><span data-i18n="lg.serve">已服务请求</span></span>
+      <span><i class="dot dot-wait"></i><span data-i18n="lg.wait">等待中的请求</span></span>
+      <span><i class="dot dot-now"></i><span data-i18n="lg.now">本步移动</span></span>
+      <span><i class="dot dot-empty"></i><span data-i18n="lg.empty">空程 / 折返（不服务但计入距离）</span></span>
+    </div>
+    <div class="ctrl-row">
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-primary" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">↺ 重置</button>
+      <label class="speed-box"><span data-i18n="ctrl.speed">速度</span><input id="speedRange" type="range" min="1" max="10" value="6"></label>
+      <span class="step-info"><span data-i18n="ctrl.step">第</span> <b id="stepNow">0</b> / <span id="stepTotal">0</span> <span data-i18n="ctrl.step2">步</span></span>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="narr">
+      <div class="narr-head"><span class="narr-badge" id="narrBadge">—</span><span class="narr-title" id="narrTitle"></span></div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cmp.title">六种算法横向对比</span> <span class="title-note" data-i18n="cmp.note">同一组请求、同一初始条件；点击任意一行可直接切换算法</span></h2>
+    <div class="tbl-scroll"><table class="tbl"><thead><tr>
+      <th data-i18n="tb.algo">算法</th><th data-i18n="tb.seq">磁头移动顺序</th><th data-i18n="tb.total">总磁道数</th><th data-i18n="tb.avg">平均寻道</th><th data-i18n="tb.note">特点</th>
+    </tr></thead><tbody id="cmpBody"></tbody></table></div>
+    <p class="cmp-note" id="cmpNote"></p>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="detail.title">逐步寻道明细</span> <span class="title-note" data-i18n="detail.note">高亮行 = 当前播放到的那一步</span></h2>
+    <div class="tbl-scroll"><table class="rtable"><thead><tr>
+      <th data-i18n="tb.step">步</th><th data-i18n="tb.from">从</th><th data-i18n="tb.to">到</th><th data-i18n="tb.dist">移动</th><th data-i18n="tb.cum">累计</th><th data-i18n="tb.kind">类型</th>
+    </tr></thead><tbody id="detailBody"></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="notes.title">408 考点速记</span> <span class="title-note" data-i18n="notes.note">磁盘调度大题的七个必答点</span></h2>
+    <ul class="summary" id="notesList"></ul>
+  </section>
+
+  <p class="footer"><span data-i18n="footer.text">408 可视化实验室 · 操作系统</span> · <a href="https://github.com/zzuli-ljz/408-visual-lab">GitHub</a></p>
+</div>
+
+<script>
+/* =========================================================
+   408 磁盘调度算法 · FCFS / SSTF / SCAN / C-SCAN / LOOK / C-LOOK
+   科目主题：操作系统 · Emerald #059669
+   ========================================================= */
+function $(id){ return document.getElementById(id); }
+
+var LANG='zh';
+try{ LANG=localStorage.getItem('408lab-lang')||'zh'; }catch(e){}
+
+var T={
+  'tag.subj':{zh:'操作系统 · I/O 管理',en:'Operating Systems · I/O Management'},
+  'tag.scope':{zh:'FCFS · SSTF · SCAN · C-SCAN · LOOK · C-LOOK',en:'FCFS · SSTF · SCAN · C-SCAN · LOOK · C-LOOK'},
+  'tag.inter':{zh:'磁头轨迹 + 总寻道长度逐步统计',en:'Head trajectory + step-by-step seek totals'},
+  'hero.h1':{zh:'磁头该往哪边走：六种磁盘调度算法，把每一次寻道都画出来',en:'Which way should the head move? Six disk scheduling algorithms, every seek drawn'},
+  'hero.sub':{zh:'408 磁盘调度大题的本质是「按什么顺序服务请求」。同一组请求换一种算法，磁头移动总磁道数可能差一倍。这里把磁道分布、磁头当前位置、逐步寻道轨迹与平均值放在一起，还能一行切换六种算法横向对比。',en:'A 408 disk-scheduling problem is really about the order in which requests are served. The same queue can cost twice as many cylinders under a different algorithm. Track map, live head position, seek-by-seek trajectory and averages — plus a one-click comparison of all six algorithms.'},
+
+  'cfg.title':{zh:'调度算法与请求配置',en:'Algorithm & Request Setup'},
+  'cfg.apply':{zh:'应用并生成演示',en:'Apply & Build Trace'},
+  'cfg.classic':{zh:'📖 408 经典例题',en:'📖 408 textbook case'},
+  'cfg.starve':{zh:'🧲 密集请求（看 SSTF 饥饿）',en:'🧲 Clustered requests (SSTF starvation)'},
+  'cfg.random':{zh:'🎲 随机请求',en:'🎲 Random requests'},
+  'cfg.seqHint':{zh:'多个磁道号用空格或逗号分隔（1~16 个）',en:'Separate track numbers with spaces or commas (1–16)'},
+  'cfg.g1':{zh:'① 磁头初始状态 / Initial Head',en:'① Initial Head / Direction'},
+  'cfg.g2':{zh:'② 磁盘参数 / Disk Geometry',en:'② Disk Geometry'},
+  'cfg.g3':{zh:'③ 规则说明 / Rule',en:'③ Rule'},
+  'cfg.start':{zh:'当前磁头位置',en:'Initial head track'},
+  'cfg.dir':{zh:'初始移动方向',en:'Initial direction'},
+  'cfg.dirUp':{zh:'向磁道号增大 ↑',en:'Increasing tracks ↑'},
+  'cfg.dirDown':{zh:'向磁道号减小 ↓',en:'Decreasing tracks ↓'},
+  'cfg.max':{zh:'最大磁道号',en:'Max track number'},
+  'cfg.max199':{zh:'199（408 经典）',en:'199 (408 classic)'},
+  'cfg.count':{zh:'请求个数',en:'Requests'},
+  'cfg.hint':{zh:'方向只对 SCAN / C-SCAN / LOOK / C-LOOK 生效。当反方向仍有请求时，SCAN / C-SCAN 必须扫到磁盘端点（空程也计入总寻道长度）；LOOK / C-LOOK 只走到该方向最远的请求就折返。若所有请求都在当前方向，服务完即停，不额外空跑。',en:'Direction only affects SCAN / C-SCAN / LOOK / C-LOOK. When opposite-side requests remain, SCAN / C-SCAN must reach the disk end (empty travel still counts); LOOK / C-LOOK turn around at the farthest request. If every request lies on the current side, the run stops right after the last service.'},
+
+  'anim.title':{zh:'磁头移动轨迹',en:'Head Movement Trajectory'},
+  'anim.note':{zh:'上方是磁道分布与磁头位置，下方是按服务顺序绘制的寻道折线',en:'Top: track map and head position. Bottom: seek trajectory in service order'},
+  'viz.map':{zh:'磁道分布 / Track map',en:'TRACK MAP'},
+  'viz.chart':{zh:'寻道轨迹 / Head movement',en:'HEAD MOVEMENT'},
+  'viz.head':{zh:'磁头',en:'head'},
+  'viz.startLab':{zh:'起点',en:'start'},
+  'viz.trackLab':{zh:'磁道号',en:'track'},
+  'viz.stepLab':{zh:'服务序号',en:'service order'},
+  'viz.empty':{zh:'空程',en:'empty'},
+  'viz.end':{zh:'端点',en:'end'},
+
+  'stat.head':{zh:'当前磁头',en:'Head at'},
+  'stat.move':{zh:'本步移动',en:'This move'},
+  'stat.cum':{zh:'累计寻道',en:'Total seek'},
+  'stat.avg':{zh:'平均寻道长度',en:'Avg. seek length'},
+  'stat.done':{zh:'已服务请求',en:'Served'},
+  'lg.serve':{zh:'已服务请求',en:'Served request'},
+  'lg.wait':{zh:'等待中的请求',en:'Pending request'},
+  'lg.now':{zh:'本步移动',en:'Current move'},
+  'lg.empty':{zh:'空程 / 折返（不服务但计入距离）',en:'Empty travel (no service, still counted)'},
+
+  'ctrl.prev':{zh:'← 上一步',en:'← Prev'},
+  'ctrl.next':{zh:'下一步 →',en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放',en:'▶ Auto play'},
+  'ctrl.pause':{zh:'⏸ 暂停',en:'⏸ Pause'},
+  'ctrl.reset':{zh:'↺ 重置',en:'↺ Reset'},
+  'ctrl.speed':{zh:'速度',en:'Speed'},
+  'ctrl.step':{zh:'第',en:'Step'},
+  'ctrl.step2':{zh:'步',en:''},
+
+  'cmp.title':{zh:'六种算法横向对比',en:'Six Algorithms Compared'},
+  'cmp.note':{zh:'同一组请求、同一初始条件；点击任意一行可直接切换算法',en:'Same queue, same initial state; click any row to switch algorithm'},
+  'detail.title':{zh:'逐步寻道明细',en:'Seek-by-seek Breakdown'},
+  'detail.note':{zh:'高亮行 = 当前播放到的那一步',en:'Highlighted row = current step'},
+
+  'tb.algo':{zh:'算法',en:'Algorithm'},
+  'tb.seq':{zh:'磁头移动顺序',en:'Head movement sequence'},
+  'tb.total':{zh:'总磁道数',en:'Total cylinders'},
+  'tb.avg':{zh:'平均寻道',en:'Avg. seek'},
+  'tb.note':{zh:'特点',en:'Note'},
+  'tb.step':{zh:'步',en:'#'},
+  'tb.from':{zh:'从',en:'From'},
+  'tb.to':{zh:'到',en:'To'},
+  'tb.dist':{zh:'移动',en:'Move'},
+  'tb.cum':{zh:'累计',en:'Total'},
+  'tb.kind':{zh:'类型',en:'Type'},
+  'tb.sum':{zh:'合计',en:'TOTAL'},
+
+  'kind.serve':{zh:'服务请求',en:'Serve'},
+  'kind.edge':{zh:'扫到端点',en:'To end'},
+  'kind.jump':{zh:'空程返回',en:'Empty return'},
+  'kind.return':{zh:'直接折返+服务',en:'Return + serve'},
+
+  'notes.title':{zh:'408 考点速记',en:'408 Exam Notes'},
+  'notes.note':{zh:'磁盘调度大题的七个必答点',en:'Seven points you must be able to write'},
+
+  'footer.text':{zh:'408 可视化实验室 · 操作系统',en:'408 Visual Lab · Operating Systems'}
+};
+function t(k){ var o=T[k]; return o?(o[LANG]!==undefined?o[LANG]:o.zh):k; }
+
+var ALGOS=[
+  {k:'FCFS',  zh:'先来先服务',        en:'First Come First Served', dir:false,
+   rule:{zh:'按请求到达的先后顺序服务，完全不看磁头当前在哪。公平、不会饥饿，但请求分散时来回奔走。',en:'Serve strictly in arrival order, regardless of head position. Fair, no starvation, but poor locality.'},
+   note:{zh:'公平 / 最简单',en:'Fair / simplest'}},
+  {k:'SSTF',  zh:'最短寻道时间优先',  en:'Shortest Seek Time First', dir:false,
+   rule:{zh:'每次挑与当前磁头距离最近的请求。局部最优不等于全局最优，远处请求可能一直被插队（饥饿 / 磁臂黏着）。',en:'Always pick the nearest pending request. Locally greedy, not globally optimal; far requests may starve (arm stickiness).'},
+   note:{zh:'可能饥饿',en:'Can starve'}},
+  {k:'SCAN',  zh:'电梯调度',          en:'Elevator (SCAN)', dir:true,
+   rule:{zh:'沿初始方向服务沿途请求；若反方向还有请求，必须一直走到磁盘端点才折返。不饥饿，但两侧磁道响应频率不平均。',en:'Serve along the initial direction; if opposite-side requests remain, keep going all the way to the disk end before reversing. No starvation, but uneven response frequency.'},
+   note:{zh:'到端点折返',en:'Reaches the end'}},
+  {k:'C-SCAN',zh:'循环扫描',          en:'Circular SCAN', dir:true,
+   rule:{zh:'只沿一个方向服务；到端点后快速返回另一端，返程不服务但距离仍计入总寻道长度，等待时间更均匀。',en:'Serve in one direction only; after the end, return quickly to the opposite end without serving (the return distance still counts). More uniform waiting.'},
+   note:{zh:'等待更均匀',en:'Uniform wait'}},
+  {k:'LOOK',  zh:'SCAN 的改进',       en:'LOOK (SCAN improved)', dir:true,
+   rule:{zh:'只走到该方向最远的请求就折返，不空跑到磁盘端点。部分教材把 LOOK 直接称作 SCAN，做题要先看清题设口径。',en:'Turn around at the farthest request instead of running to the disk end. Some textbooks call this variant SCAN — check the problem statement.'},
+   note:{zh:'不空跑端点',en:'No empty run'}},
+  {k:'C-LOOK',zh:'C-SCAN 的改进',     en:'C-LOOK (C-SCAN improved)', dir:true,
+   rule:{zh:'单向服务，返程直接落到反方向最远的请求并立即服务它，不经过磁盘端点。',en:'One-way service; the return jumps straight to the farthest request on the opposite side and serves it, without visiting the disk end.'},
+   note:{zh:'返程最省',en:'Shortest return'}}
+];
+function algoOf(k){ for(var i=0;i<ALGOS.length;i++) if(ALGOS[i].k===k) return ALGOS[i]; return ALGOS[0]; }
+
+var NOTES={
+  zh:[
+    '<b>磁盘读 / 写时间 = 寻道时间 + 旋转延迟 + 传输时间</b>。调度算法只优化寻道时间，也就是磁头跨越的磁道数；旋转延迟与传输时间由转速、扇区位置决定，与调度无关。',
+    '<b>FCFS</b> 按到达顺序服务，对每个请求公平、不会饥饿；但请求分散时磁头来回奔走，平均寻道长度往往最大。',
+    '<b>SSTF</b> 每次选距离最近的请求，性能通常很好，但只是局部最优；若新请求不断落在磁头附近，远处请求会长期得不到服务，出现<b>「饥饿 / 磁臂黏着」</b>。',
+    '<b>SCAN（电梯算法）</b> 优先考虑磁头当前移动方向，沿途服务；只要反方向还有请求，就<b>必须扫到磁盘端点</b>才折返。不产生饥饿，但中间磁道被访问的频率高于两端。',
+    '<b>C-SCAN</b> 规定磁头只单向服务，到端点后<b>快速返回另一端且不服务</b>。返程空跑的距离<b>仍要计入总寻道长度</b>，换来更均匀的等待时间。若反方向已无请求，服务完即停，不再空跑。',
+    '<b>LOOK / C-LOOK</b> 是 SCAN / C-SCAN 的改进：只走到该方向<b>最远的请求</b>就折返，不空跑到端点。注意部分教材把 LOOK 直接叫 SCAN，做题时看清题目是否要求「扫到最外 / 最内磁道」。',
+    '<b>平均寻道长度 = 磁头移动总磁道数 ÷ 请求个数</b>（不是 ÷ 移动次数）。当 SSTF 出现距离相同的候选时按题设规则选择，本演示按请求到达顺序取先者。'
+  ],
+  en:[
+    '<b>Disk access time = seek time + rotational latency + transfer time</b>. Scheduling only optimizes seek time, i.e. the number of cylinders the head crosses; latency and transfer time depend on rotation, not scheduling.',
+    '<b>FCFS</b> serves in arrival order: fair and starvation-free, but with scattered requests the head thrashes and the average seek length is usually the largest.',
+    '<b>SSTF</b> always picks the nearest request. Usually efficient, but only locally optimal: a stream of nearby requests can starve a distant one (<b>"arm stickiness"</b>).',
+    '<b>SCAN (elevator)</b> keeps the current direction and serves requests on the way; <b>as long as opposite-side requests remain, it must reach the disk end</b> before reversing. No starvation, but central tracks are visited more often than the extremes.',
+    '<b>C-SCAN</b> serves in one direction only; at the end it <b>returns quickly to the opposite end without serving</b>. The empty return <b>still counts toward total head movement</b>, buying more uniform waiting time. With no opposite-side request left, it stops right after the last service.',
+    '<b>LOOK / C-LOOK</b> improve SCAN / C-SCAN by turning around at the <b>farthest pending request</b> instead of the disk end. Some textbooks simply call LOOK "SCAN" — read the problem statement carefully.',
+    '<b>Average seek length = total cylinders moved ÷ number of requests</b> (not ÷ number of moves). When SSTF has equidistant candidates, this demo picks the one that arrived first.'
+  ]
+};
+
+var ERR={
+  zh:{EMPTY:'请至少输入一个磁道号。',BAD:'只能输入 0 以上的整数磁道号，用空格或逗号分隔。',RANGE:'磁道号不能超过最大磁道号，请修改请求序列或增大最大磁道号。',TOOMANY:'最多输入 16 个请求，否则轨迹图会过于拥挤。',START:'当前磁头位置必须是 0 到最大磁道号之间的整数。'},
+  en:{EMPTY:'Enter at least one track number.',BAD:'Use non-negative integers separated by spaces or commas.',RANGE:'A track number exceeds the max track. Edit the queue or raise the max track.',TOOMANY:'At most 16 requests, otherwise the trajectory gets crowded.',START:'Initial head must be an integer between 0 and the max track.'}
+};
+
+/* ===================== 算法层（纯函数，可独立测试） ===================== */
+/*TEST-BEGIN*/
+function asc(a,b){ return a-b; }
+function desc(a,b){ return b-a; }
+
+/*
+  planSchedule(algo, reqs, start, maxT, dir) → {
+    moves:[{from,to,dist,kind,track,pick}],
+    total, avg, seq:[...], served:[...]
+  }
+  kind: serve（服务请求）| edge（扫到端点，不服务）| jump（空程返回端点，不服务）
+        | return（不经过端点的返程，到达即服务）
+  约定：SCAN / C-SCAN 的 edge 与 jump 距离计入 total；
+        LOOK / C-LOOK 不生成 edge，只在 C-LOOK 用 return 标记折返段。
+*/
+function planSchedule(algo, reqs, start, maxT, dir){
+  var moves=[], cur=start, i, m;
+  function mv(to,kind,track,pick){
+    var o={from:cur,to:to,dist:Math.abs(to-cur),kind:kind||'serve',track:(track===undefined?null:track),pick:pick||null};
+    moves.push(o); cur=to; return o;
+  }
+  function addSeq(list,kindFirst){
+    for(var j=0;j<list.length;j++) mv(list[j],(kindFirst&&j===0)?kindFirst:'serve',list[j]);
+  }
+
+  if(algo==='FCFS'){
+    for(i=0;i<reqs.length;i++) mv(reqs[i],'serve',reqs[i]);
+  }else if(algo==='SSTF'){
+    var pool=reqs.map(function(r,idx){ return {r:r,i:idx}; });
+    while(pool.length){
+      var best=0,bd=Math.abs(pool[0].r-cur);
+      for(i=1;i<pool.length;i++){
+        var d=Math.abs(pool[i].r-cur);
+        if(d<bd){ bd=d; best=i; }
+      }
+      var chosen=pool[best];
+      mv(chosen.r,'serve',chosen.r,{dist:bd,alt:pool.length});
+      pool.splice(best,1);
+    }
+  }else{
+    var up=(dir>0);
+    var fwd=reqs.filter(function(r){ return up?(r>=start):(r<=start); }).sort(up?asc:desc);
+    var back=reqs.filter(function(r){ return up?(r<start):(r>start); });
+    var backTurn=back.slice().sort(up?desc:asc);   /* 折返后：按新方向由近到远 */
+    var backCirc=back.slice().sort(up?asc:desc);   /* 单向扫描：仍沿原方向 */
+    if(algo==='SCAN'){
+      addSeq(fwd);
+      /* 只有反方向仍有请求时才需要走到端点折返；否则服务完即停，不空跑 */
+      if(back.length){ mv(up?maxT:0,'edge'); addSeq(backTurn); }
+    }else if(algo==='C-SCAN'){
+      addSeq(fwd);
+      if(back.length){ mv(up?maxT:0,'edge'); mv(up?0:maxT,'jump'); addSeq(backCirc); }
+    }else if(algo==='LOOK'){
+      addSeq(fwd);
+      addSeq(backTurn);
+    }else if(algo==='C-LOOK'){
+      addSeq(fwd);
+      addSeq(backCirc,'return');
+    }
+  }
+
+  var total=0,served=[],seq=[start];
+  for(i=0;i<moves.length;i++){
+    m=moves[i]; total+=m.dist; seq.push(m.to);
+    if(m.track!==null) served.push(m.track);
+  }
+  return {moves:moves,total:total,avg:reqs.length?total/reqs.length:0,seq:seq,served:served};
+}
+
+function compareAll(reqs,start,maxT,dir){
+  var out={},best=null,i;
+  for(i=0;i<ALGOS.length;i++){
+    var k=ALGOS[i].k;
+    out[k]=planSchedule(k,reqs,start,maxT,dir);
+    if(best===null||out[k].total<out[best].total) best=k;
+  }
+  return {rows:out,best:best};
+}
+
+function parseQueue(str,maxT){
+  var s=(str||'').trim();
+  if(!s) return {err:'EMPTY'};
+  var parts=s.split(/[\s,，、;；]+/).filter(function(x){ return x.length>0; });
+  if(!parts.length) return {err:'EMPTY'};
+  if(parts.length>16) return {err:'TOOMANY'};
+  var reqs=[];
+  for(var i=0;i<parts.length;i++){
+    if(!/^\d+$/.test(parts[i])) return {err:'BAD'};
+    var v=parseInt(parts[i],10);
+    if(!isFinite(v)||v<0||v>maxT) return {err:'RANGE'};
+    reqs.push(v);
+  }
+  return {reqs:reqs};
+}
+/*TEST-END*/
+
+/* ===================== 状态与步骤生成 ===================== */
+var CFG={algo:'SCAN',reqs:[55,58,39,18,90,160,150,38,184],start:100,maxT:199,dir:1};
+var PLAN=null, STEPS=[], cur=0, timer=null, playing=false;
+var CMP=null;
+
+function S(zhT,zhB,zhF,enT,enB,enF){ return {zh:{t:zhT,b:zhB,f:zhF||''},en:{t:enT,b:enB,f:enF||''}}; }
+function num(v){ return (Math.round(v*10)/10).toString(); }
+function dirText(d){ var up=d>0; return LANG==='zh'?(up?'向磁道号增大':'向磁道号减小'):(up?'increasing tracks':'decreasing tracks'); }
+function ruleText(a){ return a.rule[LANG]||a.rule.zh; }
+
+function buildSteps(){
+  var p=PLAN, a=algoOf(CFG.algo), steps=[], cum=0, done=0, i;
+  function push(txt,st){
+    steps.push({txt:txt,moveCount:st.moves,head:st.head,cum:st.cum,done:st.done,move:st.move||null});
+  }
+  var introRule=ruleText(a);
+  push(S(
+    '初始状态 · '+CFG.algo+'（'+a.zh+'）',
+    '磁头停在 <b>'+CFG.start+'</b> 号磁道，共 <b>'+CFG.reqs.length+'</b> 个请求等待服务，磁盘磁道范围 <b>0~'+CFG.maxT+'</b>。'+(a.dir?'初始移动方向：<b>'+dirText(CFG.dir)+'</b>。':'此算法不使用移动方向。')+'<br>规则：'+introRule,
+    'head = '+CFG.start+'　n = '+CFG.reqs.length+'　tracks = 0~'+CFG.maxT,
+    'Initial state · '+CFG.algo+' ('+a.en+')',
+    'The head rests at track <b>'+CFG.start+'</b> with <b>'+CFG.reqs.length+'</b> pending requests on a disk of tracks <b>0–'+CFG.maxT+'</b>. '+(a.dir?'Initial direction: <b>'+dirText(CFG.dir)+'</b>.':'Direction is irrelevant for this algorithm.')+'<br>Rule: '+introRule,
+    'head = '+CFG.start+'　n = '+CFG.reqs.length+'　tracks = 0–'+CFG.maxT
+  ),{moves:0,head:CFG.start,cum:0,done:0});
+
+  for(i=0;i<p.moves.length;i++){
+    var m=p.moves[i];
+    cum+=m.dist;
+    var idx=p.moves.slice(0,i+1).filter(function(x){ return x.track!==null; }).length;
+    var zhT,zhB,enT,enB;
+    var common='Δ = |'+m.to+' − '+m.from+'| = '+m.dist+'　累计 = '+cum;
+    var commonEn='Δ = |'+m.to+' − '+m.from+'| = '+m.dist+'　total = '+cum;
+    var extra='',extraEn='';
+    if(m.kind==='edge'){
+      zhT='空程：继续扫到磁盘端点 '+m.to;
+      zhB='反方向还有请求待服务，而 SCAN / C-SCAN 规定<b>必须到达磁盘端点</b>才能改变方向，即使端点没有请求。这一段不服务任何请求，但移动的 <b>'+m.dist+'</b> 个磁道<b>计入总寻道长度</b>——这是最容易漏算的一步。';
+      enT='Empty travel: continue to the disk end at '+m.to;
+      enB='Requests remain on the opposite side, and SCAN / C-SCAN <b>must reach the disk end</b> before reversing, even if no request is there. No request is served, but these <b>'+m.dist+'</b> cylinders <b>still count</b> toward total head movement — the easiest step to miss.';
+    }else if(m.kind==='jump'){
+      zhT='空程返回：从端点 '+m.from+' 快速返回 '+m.to;
+      zhB='C-SCAN 只允许<b>单向服务</b>，返程途中不服务任何请求；但磁头确确实实移动了 <b>'+m.dist+'</b> 个磁道，必须计入总寻道长度。返回后继续沿原方向（'+dirText(CFG.dir)+'）服务剩余请求。';
+      enT='Empty return: '+m.from+' → '+m.to;
+      enB='C-SCAN serves <b>in one direction only</b>; nothing is served on the way back. Yet the head physically moves <b>'+m.dist+'</b> cylinders, which must be counted. Afterwards it keeps serving in the original direction ('+dirText(CFG.dir)+').';
+    }else if(m.kind==='return'){
+      zhT='第 '+idx+' 个请求：直接折返到 '+m.to+' 并立即服务';
+      zhB='C-LOOK <b>不经过磁盘端点</b>，从该方向最后一个请求直接返回到反方向最远的请求 <b>'+m.to+'</b>，到达时立即服务它。这一段 <b>'+m.dist+'</b> 个磁道全部计入总寻道长度。';
+      enT='Request '+idx+': return straight to '+m.to+' and serve it';
+      enB='C-LOOK <b>skips the disk end</b>: it jumps from the last request on this side back to the farthest request on the other side, <b>'+m.to+'</b>, and serves it on arrival. All <b>'+m.dist+'</b> cylinders count toward the total.';
+      extra='（返程 + 服务）'; extraEn=' (return + serve)';
+    }else{
+      zhT='第 '+idx+' 个请求：'+m.from+' → '+m.to;
+      enT='Request '+idx+': '+m.from+' → '+m.to;
+      if(CFG.algo==='FCFS'){
+        zhB='按<b>到达顺序</b>服务队列里的下一个请求 '+m.to+'，不考虑磁头位置是否顺路。';
+        enB='Serve the next request in <b>arrival order</b>, '+m.to+', regardless of whether it is on the way.';
+      }else if(CFG.algo==='SSTF'){
+        zhB='在 <b>'+(m.pick?m.pick.alt:'?')+'</b> 个尚未服务的请求里，'+m.to+' 距当前磁头最近（距离 <b>'+(m.pick?m.pick.dist:m.dist)+'</b>）。注意这种贪心只保证本步最优。';
+        enB='Among <b>'+(m.pick?m.pick.alt:'?')+'</b> pending requests, '+m.to+' is closest to the head (distance <b>'+(m.pick?m.pick.dist:m.dist)+'</b>). This greedy choice is only locally optimal.';
+      }else{
+        zhB='沿当前方向（'+dirText(CFG.dir)+'）扫描，服务途中遇到的请求 <b>'+m.to+'</b>。'+(i>0&&p.moves[i-1].kind==='edge'?'这一段是折返后的首次服务。':'');
+        enB='Keep scanning in the current direction ('+dirText(CFG.dir)+') and serve request <b>'+m.to+'</b> on the way.'+(i>0&&p.moves[i-1].kind==='edge'?' This is the first request after reversing.':'');
+      }
+    }
+    var zhF=common+'　第 '+(i+1)+' / '+p.moves.length+' 步';
+    var enF=commonEn+'　step '+(i+1)+' / '+p.moves.length;
+    push(S(zhT+extra,zhB,zhF,enT+extraEn,enB,enF),{moves:i+1,head:m.to,cum:cum,done:idx,move:m});
+  }
+
+  var bestK=CMP?CMP.best:CFG.algo;
+  var bestTot=CMP?CMP.rows[bestK].total:p.total;
+  var tailZh=CFG.algo===bestK?'本例里它就是总寻道长度最短的算法。':'本例最短的是 '+bestK+'（'+bestTot+' 个磁道），比当前算法少 '+(p.total-bestTot)+'。';
+  var tailEn=CFG.algo===bestK?'In this case it is the algorithm with the shortest total head movement.':'The best here is '+bestK+' ('+bestTot+' cylinders), '+(p.total-bestTot)+' fewer than the current one.';
+  push(S(
+    '演示结束 · 全部请求服务完毕',
+    '共服务 <b>'+CFG.reqs.length+'</b> 个请求，磁头移动 <b>'+p.total+'</b> 个磁道，<b>平均寻道长度 = '+p.total+' ÷ '+CFG.reqs.length+' = '+num(p.avg)+'</b>。'+tailZh,
+    'Σ|Δ| = '+p.total+'　平均 = '+p.total+'/'+CFG.reqs.length+' = '+num(p.avg),
+    'Done · all requests served',
+    'Served <b>'+CFG.reqs.length+'</b> requests; the head moved <b>'+p.total+'</b> cylinders, so the <b>average seek length = '+p.total+' ÷ '+CFG.reqs.length+' = '+num(p.avg)+'</b>. '+tailEn,
+    'Σ|Δ| = '+p.total+'　avg = '+p.total+'/'+CFG.reqs.length+' = '+num(p.avg)
+  ),{moves:p.moves.length,head:(p.moves.length?p.moves[p.moves.length-1].to:CFG.start),cum:p.total,done:CFG.reqs.length});
+  return steps;
+}
+
+/* ===================== 渲染：SVG 轨迹 ===================== */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fx(v){ return (Math.round(v*10)/10).toFixed(1); }
+
+function renderViz(last){
+  if(!PLAN) return;
+  var done=last?last.moveCount:0, head=last?last.head:CFG.start;
+  var p=PLAN, moves=p.moves, maxT=CFG.maxT, n=CFG.reqs.length;
+  var servedNow={}, i;
+  for(i=0;i<done;i++) if(moves[i].track!==null) servedNow[moves[i].track]=(servedNow[moves[i].track]||0)+1;
+  var totalByTrack={};
+  for(i=0;i<n;i++) totalByTrack[CFG.reqs[i]]=(totalByTrack[CFG.reqs[i]]||0)+1;
+
+  /* viewBox 随容器宽度切换：宽屏 760×240、窄屏 480×240，保证图形尽量占满宽度、文字不过小 */
+  var cw=$('diskSvg').parentNode.clientWidth||760;
+  var W=(cw<560)?480:760, H=240;
+  var X0=Math.round(W*0.065),X1=W-26, GX0=Math.round(W*0.085),GX1=W-26;
+  var GY0=126,GY1=212;
+  $('diskSvg').setAttribute('viewBox','0 0 '+W+' '+H);
+  var sx=function(v){ return X0+(v/maxT)*(X1-X0); };
+  var gy=function(v){ return GY1-(v/maxT)*(GY1-GY0); };
+  var M=Math.max(1,moves.length);
+  var gx=function(i){ return GX0+i*(GX1-GX0)/M; };
+  var EM='#059669',TEAL='#0d9488',ORANGE='#ea580c',GREY='#b9d8c9',INK='#2d4a3a';
+  var fsNode=(W<560)?9.5:10.5, minGap=(W<560)?20:26;
+  var o='';
+
+  /* ---- 上方：磁道分布 ---- */
+  o+='<text x="'+X1+'" y="12" text-anchor="end" font-size="12" font-weight="800" fill="'+EM+'" font-family="sans-serif">'+esc(t('viz.map'))+'</text>';
+  o+='<rect x="'+X0+'" y="50" width="'+(X1-X0)+'" height="11" rx="5" fill="#ddf3e8" stroke="#bfe8d7" stroke-width="1"/>';
+  var ticks=[0,Math.round(maxT/4),Math.round(maxT/2),Math.round(maxT*3/4),maxT];
+  for(i=0;i<ticks.length;i++){
+    var tv=ticks[i],tx=sx(tv);
+    o+='<line x1="'+fx(tx)+'" y1="62" x2="'+fx(tx)+'" y2="66" stroke="'+GREY+'" stroke-width="1.5"/>';
+    o+='<text x="'+fx(tx)+'" y="77" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5d7969" font-family="monospace">'+tv+'</text>';
+  }
+  var keys=Object.keys(totalByTrack).map(Number).sort(asc);
+  var prevLabelX=-999,prevLabelY=28;
+  for(i=0;i<keys.length;i++){
+    var tr=keys[i], px=sx(tr), cnt=totalByTrack[tr], got=servedNow[tr]||0;
+    var isHead=(tr===head);
+    var col=(got>=cnt)?EM:(got>0?TEAL:'#ffffff');
+    var ly=28;
+    if(px-prevLabelX<minGap) ly=(prevLabelY===28?16:28);
+    prevLabelX=px; prevLabelY=ly;
+    o+='<circle cx="'+fx(px)+'" cy="41" r="'+(isHead?9:7)+'" fill="'+col+'" stroke="'+(isHead?ORANGE:EM)+'" stroke-width="'+(isHead?3:2)+'"/>';
+    o+='<text x="'+fx(px)+'" y="'+ly+'" text-anchor="middle" font-size="10.5" font-weight="800" fill="'+INK+'" font-family="monospace">'+tr+(cnt>1?'×'+cnt:'')+'</text>';
+  }
+  /* 磁头标记与方向 */
+  var hx=sx(head);
+  o+='<path d="M'+fx(hx)+',62 l-7,11 l14,0 z" fill="'+ORANGE+'"/>';
+  o+='<text x="'+fx(Math.min(X1-40,Math.max(X0+40,hx)))+'" y="98" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+ORANGE+'" font-family="monospace">'+esc(t('viz.head'))+' '+head+'</text>';
+  if(algoOf(CFG.algo).dir){
+    var gap=(W<560?26:34), span=(W<560?22:28);
+    var ax2=Math.max(X0,Math.min(X1,hx+(CFG.dir>0?gap+span:-gap-span)));
+    o+='<line x1="'+fx(Math.max(X0,Math.min(X1,hx+(CFG.dir>0?gap:-gap))))+'" y1="88" x2="'+fx(ax2)+'" y2="88" stroke="'+TEAL+'" stroke-width="2.2"/>';
+    o+='<path d="M'+fx(ax2)+',88 l'+(CFG.dir>0?-8:8)+',-5 l0,10 z" fill="'+TEAL+'"/>';
+  }
+
+  /* ---- 下方：寻道轨迹 ---- */
+  o+='<line x1="'+GX0+'" y1="'+GY1+'" x2="'+GX1+'" y2="'+GY1+'" stroke="#bfe8d7" stroke-width="1.5"/>';
+  o+='<line x1="'+GX0+'" y1="'+GY0+'" x2="'+GX0+'" y2="'+GY1+'" stroke="#bfe8d7" stroke-width="1.5"/>';
+  o+='<text x="'+GX0+'" y="116" font-size="12" font-weight="800" fill="'+EM+'" font-family="sans-serif">'+esc(t('viz.chart'))+'</text>';
+  var yTicks=[0,Math.round(maxT/2),maxT];
+  for(i=0;i<yTicks.length;i++){
+    var yv=yTicks[i], yy=gy(yv);
+    o+='<line x1="'+GX0+'" y1="'+fx(yy)+'" x2="'+GX1+'" y2="'+fx(yy)+'" stroke="#e3f3eb" stroke-width="1"/>';
+    o+='<text x="'+(GX0-7)+'" y="'+fx(yy+4)+'" text-anchor="end" font-size="10.5" font-weight="700" fill="#7ba593" font-family="monospace">'+yv+'</text>';
+  }
+  var pts=[{x:gx(0),y:gy(CFG.start),v:CFG.start,step:0}];
+  for(i=0;i<moves.length;i++) pts.push({x:gx(i+1),y:gy(moves[i].to),v:moves[i].to,step:i+1});
+  /* 全路径预览（虚线） */
+  var dAll=[];
+  for(i=0;i<pts.length;i++) dAll.push((i?'L':'M')+fx(pts[i].x)+','+fx(pts[i].y));
+  o+='<path d="'+dAll.join(' ')+'" fill="none" stroke="'+GREY+'" stroke-width="2" stroke-dasharray="5 5" opacity=".75"/>';
+  /* 已走段 */
+  for(i=0;i<done;i++){
+    var a=pts[i],b=pts[i+1],mv=moves[i];
+    var isCur=(i===done-1);
+    var col=(mv.kind==='edge'||mv.kind==='jump'||mv.kind==='return')?TEAL:EM;
+    if(isCur) col=ORANGE;
+    o+='<line x1="'+fx(a.x)+'" y1="'+fx(a.y)+'" x2="'+fx(b.x)+'" y2="'+fx(b.y)+'" stroke="'+col+'" stroke-width="'+(isCur?4:2.6)+'"'+
+       ((mv.kind==='edge'||mv.kind==='jump')&&!isCur?' stroke-dasharray="6 4"':'')+'/>';
+    if(isCur&&mv.dist>0){
+      var mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dw=Math.max(38,String(mv.dist).length*9+26);
+      o+='<rect x="'+fx(mx-dw/2)+'" y="'+fx(my-11)+'" width="'+dw+'" height="18" rx="6" fill="#fff" stroke="'+ORANGE+'" stroke-width="1.2"/>';
+      o+='<text x="'+fx(mx)+'" y="'+fx(my+2)+'" text-anchor="middle" font-size="11" font-weight="800" fill="'+ORANGE+'" font-family="monospace">Δ'+mv.dist+'</text>';
+    }
+  }
+  /* 节点 */
+  var skipLab=(W<560&&M>12);
+  for(i=0;i<pts.length;i++){
+    var q=pts[i], passed=(i<=done), isNow=(i===done);
+    var mc=(i>0)?moves[i-1]:null;
+    var nodeCol=isNow?ORANGE:(passed?((mc&&(mc.kind==='edge'||mc.kind==='jump'||mc.kind==='return'))?TEAL:EM):'#ffffff');
+    o+='<circle cx="'+fx(q.x)+'" cy="'+fx(q.y)+'" r="'+(isNow?6:4.5)+'" fill="'+nodeCol+'" stroke="'+(passed?nodeCol:GREY)+'" stroke-width="2"/>';
+    if(!skipLab||(i%2===0)||isNow){
+      var above=(i%2===0), nly=above?q.y-9:q.y+15;
+      o+='<text x="'+fx(q.x)+'" y="'+fx(nly)+'" text-anchor="middle" font-size="'+fsNode+'" font-weight="800" fill="'+(isNow?ORANGE:INK)+'" font-family="monospace">'+q.v+'</text>';
+    }
+    if(!skipLab||(i%2===0)) o+='<text x="'+fx(q.x)+'" y="'+(GY1+14)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#7ba593" font-family="monospace">'+(i===0?0:i)+'</text>';
+  }
+  o+='<text x="'+fx(GX1)+'" y="'+(GY1+27)+'" text-anchor="end" font-size="10.5" font-weight="700" fill="#7ba593" font-family="sans-serif">'+esc(t('viz.stepLab'))+'</text>';
+  $('diskSvg').innerHTML=o;
+}
+
+/* ===================== 渲染：统计 / 旁白 / 表格 ===================== */
+function renderStats(last){
+  var n=CFG.reqs.length;
+  $('statHead').textContent=last?last.head:CFG.start;
+  $('statMove').textContent=last&&last.move?last.move.dist:'—';
+  $('statCum').textContent=last?last.cum:0;
+  $('statAvg').textContent=last?num(last.cum/n):'0';
+  $('statDone').textContent=(last?last.done:0)+' / '+n;
+  $('statMove').className='stat-v '+(last&&last.move&&last.move.dist>0?'b-hot':'');
+  $('statCum').className='stat-v b-info';
+  $('statAvg').className='stat-v b-ok';
+}
+function renderNarr(last){
+  if(!last){
+    $('narrBadge').textContent=LANG==='zh'?'准备':'READY';
+    $('narrTitle').textContent=LANG==='zh'?'点击「下一步」开始逐步演示':'Click "Next" to start the trace';
+    $('narrBody').innerHTML=LANG==='zh'
+      ? '当前算法 <b>'+CFG.algo+'</b>：'+ruleText(algoOf(CFG.algo))+' 上方磁道带标出所有请求的位置，下方折线将按服务顺序画出磁头每一次移动。'
+      : 'Current algorithm <b>'+CFG.algo+'</b>: '+ruleText(algoOf(CFG.algo))+' The track map above marks every pending request; the chart below will draw each head movement in service order.';
+    $('narrFormula').textContent='';
+    return;
+  }
+  var x=last.txt[LANG]||last.txt.zh;
+  $('narrBadge').textContent=(last.moveCount===0)?(LANG==='zh'?'起点':'START'):(LANG==='zh'?'第 '+last.moveCount+' 步':'STEP '+last.moveCount);
+  $('narrTitle').textContent=x.t;
+  $('narrBody').innerHTML=x.b;
+  $('narrFormula').textContent=x.f;
+}
+function renderControls(){
+  $('stepNow').textContent=cur;
+  $('stepTotal').textContent=STEPS.length;
+  $('progressBar').style.width=(STEPS.length?(cur/STEPS.length*100):0)+'%';
+  $('btnPrev').disabled=(cur<=0);
+  $('btnNext').disabled=(cur>=STEPS.length);
+  $('btnAuto').disabled=(cur>=STEPS.length);
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+}
+function renderDetail(last){
+  if(!PLAN) return;
+  var o='',done=last?last.moveCount:0,i;
+  for(i=0;i<PLAN.moves.length;i++){
+    var m=PLAN.moves[i];
+    var key=m.kind==='edge'?'kind.edge':(m.kind==='jump'?'kind.jump':(m.kind==='return'?'kind.return':'kind.serve'));
+    var isEmpty=(m.kind!=='serve');
+    o+='<tr class="'+(i===done-1?'hot':'')+'">'+
+       '<td>'+(i+1)+'</td><td>'+m.from+'</td><td>'+m.to+'</td><td>'+m.dist+'</td><td>'+m.cumulative+'</td>'+
+       '<td class="'+(isEmpty?'empty':'')+'">'+esc(t(key))+'</td></tr>';
+  }
+  o+='<tr class="total"><td colspan="3">'+esc(t('tb.sum'))+'</td><td>'+PLAN.total+'</td><td>'+num(PLAN.avg)+'</td><td>Σ|Δ|/n</td></tr>';
+  $('detailBody').innerHTML=o;
+}
+function renderCompare(){
+  if(!CMP) return;
+  var o='',i,best=CMP.best;
+  for(i=0;i<ALGOS.length;i++){
+    var a=ALGOS[i],r=CMP.rows[a.k];
+    o+='<tr data-algo="'+a.k+'" class="'+(a.k===CFG.algo?'hot':'')+'">'+
+       '<td class="algo-tag">'+a.k+'</td>'+
+       '<td class="seq">'+r.seq.join('→')+'</td>'+
+       '<td class="'+(a.k===best?'best':'')+'">'+r.total+'</td>'+
+       '<td>'+num(r.avg)+'</td>'+
+       '<td>'+esc(LANG==='zh'?a.note.zh:a.note.en)+'</td></tr>';
+  }
+  $('cmpBody').innerHTML=o;
+  $('cmpNote').textContent=LANG==='zh'
+    ? '总磁道数最小的是 '+best+'（'+CMP.rows[best].total+'），平均寻道长度 = 总磁道数 ÷ '+CFG.reqs.length+' 个请求。绿色数字为本例最优。'
+    : 'Shortest total head movement: '+best+' ('+CMP.rows[best].total+'). Average seek length = total ÷ '+CFG.reqs.length+' requests. Green numbers mark the best in this case.';
+  var rows=$('cmpBody').querySelectorAll('tr');
+  for(i=0;i<rows.length;i++) rows[i].onclick=function(){ setAlgo(this.getAttribute('data-algo')); };
+}
+function buildNotes(){
+  var arr=NOTES[LANG]||NOTES.zh,o='';
+  for(var i=0;i<arr.length;i++) o+='<li>'+arr[i]+'</li>';
+  $('notesList').innerHTML=o;
+}
+function buildAlgoButtons(){
+  var o='';
+  for(var i=0;i<ALGOS.length;i++){
+    var a=ALGOS[i];
+    o+='<button type="button" class="algo-btn'+(a.k===CFG.algo?' active':'')+'" data-algo="'+a.k+'">'+
+       '<span class="ak">'+a.k+'</span><span class="an">'+esc(LANG==='zh'?a.zh:a.en)+'</span></button>';
+  }
+  $('algoRow').innerHTML=o;
+  var bs=$('algoRow').querySelectorAll('.algo-btn');
+  for(i=0;i<bs.length;i++) bs[i].onclick=function(){ setAlgo(this.getAttribute('data-algo')); };
+  $('cfgDir').disabled=!algoOf(CFG.algo).dir;
+  $('ruleText').textContent=ruleText(algoOf(CFG.algo));
+}
+function stageNote(){
+  if(!PLAN) return '';
+  return LANG==='zh'
+    ? CFG.algo+' · 总磁道数 '+PLAN.total+' · 平均 '+num(PLAN.avg)
+    : CFG.algo+' · total '+PLAN.total+' · avg '+num(PLAN.avg);
+}
+function render(){
+  var last=cur>0?STEPS[cur-1]:null;
+  renderStats(last); renderViz(last); renderNarr(last); renderDetail(last); renderControls();
+  $('stageNote').textContent=stageNote();
+}
+
+/* ===================== 配置 / 交互 ===================== */
+function readCfg(){
+  var maxT=parseInt($('cfgMax').value,10);
+  var parsed=parseQueue($('seqInput').value,maxT);
+  var start=parseInt($('cfgStart').value,10);
+  if(parsed.err) return {err:parsed.err};
+  if(!/^\d+$/.test(String($('cfgStart').value).trim())||!isFinite(start)||start<0||start>maxT) return {err:'START'};
+  return {reqs:parsed.reqs,start:start,maxT:maxT,dir:parseInt($('cfgDir').value,10)||1};
+}
+function applyAll(){
+  var c=readCfg();
+  if(c.err){ $('cfgErr').textContent=ERR[LANG][c.err]||c.err; return false; }
+  $('cfgErr').textContent='';
+  CFG.reqs=c.reqs; CFG.start=c.start; CFG.maxT=c.maxT; CFG.dir=c.dir;
+  CMP=compareAll(CFG.reqs,CFG.start,CFG.maxT,CFG.dir);
+  PLAN=CMP.rows[CFG.algo];
+  /* 累计值预写，供明细表使用 */
+  var cum=0;
+  for(var i=0;i<PLAN.moves.length;i++){ cum+=PLAN.moves[i].dist; PLAN.moves[i].cumulative=cum; }
+  STEPS=buildSteps();
+  stopPlay(); cur=0;
+  $('reqCount').textContent=CFG.reqs.length;
+  buildAlgoButtons(); renderCompare(); render();
+  return true;
+}
+function setAlgo(k){
+  if(CFG.algo===k) return;
+  var old=CFG.algo;
+  CFG.algo=k;
+  if(!applyAll()){ CFG.algo=old; buildAlgoButtons(); }
+}
+function preset(kind){
+  if(kind==='classic'){
+    $('seqInput').value='55 58 39 18 90 160 150 38 184';
+    $('cfgStart').value='100'; $('cfgMax').value='199'; $('cfgDir').value='1';
+  }else if(kind==='starve'){
+    $('seqInput').value='55 58 60 62 64 66 68 70 190 55 58 60';
+    $('cfgStart').value='65'; $('cfgMax').value='199'; $('cfgDir').value='1';
+  }else{
+    var mx=parseInt($('cfgMax').value,10), arr=[];
+    for(var i=0;i<9+Math.floor(Math.random()*4);i++) arr.push(Math.floor(Math.random()*(mx+1)));
+    $('seqInput').value=arr.join(' ');
+    $('cfgStart').value=Math.floor(Math.random()*(mx+1));
+  }
+  applyAll();
+}
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent=t(nodes[i].getAttribute('data-i18n'));
+  $('langZh').classList.toggle('active',LANG==='zh');
+  $('langEn').classList.toggle('active',LANG==='en');
+  if(PLAN) STEPS=buildSteps();
+  buildAlgoButtons(); buildNotes(); renderCompare(); render();
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+function stopPlay(){ if(timer){ clearInterval(timer); timer=null; } playing=false; }
+function next(){ if(cur<STEPS.length){ cur++; render(); if(cur>=STEPS.length) stopPlay(); } }
+function startPlay(){
+  if(cur>=STEPS.length) cur=0;
+  playing=true; render();
+  var ms=1150-parseInt($('speedRange').value,10)*95;
+  timer=setInterval(function(){ if(cur>=STEPS.length){ stopPlay(); render(); return; } next(); },ms);
+}
+function bind(){
+  $('btnApply').addEventListener('click',applyAll);
+  $('btnClassic').addEventListener('click',function(){preset('classic');});
+  $('btnStarve').addEventListener('click',function(){preset('starve');});
+  $('btnRandom').addEventListener('click',function(){preset('random');});
+  $('btnNext').addEventListener('click',function(){stopPlay();next();});
+  $('btnPrev').addEventListener('click',function(){stopPlay();if(cur>0){cur--;render();}});
+  $('btnReset').addEventListener('click',function(){stopPlay();cur=0;render();});
+  $('btnAuto').addEventListener('click',function(){ if(playing){stopPlay();render();}else startPlay(); });
+  $('langZh').addEventListener('click',function(){ LANG='zh'; applyLang(); });
+  $('langEn').addEventListener('click',function(){ LANG='en'; applyLang(); });
+  $('cfgDir').addEventListener('change',applyAll);
+  $('cfgMax').addEventListener('change',applyAll);
+  $('seqInput').addEventListener('keydown',function(e){ if(e.key==='Enter') applyAll(); });
+}
+function init(){ bind(); buildAlgoButtons(); buildNotes(); applyAll(); applyLang(); }
+init();
+</script>
+</body>
+</html>

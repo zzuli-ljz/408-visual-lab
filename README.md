@@ -32,6 +32,7 @@
 | 知识点 · 图算法四合一：Dijkstra 单源最短路、Floyd 全对最短路（矩阵逐轮演化）、Prim 与 Kruskal 最小生成树（并查集判环、连通分量染色），同一张图切换对比，支持自定义/随机/教材经典图，有向无向可切 | 数据结构 | [打开](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
 | 知识点 · TCP 三次握手 / 四次挥手 / 状态机：时序图逐段发报文 + 双侧 FSM 同步点亮，可模拟第 3 个 ACK 丢失后的超时重传，含 11 个状态速查表与 408 考点 | 计算机网络 | [打开](https://zzuli-ljz.github.io/408-visual-lab/computer-networks/tcp-handshake.html) |
 | 知识点 · 存储层次地址翻译：虚拟地址 → TLB → 页表 → 物理地址 → Cache → 主存全链路逐步追踪；VA/PA 位域按页式与 Cache 双视角拆解，可配置地址位数、页大小、一/二级页表、TLB 与 Cache 的容量/相联度/替换策略，含缺页调页、块装入与 AMAT 平均访问时间计算 | 计算机组成原理 | [打开](https://zzuli-ljz.github.io/408-visual-lab/computer-organization/memory-hierarchy.html) |
+| 知识点 · 磁盘调度六算法：FCFS、SSTF、SCAN（电梯）、C-SCAN、LOOK、C-LOOK 同一组请求横向对比；磁道分布带 + 按服务顺序绘制的寻道折线逐步追踪，可配置请求队列、起始磁头、磁道上限与初始方向，自动统计总磁道数与平均寻道长度，并演示空程 / 返程是否计入 | 操作系统 | [打开](https://zzuli-ljz.github.io/408-visual-lab/operating-system/disk-scheduling.html) |
 
 更多演示持续添加中（每周更新）。More demos are added regularly.
 
@@ -121,6 +122,7 @@ The **site home page** `index.html` is a card-based navigation: demos grouped by
 | Topic · Graph Algorithms Combined: Dijkstra (single-source), Floyd (all-pairs, evolving matrix), Prim & Kruskal (MST with union-find cycle detection and component coloring) — switch algorithms on the same graph; custom / random / textbook presets, directed or undirected | Data Structures | [Open](https://zzuli-ljz.github.io/408-visual-lab/data-structure/graph-algorithms.html) |
 | Topic · TCP 3-way Handshake / 4-way Close / State Machine: sequence diagram + live dual FSM, with a lost-3rd-ACK retransmission scenario, an 11-state cheat sheet and exam notes | Computer Networks | [Open](https://zzuli-ljz.github.io/408-visual-lab/computer-networks/tcp-handshake.html) |
 | Topic · Memory Hierarchy Address Translation: VA → TLB → page table → PA → cache → main memory, step by step; paging-view and cache-view bit-field breakdown, configurable VA/PA widths, page size, 1/2-level page tables, TLB & cache size / associativity / replacement, page faults, block fills and AMAT | Computer Organization | [Open](https://zzuli-ljz.github.io/408-visual-lab/computer-organization/memory-hierarchy.html) |
+| Topic · Six Disk Scheduling Algorithms: FCFS, SSTF, SCAN (elevator), C-SCAN, LOOK and C-LOOK compared on the same request queue. A track-distribution strip plus a seek trajectory drawn in service order; configurable queue, initial head, max track and direction, with total cylinders and average seek length computed automatically — including when empty return travel counts | Operating Systems | [Open](https://zzuli-ljz.github.io/408-visual-lab/operating-system/disk-scheduling.html) |
 
 More demos are added regularly.
 

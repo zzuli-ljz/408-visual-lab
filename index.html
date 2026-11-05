@@ -383,6 +383,15 @@ var DEMOS = [
           en:'VA → TLB → page table → PA → cache → main memory. Bit fields, configurable hardware, page faults and AMAT, all traced step by step.'},
     tags:{zh:['TLB / Cache','位域拆解','AMAT'], en:['TLB / Cache','Bit fields','AMAT']},
     keys:'memory cache tlb page table 页表 快表 地址翻译 address translation 虚拟地址 va pa 缺页 page fault amat 组相联 lru fifo'
+  },
+  {
+    id:'disk', subject:'os', path:'operating-system/disk-scheduling.html',
+    kind:'topic', thumb:'disk', date:'2026-11-05',
+    title:{zh:'磁盘调度六算法', en:'Six Disk Scheduling Algorithms'},
+    desc:{zh:'FCFS / SSTF / SCAN / C-SCAN / LOOK / C-LOOK 同一组请求横向对比；磁道分布带 + 寻道折线逐步追踪，自动算清总磁道数与平均寻道长度。',
+          en:'FCFS / SSTF / SCAN / C-SCAN / LOOK / C-LOOK on the same request queue. A track map plus a step-by-step seek trajectory, with total and average seek length computed for you.'},
+    tags:{zh:['6 种算法','磁头轨迹','平均寻道'], en:['6 algorithms','Head trajectory','Avg. seek']},
+    keys:'disk scheduling 磁盘调度 磁头 fcfs sstf scan cscan look clook 电梯算法 循环扫描 寻道时间 平均寻道长度 磁道 track head cylinder 空程'
   }
 ];
 
@@ -390,8 +399,8 @@ var DEMOS = [
 var PLANNED = {
   ds:{zh:['哈希表 ASL 计算','AVL 四种旋转','KMP 的 next 数组','B 树插入与分裂','哈夫曼树与编码'],
       en:['Hash Table ASL','AVL Rotations','KMP next Array','B-Tree Insert','Huffman Coding']},
-  os:{zh:['进程调度甘特图','页面置换算法','PV 同步与信号量','银行家算法','磁盘调度','文件系统索引'],
-      en:['CPU Scheduling Gantt','Page Replacement','PV Semaphores','Banker\'s Algorithm','Disk Scheduling','File Indexing']},
+  os:{zh:['进程调度甘特图','页面置换算法','PV 同步与信号量','银行家算法','文件系统索引'],
+      en:['CPU Scheduling Gantt','Page Replacement','PV Semaphores','Banker\'s Algorithm','File Indexing']},
   co:{zh:['Cache 三种映射','五段流水线时空图','IEEE 754 位域拆解','补码运算与溢出'],
       en:['Cache Mapping Modes','5-Stage Pipeline','IEEE 754 Bit Fields','Two\'s Complement & Overflow']},
   cn:{zh:['TCP 拥塞控制曲线','GBN / SR 滑动窗口','子网划分与 CIDR','CSMA/CD 退避'],
@@ -573,6 +582,29 @@ var THUMBS = {
       out+='<text x="'+(65+i*47)+'" y="82" text-anchor="middle" font-size="13" font-weight="800" fill="'+(hot?'#fff':s.color)+'" font-family="monospace">'+[1,3,7,2,5][i]+'</text>';
     }
     out+='<text x="160" y="136" text-anchor="middle" font-size="11" font-weight="800" fill="'+s.accent+'" font-family="monospace">page frames</text>';
+    return out;
+  },
+  disk:function(s){
+    var out='',i;
+    out+='<line x1="28" y1="46" x2="292" y2="46" stroke="'+s.color+'" stroke-width="1" opacity=".12"/>';
+    out+='<line x1="28" y1="76" x2="292" y2="76" stroke="'+s.color+'" stroke-width="1" opacity=".12"/>';
+    var pts=[[28,64],[72,28],[112,44],[160,20],[206,58],[252,34],[292,52]];
+    out+='<path d="'+pts.map(function(p,j){return (j?'L':'M')+p[0]+','+p[1];}).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="2.6" opacity=".85"/>';
+    for(i=0;i<pts.length;i++){
+      var hot=(i===3);
+      out+='<circle cx="'+pts[i][0]+'" cy="'+pts[i][1]+'" r="'+(hot?5:3.5)+'" fill="'+(hot?s.accent:'#fff')+'" stroke="'+s.color+'" stroke-width="2"/>';
+    }
+    out+='<rect x="28" y="104" width="264" height="10" rx="5" fill="'+s.tint+'" stroke="'+s.line+'" stroke-width="1.4"/>';
+    var tr=[58,96,132,178,224,266];
+    for(i=0;i<tr.length;i++){
+      var done=(i===1||i===2);
+      out+='<circle cx="'+tr[i]+'" cy="98" r="6" fill="'+(done?s.color:'#fff')+'" stroke="'+s.color+'" stroke-width="2"/>';
+    }
+    out+='<path d="M178,116 l-6,10 l12,0 z" fill="'+s.accent+'"/>';
+    out+='<line x1="196" y1="121" x2="222" y2="121" stroke="'+s.accent+'" stroke-width="2"/>';
+    out+='<path d="M222,121 l-7,-4 l0,8 z" fill="'+s.accent+'"/>';
+    out+='<text x="28" y="141" font-size="10" font-weight="800" fill="'+s.color+'" font-family="monospace">0</text>';
+    out+='<text x="292" y="141" text-anchor="end" font-size="10" font-weight="800" fill="'+s.color+'" font-family="monospace">199</text>';
     return out;
   }
 };
