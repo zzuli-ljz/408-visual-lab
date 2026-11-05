@@ -349,6 +349,15 @@ var DEMOS = [
           en:'A statement-by-statement record-semaphore simulator: value changes, wait queues, wakeups and deadlock, all visible. Producer–consumer, reader–writer, dining philosophers and precedence graphs, plus a switch that reverses the P order to reproduce deadlock.'},
     tags:{zh:['4 个经典问题','阻塞队列','死锁复现'], en:['4 classic problems','Wait queues','Deadlock']},
     keys:'pv semaphore 信号量 同步 互斥 wait signal 生产者消费者 producer consumer 读者写者 reader writer 哲学家 dining philosophers 前驱图 司机售票员 死锁 deadlock 记录型 阻塞队列 readcount mutex'
+  },
+  {
+    id:'nd', subject:'cn', path:'computer-networks/arp-dhcp-dns.html',
+    kind:'topic', thumb:'nd', date:'2026-11-05',
+    title:{zh:'ARP / DHCP / DNS 全过程时序图', en:'ARP / DHCP / DNS Packet Sequences'},
+    desc:{zh:'从主机刚接入网络到打开网页的完整链路：DHCP 四步 DORA 拿地址、ARP 广播找下一跳 MAC、DNS 递归+迭代查 IP，逐条报文画出广播/单播，同步记录 ARP 缓存、租约与 DNS 缓存。',
+          en:'A host joining the network and loading a page: DHCP DORA for an address, ARP broadcast for the next-hop MAC, recursive + iterative DNS for the IP. Every packet drawn with broadcast/unicast, backed by live ARP cache, lease and DNS cache tables.'},
+    tags:{zh:['4 个时序场景','广播 vs 单播','递归 vs 迭代'], en:['4 scenarios','Broadcast vs unicast','Recursive vs iterative']},
+    keys:'arp dhcp dns 地址解析 域名解析 时序图 sequence diagram dora discover offer request ack 广播 单播 递归迭代 recursive iterative 根域名 顶级域 权威 缓存 ttl 租约 lease 网关 mac udp 53 67 68 完整链路 full chain http'
   }
 ];
 
@@ -566,6 +575,25 @@ var THUMBS = {
     out+='<path d="M150,112 l8,0" stroke="'+s.accent+'" stroke-width="2"/>';
     out+='<path d="M158,112 l-6,-4 l0,8 z" fill="'+s.accent+'"/>';
     out+='<text x="160" y="144" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+s.accent+'" font-family="monospace">P(S) / V(S)</text>';
+    return out;
+  },
+  nd:function(s){
+    var out='',i,xs=[46,150,254],labs=['H','DHCP','DNS'],cols=[s.color,s.accent,'#7c3aed'];
+    for(i=0;i<3;i++){
+      out+='<rect x="'+(xs[i]-38)+'" y="12" width="76" height="34" rx="9" fill="#fff" stroke="'+cols[i]+'" stroke-width="2"/>';
+      out+='<text x="'+xs[i]+'" y="35" text-anchor="middle" font-size="14" font-weight="800" fill="'+cols[i]+'" font-family="monospace">'+labs[i]+'</text>';
+      out+='<line x1="'+xs[i]+'" y1="46" x2="'+xs[i]+'" y2="126" stroke="'+s.line+'" stroke-width="1.6" stroke-dasharray="5 4"/>';
+    }
+    var ys=[63,88,113],pairs=[[0,2],[1,0],[0,1]],names=['DISCOVER','OFFER','QUERY'];
+    for(i=0;i<3;i++){
+      var a=xs[pairs[i][0]],b=xs[pairs[i][1]],y=ys[i],d=b>a?1:-1,c=cols[i];
+      if(i===0) out+='<circle cx="'+xs[1]+'" cy="'+y+'" r="4" fill="#fff" stroke="'+c+'" stroke-width="2"/>';
+      out+='<path d="M'+a+','+y+' L'+(b-d*9)+','+y+'" stroke="'+c+'" stroke-width="2.8" fill="none"'+(i===0?' stroke-dasharray="7 5"':'')+'/>';
+      out+='<path d="M'+(b-d*9)+','+y+' l'+(-d*8)+',-5 l0,10 z" fill="'+c+'"/>';
+      out+='<rect x="'+((a+b)/2-42)+'" y="'+(y-20)+'" width="84" height="18" rx="6" fill="#fff" stroke="'+s.line+'" stroke-width="1.2"/>';
+      out+='<text x="'+((a+b)/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="11" font-weight="800" fill="'+c+'" font-family="monospace">'+names[i]+'</text>';
+    }
+    out+='<text x="160" y="149" text-anchor="middle" font-size="13" font-weight="800" fill="'+s.accent+'" font-family="monospace">ARP / DHCP / DNS</text>';
     return out;
   }
 };

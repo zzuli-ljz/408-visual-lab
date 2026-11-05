@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>408 计算机网络 · ARP / DHCP / DNS 全过程时序图</title>
+<style>
+  /* 主题：计算机网络 = 天青 Sky #0284c7（四科配色规范见 README） */
+  :root{
+    --bg:#f0f7fb; --card:#ffffff; --ink:#182330; --muted:#64748b;
+    --sky:#0284c7; --sky-deep:#0369a1; --sky-soft:#e4f3fc; --sky-line:#b7dcf0;
+    --cyan:#0891b2; --cyan-soft:#e2f6fa;
+    --violet:#7c3aed; --violet-soft:#f3edff;
+    --green:#059669; --green-soft:#e6f7f1;
+    --amber:#b45309; --amber-line:#d97706; --amber-soft:#fef4e4;
+    --rose:#e11d48;
+    --line:#dfeaf2; --shadow:0 10px 30px rgba(21,58,82,.08);
+    --mono:ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(900px 520px at 8% -12%, #dff0fb 0%, transparent 60%),
+      radial-gradient(820px 500px at 104% 4%, #e6f7fb 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink); line-height:1.78; font-size:16.5px; padding:30px 16px 64px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  code{font-family:var(--mono);background:#eef7fc;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.92em;color:#075985;white-space:nowrap}
+  .lang-switch{display:inline-flex;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 10px rgba(16,50,70,.08)}
+  .lang-btn{border:none;background:transparent;border-radius:999px;padding:6px 18px;font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit}
+  .lang-btn.active{background:linear-gradient(135deg,var(--sky),#22a3d8);color:#fff;box-shadow:0 3px 10px rgba(2,132,199,.35)}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .hero{margin-bottom:22px}
+  .tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{font-size:13.5px;font-weight:700;color:var(--sky-deep);background:var(--sky-soft);border:1px solid var(--sky-line);border-radius:999px;padding:4px 14px}
+  .tag-ans{color:var(--green);background:var(--green-soft);border-color:#bfe8d7}
+  .hero h1{font-size:clamp(21px,3.2vw,29px);line-height:1.42;letter-spacing:.3px}
+  .hero .sub{color:var(--muted);font-size:16px;margin-top:8px}
+  .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);border:1px solid rgba(223,234,242,.9);padding:24px 26px;margin-bottom:22px}
+  .card-title{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .title-note{font-size:13.5px;font-weight:600;color:var(--muted)}
+  /* ---------- 按钮 / 表单 ---------- */
+  .type-btn{
+    border:1.5px solid var(--line);background:#fbfdff;border-radius:11px;
+    padding:9px 16px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);
+    transition:all .2s;font-family:inherit;text-align:left;
+  }
+  .type-btn:hover{border-color:var(--sky);color:var(--sky-deep)}
+  .type-btn.active{background:linear-gradient(135deg,var(--sky),#1c9fd6);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(2,132,199,.3)}
+  .type-btn small{display:block;font-size:11.5px;font-weight:600;opacity:.78;letter-spacing:.2px}
+  .type-btn.active small{opacity:.92}
+  .type-row,.preset-row,.opt-row{display:flex;gap:9px;flex-wrap:wrap;align-items:stretch}
+  .preset-row{margin-top:14px;align-items:center}
+  .opt-row{margin-top:14px;gap:14px}
+  .sec-lab{font-size:13.5px;font-weight:800;color:var(--sky-deep);letter-spacing:.3px;margin:16px 0 8px;padding-top:12px;border-top:1px dashed var(--line)}
+  .btn-sm{border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--sky-deep);transition:all .2s;font-family:inherit}
+  .btn-sm:hover{border-color:var(--sky);background:var(--sky-soft)}
+  .btn-sm.active{background:var(--sky);color:#fff;border-color:transparent}
+  .cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .cfg-item{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:700;color:var(--muted)}
+  .cfg-item input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;font-weight:700;font-family:var(--mono);color:var(--ink);outline:none;background:#fdfeff}
+  .cfg-item input:focus{border-color:var(--sky)}
+  .cfg-item input:disabled{opacity:.5;background:#f2f6f9}
+  .chk{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--sky);cursor:pointer}
+  .chk.off{opacity:.42;cursor:not-allowed}
+  .cfg-hint{font-size:13px;color:var(--muted);font-weight:600;margin-top:12px;line-height:1.7}
+  /* ---------- 统计 ---------- */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:8px}
+  .stat{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;background:#fbfdff;text-align:center;overflow:hidden}
+  .stat-k{display:block;font-size:13px;color:var(--muted);font-weight:600}
+  .stat-v{display:block;font-size:20px;font-weight:800;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{display:inline-block;font-size:14px;font-weight:800;border-radius:999px;padding:2px 13px;margin-top:3px;letter-spacing:.2px}
+  .b-gray{background:#eef2f6;color:#4b5563}
+  .b-sky{background:var(--sky-soft);color:var(--sky-deep)}
+  .b-violet{background:var(--violet-soft);color:var(--violet)}
+  .b-green{background:var(--green-soft);color:var(--green)}
+  .b-amber{background:var(--amber-soft);color:var(--amber)}
+  /* ---------- 时序图 ---------- */
+  .seq-wrap{margin:10px 0 4px;background:linear-gradient(180deg,#fcfdff,#f7fbfe);border:1.5px solid var(--line);border-radius:16px;padding:6px;height:min(36vh,320px);overflow:hidden;position:relative}
+  .seq-svg{width:100%;height:100%;display:block}
+  .life{stroke:#c7d7e3;stroke-width:2;stroke-dasharray:6 6}
+  .hdr{fill:#fff;stroke:var(--line);stroke-width:1.6}
+  .hdr.h-c{fill:var(--sky-soft);stroke:var(--sky)}
+  .hdr.h-s{fill:var(--violet-soft);stroke:var(--violet)}
+  .hdr.h-v{fill:var(--cyan-soft);stroke:var(--cyan)}
+  .hdr.h-g{fill:var(--green-soft);stroke:var(--green)}
+  .hdr.h-a{fill:var(--amber-soft);stroke:var(--amber-line)}
+  .hdr-short{font-size:15px;font-weight:800;text-anchor:middle;font-family:var(--mono)}
+  .hdr-name{font-size:10.5px;font-weight:700;text-anchor:middle;fill:#5b7285}
+  .msg-line{stroke-width:2.7;fill:none}
+  .msg-line.bc{stroke-dasharray:7 5}
+  .msg-lbl{fill:#fff;stroke:#e2ecf4;stroke-width:1.2}
+  .msg-name{font-size:13px;font-weight:800;text-anchor:middle;font-family:var(--mono)}
+  .msg-sub{font-size:11.5px;font-weight:600;text-anchor:middle;fill:#5c7181;font-family:var(--mono)}
+  .note-box{fill:#fff8ec;stroke:#e8c78b;stroke-width:1.5;stroke-dasharray:5 4}
+  .note-txt{font-size:13px;font-weight:700;fill:#8a5a12;text-anchor:middle}
+  .ref-line{font-size:13px;line-height:1.6;margin:3px 0}
+  .ref-line b{color:var(--sky-deep)}
+  .axis-txt{font-size:11px;fill:#93a5b4;font-weight:700}
+  .bc-dot{fill:#fff;stroke-width:2}
+  .pkt{animation:pin .38s ease both}
+  @keyframes pin{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+  .legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:9px;font-size:13px;color:var(--muted);font-weight:600}
+  .legend .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .dot-sky{background:var(--sky)} .dot-violet{background:var(--violet)} .dot-cyan{background:var(--cyan)}
+  .dot-green{background:var(--green)} .dot-amber{background:var(--amber-line)}
+  /* ---------- 控制 ---------- */
+  .ctrl-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .btn{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:9px 16px;font-size:14.5px;font-weight:700;cursor:pointer;color:var(--ink);transition:transform .18s,box-shadow .18s,opacity .18s;font-family:inherit}
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(20,50,70,.14)}
+  .btn:disabled{opacity:.42;cursor:not-allowed}
+  .btn-primary{background:linear-gradient(135deg,var(--sky),#1c9fd6);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(2,132,199,.32)}
+  .btn-play{background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border-color:transparent}
+  .speed-box{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--muted)}
+  .speed-box input{accent-color:var(--sky);cursor:pointer;width:100px}
+  .step-info{margin-left:auto;font-size:14.5px;font-weight:700;color:var(--muted)}
+  .step-info b{color:var(--sky-deep);font-size:18px}
+  .progress{height:8px;background:#e8f1f7;border-radius:999px;margin:10px 0 12px;overflow:hidden}
+  .progress-bar{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--sky),#38bdf8);transition:width .35s cubic-bezier(.22,.9,.32,1)}
+  .narr{border-radius:14px;border:1.5px solid var(--line);background:linear-gradient(180deg,#fbfdff,#f4fafd);padding:13px 16px}
+  .narr-head{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:5px}
+  .narr-badge{background:var(--sky);color:#fff;font-size:12.5px;font-weight:800;border-radius:999px;padding:2px 11px;white-space:nowrap}
+  .narr-title{font-size:16.5px;font-weight:800;line-height:1.5}
+  .narr-body{font-size:14.5px;color:#38495b;line-height:1.7}
+  .narr-body b{color:#0b2133}
+  .narr-formula{margin-top:8px;font-family:var(--mono);background:#fff;border:1.5px dashed var(--sky-line);border-radius:9px;padding:5px 11px;display:inline-block;color:var(--sky-deep);font-weight:700;font-size:12.5px}
+  .narr-formula:empty{display:none}
+  /* ---------- 表格 / 小结 ---------- */
+  .tbl-scroll{overflow:auto;max-height:min(30vh,280px);border-radius:10px}
+  .rtable{width:100%;border-collapse:collapse;font-size:13.8px}
+  .rtable th,.rtable td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  .rtable th{background:#f2f9fd;font-weight:800;color:#3e566b;position:sticky;top:0;z-index:1}
+  .rtable td.k{font-family:var(--mono);font-weight:800;color:var(--sky-deep);white-space:nowrap}
+  .rtable tr.hot td{background:var(--sky-soft)}
+  .rtable tr.dim td{color:#9aabba}
+  .proto-cell{font-weight:800;white-space:nowrap;font-family:var(--mono)}
+  .summary li{margin:8px 0 8px 20px;font-size:14.8px;line-height:1.72}
+  .summary b{color:var(--sky-deep)}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:8px}
+  .footer a{color:var(--sky-deep);font-weight:700;text-decoration:none}
+  @media (max-width:720px){
+    body{padding:20px 10px 48px;font-size:15.5px}
+    .card{padding:18px 15px}
+    .stat-row{grid-template-columns:1fr 1fr}
+    .stat-v{font-size:18px}
+    .step-info{margin-left:0;width:100%}
+    .cfg-grid{grid-template-columns:1fr 1fr}
+    .seq-wrap{height:270px}
+    .rtable{font-size:12.8px}
+    .rtable th,.rtable td{padding:5px 7px}
+  }
+  /* ===== 宽屏一屏式仪表盘（WIDE-DASHBOARD-BEGIN） ===== */
+  @media (min-width:1024px) and (min-height:600px){
+    html,body{height:100%}
+    body{padding:10px 14px;overflow:hidden;font-size:15.5px;line-height:1.65}
+    .wrap{
+      max-width:1920px;width:100%;height:calc(100vh - 20px);margin:0 auto;
+      display:grid;gap:11px;
+      grid-template-columns:minmax(255px,.9fr) minmax(0,1.6fr) minmax(285px,1fr);
+      grid-template-rows:auto minmax(0,1.1fr) minmax(0,.9fr) auto;
+    }
+    .hero{grid-column:1/-1;grid-row:1;margin:0;padding:0 2px}
+    .hero-top{align-items:center;gap:10px}
+    .tag-row{margin-bottom:4px;gap:6px}
+    .tag{font-size:12px;padding:2px 10px}
+    .hero h1{font-size:clamp(18px,1.55vw,25px);line-height:1.35}
+    .hero .sub{font-size:13.5px;margin-top:3px;line-height:1.5}
+    .lang-btn{padding:4px 13px;font-size:13px}
+    .wrap > .card{
+      grid-row:2 / span 2;margin:0;padding:12px 14px;min-width:0;min-height:0;
+      overflow:auto;overscroll-behavior:contain;
+      scrollbar-width:thin;scrollbar-color:#c8cce0 transparent;
+    }
+    .wrap > .card::-webkit-scrollbar{width:7px;height:7px}
+    .wrap > .card::-webkit-scrollbar-thumb{background:#c8cce0;border-radius:8px}
+    .card-title{position:sticky;top:0;z-index:3;background:var(--card);font-size:16px;margin-bottom:8px;gap:8px;padding:0 0 4px}
+    .title-note{font-size:12px}
+    .stat-row{gap:7px;margin-bottom:6px}
+    .stat{padding:5px 8px;border-radius:11px}
+    .stat-k{font-size:12px}
+    .stat-v{font-size:18px}
+    .badge{font-size:12.5px;padding:2px 9px}
+    .type-row,.preset-row,.opt-row,.ctrl-row,.cfg-line{gap:7px;margin-top:8px}
+    .ctrl-row{margin-top:8px}
+    .type-btn,.btn{padding:7px 12px;font-size:13px;border-radius:9px}
+    .btn-sm{padding:5px 10px;font-size:12px}
+    .type-btn small{font-size:10px}
+    .speed-box,.step-info{font-size:12.5px}
+    .step-info b{font-size:16px}
+    .cfg-item{font-size:12px;gap:2px}
+    .cfg-item input{padding:5px 8px;font-size:12.5px}
+    .chk{font-size:12px;gap:5px}
+    .chk input{width:14px;height:14px}
+    .sec-lab{font-size:12px;margin:9px 0 5px;padding-top:8px}
+    .progress{margin:6px 0 8px;height:7px}
+    .narr{padding:8px 11px;border-radius:11px}
+    .narr-head{gap:8px;margin-bottom:3px}
+    .narr-badge{font-size:11.5px;padding:2px 9px}
+    .narr-title{font-size:14.5px}
+    .narr-body{font-size:13px;line-height:1.55}
+    .narr-formula{font-size:11.5px;padding:3px 8px;margin-top:5px}
+    .legend{margin-top:6px;gap:9px;font-size:11.5px}
+    .cfg-hint{font-size:11.5px;margin-top:8px;line-height:1.55}
+    .summary li{font-size:12.5px;margin:3px 0 3px 16px;line-height:1.55}
+    .footer{grid-column:1/-1;grid-row:4;margin:0;font-size:11.5px;text-align:center}
+    .rtable{font-size:12px}
+    .rtable th,.rtable td{padding:3px 6px}
+    .tbl-scroll{max-height:none}
+    code{font-size:.92em}
+
+    /* 左：场景/参数 + 考点；中：全过程时序；右：状态表 + 三协议速查 */
+    .wrap{grid-template-rows:auto minmax(0,1.1fr) minmax(0,.9fr) auto}
+    .wrap > .card:nth-of-type(1){grid-column:1;grid-row:2}
+    .wrap > .card:nth-of-type(2){grid-column:2;grid-row:2 / span 2}
+    .wrap > .card:nth-of-type(3){grid-column:3;grid-row:2}
+    .wrap > .card:nth-of-type(4){grid-column:3;grid-row:3}
+    .wrap > .card:nth-of-type(5){grid-column:1;grid-row:3}
+    .seq-wrap{height:min(44vh,470px);margin:6px 0 2px;padding:4px}
+    .cfg-grid{gap:6px;margin-top:8px}
+    .opt-row{margin-top:9px;gap:10px}
+    .ref-line{font-size:10.5px;line-height:1.3;margin:0}
+    #refTable th,#refTable td{padding:2px 5px}
+    /* 左栏空间有限：口径说明已在考点速记里覆盖，宽屏隐藏以完整露出开关与预设 */
+    .wrap > .card:nth-of-type(1) .cfg-hint{display:none}
+    .wrap > .card:nth-of-type(1) .type-btn small{display:none}
+    .wrap > .card:nth-of-type(1) .type-btn{padding:5px 9px;font-size:12.5px}
+    .wrap > .card:nth-of-type(1) .sec-lab{margin:4px 0 3px;padding-top:4px;font-size:11px}
+    .wrap > .card:nth-of-type(1) .cfg-grid{gap:4px;margin-top:5px}
+    .wrap > .card:nth-of-type(1) .cfg-item{font-size:11px}
+    .wrap > .card:nth-of-type(1) .cfg-item input{padding:3px 7px;font-size:11.8px}
+    .wrap > .card:nth-of-type(1) .opt-row{margin-top:6px;gap:8px}
+    /* 预设按钮吸底：即使参数区需要内部滚动，四个预设始终可直接点击 */
+    .wrap > .card:nth-of-type(1) .preset-row{
+      position:sticky;bottom:0;z-index:2;background:var(--card);
+      margin-top:6px;padding:4px 0 2px;
+    }
+  }
+  @media (min-width:1024px) and (max-height:820px){
+    .wrap > .card{padding:8px 11px}
+    .card-title{font-size:14.5px;margin-bottom:5px}
+    .stat{padding:3px 6px}
+    .stat-k{font-size:11px}
+    .stat-v{font-size:16px}
+    .seq-wrap{height:min(30vh,230px)}
+    .ctrl-row{margin-top:5px}
+    .progress{margin:4px 0 5px;height:6px}
+    .narr{padding:6px 9px}
+    .narr-title{font-size:13px}
+    .narr-body{font-size:11.5px;line-height:1.4}
+    .narr-formula{font-size:10.5px;margin-top:3px;padding:2px 6px}
+    .legend{display:none}
+    .type-btn,.btn{padding:5px 9px;font-size:12px}
+    .type-btn small{display:none}
+    .btn-sm{padding:4px 8px;font-size:11px}
+    .cfg-item input{padding:4px 7px;font-size:11.5px}
+    .sec-lab{margin:6px 0 4px;padding-top:6px}
+    .cfg-hint{font-size:11px;margin-top:5px}
+    .summary li{font-size:11.5px;margin:2px 0 2px 14px;line-height:1.45}
+    .rtable{font-size:11.2px}
+    .rtable th,.rtable td{padding:2px 5px}
+  }
+  /* ===== /WIDE-DASHBOARD-END ===== */
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="tag-row">
+        <span class="tag" data-i18n="tag.subj">计算机网络 · 应用层 / 网络层</span>
+        <span class="tag" data-i18n="tag.scope">ARP · DHCP · DNS · 完整链路</span>
+        <span class="tag tag-ans" data-i18n="tag.inter">广播 / 单播 / 递归 / 迭代一图看清</span>
+      </div>
+      <div aria-label="Language" class="lang-switch" role="group">
+        <button class="lang-btn active" id="langZh" type="button">中文</button>
+        <button class="lang-btn" id="langEn" type="button">EN</button>
+      </div>
+    </div>
+    <h1 data-i18n="hero.h1">一台主机刚插上网线到打开网页：DHCP 拿地址、ARP 找 MAC、DNS 查 IP 的全过程</h1>
+    <p class="sub" data-i18n="hero.sub">时序图逐条发出报文，右侧状态表同步记录 ARP 缓存、DHCP 租约与 DNS 缓存 —— 把「谁是广播、谁是单播、谁递归谁迭代」彻底分清。</p>
+  </header>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="cfg.title">场景与参数</span> <span class="title-note" data-i18n="cfg.note">选一个过程，再决定是否走缓存 / 跨网段</span></h2>
+    <div class="type-row" id="scnRow">
+      <button class="type-btn" data-scn="arp" type="button"><span data-i18n="cfg.arp">ARP 地址解析</span><small data-i18n="cfg.arpSub">IP → MAC · 广播请求</small></button>
+      <button class="type-btn" data-scn="dhcp" type="button"><span data-i18n="cfg.dhcp">DHCP 四步 DORA</span><small data-i18n="cfg.dhcpSub">拿 IP / 掩码 / 网关 / DNS</small></button>
+      <button class="type-btn" data-scn="dns" type="button"><span data-i18n="cfg.dns">DNS 域名解析</span><small data-i18n="cfg.dnsSub">递归 + 迭代 · UDP 53</small></button>
+      <button class="type-btn active" data-scn="full" type="button"><span data-i18n="cfg.full">完整链路</span><small data-i18n="cfg.fullSub">接入 → 配置 → 解析 → 访问</small></button>
+    </div>
+
+    <div class="sec-lab" data-i18n="cfg.param">演示参数（可直接修改）</div>
+    <div class="cfg-grid">
+      <label class="cfg-item"><span data-i18n="cfg.hostIp">本机 IP（DHCP 前未知）</span><input id="cfgHost" type="text" value="192.168.1.10"></label>
+      <label class="cfg-item"><span data-i18n="cfg.targetIp">ARP 目标 IP（同网段）</span><input id="cfgTarget" type="text" value="192.168.1.20"></label>
+      <label class="cfg-item"><span data-i18n="cfg.domain">要解析的域名</span><input id="cfgDomain" type="text" value="www.example.com"></label>
+      <label class="cfg-item"><span data-i18n="cfg.resolved">解析结果 / 远端 IP</span><input id="cfgResolved" type="text" value="93.184.216.34"></label>
+      <label class="cfg-item"><span data-i18n="cfg.offer">DHCP 提供的 IP</span><input id="cfgOffer" type="text" value="192.168.1.100"></label>
+      <label class="cfg-item"><span data-i18n="cfg.lease">租约时长（秒）</span><input id="cfgLease" type="number" min="60" max="86400" value="3600"></label>
+    </div>
+
+    <div class="sec-lab" data-i18n="cfg.opt">可切换条件</div>
+    <div class="opt-row">
+      <label class="chk" id="wrapCross"><input id="chkCross" type="checkbox"><span data-i18n="cfg.cross">跨网段（ARP 解析网关）</span></label>
+      <label class="chk" id="wrapCache"><input id="chkCache" type="checkbox"><span data-i18n="cfg.cache">缓存命中（跳过查询）</span></label>
+      <label class="chk" id="wrapMulti"><input id="chkMulti" type="checkbox"><span data-i18n="cfg.multi">双 DHCP 服务器</span></label>
+      <label class="chk" id="wrapRenew"><input id="chkRenew" type="checkbox"><span data-i18n="cfg.renew">追加 T1 续租</span></label>
+    </div>
+
+    <div class="preset-row">
+      <button class="btn-sm active" id="btnClassic" type="button" data-i18n="cfg.p1">408 经典</button>
+      <button class="btn-sm" id="btnCache" type="button" data-i18n="cfg.p2">缓存命中</button>
+      <button class="btn-sm" id="btnMulti" type="button" data-i18n="cfg.p3">双服务器+续租</button>
+      <button class="btn-sm" id="btnRandom" type="button" data-i18n="cfg.p4">随机参数</button>
+    </div>
+    <p class="cfg-hint" data-i18n="cfg.hint">ARP 请求广播、应答单播；跨网段时解析的是默认网关的 MAC。DHCP 客户端用 UDP 68、服务器用 67，Discover 与 Request 都是广播。主机到本地 DNS 是递归查询，本地 DNS 到根 / 顶级域 / 权威是迭代查询；DNS 查询用 UDP 53，区域传送才用 TCP 53。</p>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="anim.title">全过程时序图</span> <span class="title-note" id="stageNote"></span></h2>
+
+    <div class="stat-row">
+      <div class="stat"><span class="stat-k" data-i18n="stat.msg">已发送报文</span><span class="stat-v" id="statMsg">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.proto">当前协议</span><span class="badge b-gray" id="statProto">—</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.bcast">广播报文</span><span class="stat-v" id="statBcast">0</span></div>
+      <div class="stat"><span class="stat-k" data-i18n="stat.cache">缓存状态</span><span class="badge b-gray" id="statCache">—</span></div>
+    </div>
+
+    <div class="seq-wrap"><svg class="seq-svg" id="seqSvg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="legend" id="legendRow">
+      <span><i class="dot dot-sky"></i><span data-i18n="lg.dhcp">DHCP</span></span>
+      <span><i class="dot dot-cyan"></i><span data-i18n="lg.arp">ARP</span></span>
+      <span><i class="dot dot-violet"></i><span data-i18n="lg.dns">DNS</span></span>
+      <span><i class="dot dot-amber"></i><span data-i18n="lg.http">HTTP / IP 转发</span></span>
+      <span><i class="dot dot-green"></i><span data-i18n="lg.note">说明步骤（不发报文）</span></span>
+    </div>
+
+    <div class="ctrl-row">
+      <button class="btn" id="btnPrev" type="button" data-i18n="ctrl.prev">← 上一步</button>
+      <button class="btn btn-primary" id="btnNext" type="button" data-i18n="ctrl.next">下一步 →</button>
+      <button class="btn btn-play" id="btnAuto" type="button" data-i18n="ctrl.auto">▶ 自动播放</button>
+      <button class="btn" id="btnReset" type="button" data-i18n="ctrl.reset">↺ 重置</button>
+      <span class="speed-box"><span data-i18n="ctrl.speed">速度</span><input id="speed" max="5" min="1" type="range" value="3"></span>
+      <span class="step-info"><span data-i18n="ctrl.step">第</span> <b id="stepNow">0</b> / <span id="stepTotal">0</span> <span data-i18n="ctrl.step2">步</span></span>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="narr">
+      <div class="narr-head">
+        <span class="narr-badge" id="narrBadge">—</span>
+        <span class="narr-title" id="narrTitle"></span>
+      </div>
+      <div class="narr-body" id="narrBody"></div>
+      <div class="narr-formula" id="narrFormula"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span id="stateTitle">状态表</span> <span class="title-note" id="stateNote"></span></h2>
+    <div class="tbl-scroll"><table class="rtable" id="stateTable">
+      <thead><tr><th data-i18n="tb.k">条目</th><th data-i18n="tb.v">当前值 / 状态</th></tr></thead>
+      <tbody id="stateBody"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title"><span data-i18n="ref.title">三协议速查表</span> <span class="title-note" data-i18n="ref.note">408 选择题最常考的口径差异</span></h2>
+    <div class="tbl-scroll"><table class="rtable" id="refTable">
+      <thead><tr id="refHead"></tr></thead>
+      <tbody id="refBody"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-title" data-i18n="notes.title">408 考点速记</h2>
+    <ul class="summary" id="notesList"></ul>
+  </section>
+
+  <p class="footer"><span data-i18n="footer.text">408 可视化实验室 · 计算机网络</span> · <a href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener">GitHub</a></p>
+</div>
+
+<script>
+/* =========================================================
+   ARP / DHCP / DNS 全过程时序图
+   科目主题：计算机网络 · Sky #0284c7
+   ========================================================= */
+var NS='http://www.w3.org/2000/svg';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fx(n){ return Math.round(n*10)/10; }
+
+var LANG='zh';
+try{ LANG=localStorage.getItem('408lab-lang')||'zh'; }catch(e){}
+
+var T={
+  'tag.subj':{zh:'计算机网络 · 应用层 / 网络层',en:'Computer Networks · App / Network Layer'},
+  'tag.scope':{zh:'ARP · DHCP · DNS · 完整链路',en:'ARP · DHCP · DNS · Full chain'},
+  'tag.inter':{zh:'广播 / 单播 / 递归 / 迭代一图看清',en:'Broadcast, unicast, recursion and iteration'},
+  'hero.h1':{zh:'一台主机刚插上网线到打开网页：DHCP 拿地址、ARP 找 MAC、DNS 查 IP 的全过程',en:'From plugging in a cable to loading a page: DHCP gets an address, ARP finds a MAC, DNS resolves the name'},
+  'hero.sub':{zh:'时序图逐条发出报文，右侧状态表同步记录 ARP 缓存、DHCP 租约与 DNS 缓存 —— 把「谁是广播、谁是单播、谁递归谁迭代」彻底分清。',en:'Packets appear one by one while the tables on the right track the ARP cache, DHCP lease and DNS cache — never confuse broadcast with unicast, or recursion with iteration again.'},
+
+  'cfg.title':{zh:'场景与参数',en:'Scenario & settings'},
+  'cfg.note':{zh:'选一个过程，再决定是否走缓存 / 跨网段',en:'Pick a process, then toggle cache / cross-subnet'},
+  'cfg.arp':{zh:'ARP 地址解析',en:'ARP resolution'},
+  'cfg.arpSub':{zh:'IP → MAC · 广播请求',en:'IP → MAC · broadcast request'},
+  'cfg.dhcp':{zh:'DHCP 四步 DORA',en:'DHCP DORA'},
+  'cfg.dhcpSub':{zh:'拿 IP / 掩码 / 网关 / DNS',en:'IP / mask / gateway / DNS'},
+  'cfg.dns':{zh:'DNS 域名解析',en:'DNS resolution'},
+  'cfg.dnsSub':{zh:'递归 + 迭代 · UDP 53',en:'Recursive + iterative · UDP 53'},
+  'cfg.full':{zh:'完整链路',en:'Full chain'},
+  'cfg.fullSub':{zh:'接入 → 配置 → 解析 → 访问',en:'Join → configure → resolve → fetch'},
+  'cfg.param':{zh:'演示参数（可直接修改）',en:'Parameters (editable)'},
+  'cfg.opt':{zh:'可切换条件',en:'Optional conditions'},
+  'cfg.hostIp':{zh:'本机 IP（DHCP 前未知）',en:'Host IP (unknown before DHCP)'},
+  'cfg.targetIp':{zh:'ARP 目标 IP（同网段）',en:'ARP target IP (same subnet)'},
+  'cfg.domain':{zh:'要解析的域名',en:'Domain to resolve'},
+  'cfg.resolved':{zh:'解析结果 / 远端 IP',en:'Resolved / remote IP'},
+  'cfg.offer':{zh:'DHCP 提供的 IP',en:'DHCP offered IP'},
+  'cfg.lease':{zh:'租约时长（秒）',en:'Lease time (seconds)'},
+  'cfg.cross':{zh:'跨网段（ARP 解析网关）',en:'Cross-subnet (resolve gateway)'},
+  'cfg.cache':{zh:'缓存命中（跳过查询）',en:'Cache hit (skip lookups)'},
+  'cfg.multi':{zh:'双 DHCP 服务器',en:'Two DHCP servers'},
+  'cfg.renew':{zh:'追加 T1 续租',en:'Append T1 renewal'},
+  'cfg.p1':{zh:'408 经典',en:'408 Classic'},
+  'cfg.p2':{zh:'缓存命中',en:'Cache hit'},
+  'cfg.p3':{zh:'双服务器+续租',en:'Two servers + renew'},
+  'cfg.p4':{zh:'随机参数',en:'Random'},
+  'cfg.hint':{zh:'ARP 请求广播、应答单播；跨网段时解析的是默认网关的 MAC（勾选后远端目标固定为 203.0.113.9）。DHCP 客户端用 UDP 68、服务器用 67，Discover 与 Request 都是广播。主机到本地 DNS 是递归查询，本地 DNS 到根 / 顶级域 / 权威是迭代查询；DNS 查询用 UDP 53，区域传送才用 TCP 53。',en:'ARP requests are broadcast, replies unicast; across subnets the gateway MAC is resolved (the remote target is then fixed at 203.0.113.9). DHCP uses client UDP 68 / server 67, with broadcast Discover and Request. Host → local DNS is recursive; local DNS → root / TLD / authoritative is iterative. DNS queries use UDP 53; only zone transfers use TCP 53.'},
+
+  'anim.title':{zh:'全过程时序图',en:'Packet sequence diagram'},
+  'stat.msg':{zh:'已发送报文',en:'Packets sent'},
+  'stat.proto':{zh:'当前协议',en:'Protocol'},
+  'stat.bcast':{zh:'广播报文',en:'Broadcasts'},
+  'stat.cache':{zh:'缓存状态',en:'Cache'},
+  'cache.none':{zh:'—',en:'—'},
+  'cache.miss':{zh:'未命中 / MISS',en:'MISS'},
+  'cache.hit':{zh:'命中 / HIT',en:'HIT'},
+  'cache.cached':{zh:'已写入 / CACHED',en:'CACHED'},
+  'lg.dhcp':{zh:'DHCP',en:'DHCP'},
+  'lg.arp':{zh:'ARP',en:'ARP'},
+  'lg.dns':{zh:'DNS',en:'DNS'},
+  'lg.http':{zh:'HTTP / IP 转发',en:'HTTP / IP forward'},
+  'lg.note':{zh:'说明步骤（不发报文）',en:'Notes (no packet)'},
+
+  'ctrl.prev':{zh:'← 上一步',en:'← Prev'},
+  'ctrl.next':{zh:'下一步 →',en:'Next →'},
+  'ctrl.auto':{zh:'▶ 自动播放',en:'▶ Auto play'},
+  'ctrl.pause':{zh:'⏸ 暂停',en:'⏸ Pause'},
+  'ctrl.reset':{zh:'↺ 重置',en:'↺ Reset'},
+  'ctrl.speed':{zh:'速度',en:'Speed'},
+  'ctrl.step':{zh:'第',en:'Step'},
+  'ctrl.step2':{zh:'步',en:''},
+
+  'narr.readyT':{zh:'准备就绪',en:'Ready'},
+  'narr.readyB':{zh:'选好场景后点 <b>下一步</b> 或 <b>自动播放</b>。建议先看「完整链路」，再分别细看 ARP、DHCP、DNS 三个独立时序。',en:'Press <b>Next</b> or <b>Auto play</b>. Start with the full chain, then dive into ARP, DHCP and DNS individually.'},
+
+  'tb.k':{zh:'条目',en:'Entry'},
+  'tb.v':{zh:'当前值 / 状态',en:'Value / state'},
+  'st.arpT':{zh:'ARP 高速缓存',en:'ARP cache table'},
+  'st.arpN':{zh:'查询、写入与 TTL 随步骤更新',en:'Lookups, inserts and TTL per step'},
+  'st.dhcpT':{zh:'DHCP 绑定与客户端配置',en:'DHCP bindings & host config'},
+  'st.dhcpN':{zh:'Offer 预留、ACK 后正式生效',en:'Reserved on Offer, bound on ACK'},
+  'st.dnsT':{zh:'DNS 缓存与资源记录',en:'DNS cache & resource records'},
+  'st.dnsN':{zh:'递归应答、迭代 referral 与 TTL',en:'Recursive answer, iterative referrals, TTL'},
+  'st.fullT':{zh:'全过程状态',en:'End-to-end state'},
+  'st.fullN':{zh:'地址 → MAC → IP → 数据一次串起',en:'Address → MAC → IP → data'},
+
+  'ref.title':{zh:'三协议速查表',en:'Protocol cheat sheet'},
+  'ref.note':{zh:'408 选择题最常考的口径差异',en:'The distinctions exams love'},
+  'ref.h1':{zh:'协议',en:'Protocol'},
+  'ref.h2':{zh:'层次 / 封装',en:'Layer / encapsulation'},
+  'ref.h3':{zh:'端口 / 协议号',en:'Port / type'},
+  'ref.h4':{zh:'请求 → 应答',en:'Request → reply'},
+  'ref.h5':{zh:'缓存 / 计时',en:'Cache / timers'},
+  'ref.h6':{zh:'最易错',en:'Classic trap'},
+  'ref.h7':{zh:'要点（逐项对照）',en:'Key points'},
+
+  'notes.title':{zh:'408 考点速记',en:'Exam notes'},
+  'footer.text':{zh:'408 可视化实验室 · 计算机网络',en:'408 Visual Lab · Computer Networks'}
+};
+
+function t(k){ var o=T[k]; return o?(o[LANG]!==undefined?o[LANG]:o.zh):k; }
+
+/* ===================== 配置 / 角色 ===================== */
+var CFG={
+  scn:'full', hostIp:'192.168.1.10', targetIp:'192.168.1.20',
+  domain:'www.example.com', resolved:'93.184.216.34',
+  offer:'192.168.1.100', lease:3600,
+  cross:false, cache:false, multi:false, renew:false
+};
+var ROLES={
+  H:{short:'H',zh:'主机 H',en:'Host H',cls:'c',color:'#0284c7'},
+  D:{short:'DHCP',zh:'DHCP 服务器',en:'DHCP Server',cls:'s',color:'#7c3aed'},
+  D2:{short:'DHCP2',zh:'DHCP 服务器 2',en:'DHCP Server 2',cls:'s',color:'#7c3aed'},
+  B:{short:'B',zh:'主机 B',en:'Host B',cls:'v',color:'#0891b2'},
+  R:{short:'GW',zh:'默认网关 R',en:'Default Gateway',cls:'v',color:'#0891b2'},
+  L:{short:'LDNS',zh:'本地 DNS',en:'Local DNS',cls:'s',color:'#7c3aed'},
+  ROOT:{short:'ROOT',zh:'根域名服务器',en:'Root NS',cls:'g',color:'#059669'},
+  TLD:{short:'TLD',zh:'.com 顶级域',en:'.com TLD',cls:'g',color:'#059669'},
+  AUTH:{short:'AUTH',zh:'权威 DNS',en:'Authoritative',cls:'g',color:'#059669'},
+  NET:{short:'DNS',zh:'根/TLD/权威',en:'Root/TLD/Auth',cls:'g',color:'#059669'},
+  W:{short:'WEB',zh:'Web 服务器',en:'Web Server',cls:'a',color:'#d97706'}
+};
+var PCOLOR={DHCP:'#0284c7',ARP:'#0891b2',DNS:'#7c3aed',HTTP:'#d97706',NOTE:'#059669'};
+
+function validIp(s){ return /^(\d{1,3}\.){3}\d{1,3}$/.test(String(s).trim()) && String(s).split('.').every(function(x){ return +x>=0 && +x<=255; }); }
+
+var PLAN=null, steps=[], cur=0, playing=false, timer=null;
+
+/* ===================== 报文序列生成（纯算法，可独立测试） ===================== */
+/*TEST-BEGIN*/
+/* 旁白助手：S(中文标题, 中文正文, 公式, 英文标题, 英文正文) */
+function S(a,b,f,c,d){ return {zh:{t:a,b:b},en:{t:c,b:d},f:f||''}; }
+/* 算法层常量内联，便于 Node 侧独立提取测试 */
+var MAC={H:'00-1A-2B-3C-4D-5E',B:'00-1A-2B-3C-4D-6F',R:'00-1A-2B-3C-4D-7A',W:'00-1A-2B-3C-4D-8B'};
+var GW='192.168.1.1', MASK='255.255.255.0', DNS_SRV='8.8.8.8', REMOTE='203.0.113.9';
+function ipNum(s){
+  var a=String(s).split('.');
+  if(a.length!==4) return 0;
+  return ((((+a[0]||0)&255)<<24)|(((+a[1]||0)&255)<<16)|(((+a[2]||0)&255)<<8)|((+a[3]||0)&255))>>>0;
+}
+function sameNet(a,b,mask){ return (((ipNum(a)^ipNum(b))&ipNum(mask))>>>0)===0; }
+
+function buildPlan(C){
+  var scn=C.scn, cross=!!C.cross, cache=!!C.cache, multi=!!C.multi, renew=!!C.renew;
+  /* 完整链路固定使用标准 DORA（界面上也不提供双服务器 / 续租开关），避免引入未声明的角色 */
+  if(scn==='full'){ multi=false; renew=false; }
+  /* 跨网段场景使用固定的远端示例地址，保证「与掩码相与不同网」与旁白一致 */
+  var host=C.hostIp, tgt=(cross&&scn==='arp')?REMOTE:C.targetIp;
+  var dom=C.domain, res=C.resolved, off=C.offer, lease=+C.lease||3600;
+  var roles, out=[], rows=[], bcast=0, msgs=0, MERGE=false;
+
+  function row(k,v,hot){ return {k:k,v:v,hot:!!hot}; }
+  function setRows(arr){
+    /* 完整链路模式：各协议片段的状态行合并累积，而不是互相覆盖 */
+    if(!MERGE){ rows=arr.map(function(r){ return {k:r.k,v:r.v,hot:!!r.hot}; }); return; }
+    var next=rows.map(function(r){ return {k:r.k,v:r.v,hot:false}; });
+    arr.forEach(function(r){
+      var found=false;
+      for(var i=0;i<next.length;i++) if(next[i].k===r.k){ next[i]={k:r.k,v:r.v,hot:!!r.hot}; found=true; break; }
+      if(!found) next.push({k:r.k,v:r.v,hot:!!r.hot});
+    });
+    rows=next;
+  }
+  function snapshot(){ return rows.map(function(r){ return {k:r.k,v:r.v,hot:!!r.hot}; }); }
+  function cacheState(){
+    var s=rows.map(function(r){ return r.k+' '+r.v; }).join(' ');
+    if(/命中|HIT/.test(s)) return 'hit';
+    if(/已写入|CACHED|CACHED/.test(s)) return 'cached';
+    if(/未命中|MISS/.test(s)) return 'miss';
+    return 'none';
+  }
+  /* 一条报文 */
+  function msg(proto,from,to,lab,subZh,subEn,narr,bc,change){
+    if(change) change();
+    if(proto!=='NOTE') msgs++;
+    if(bc) bcast++;
+    out.push({kind:'msg',proto:proto,from:from,to:to,lab:lab,
+      sub:{zh:subZh,en:subEn},narr:narr,bc:!!bc,
+      rows:snapshot(),bcastSum:bcast,msgSum:msgs,cacheState:cacheState()});
+  }
+  /* 一条说明（不发报文） */
+  function note(shortZh,shortEn,narr,change,state){
+    if(change) change();
+    out.push({kind:'note',proto:'NOTE',short:{zh:shortZh,en:shortEn},narr:narr,
+      rows:snapshot(),bcastSum:bcast,msgSum:msgs,cacheState:state||cacheState()});
+  }
+
+  /* ---------- 公共片段：DHCP DORA ---------- */
+  function dhcpSeq(withNote){
+    if(withNote) note('主机刚接入，尚无 IP','Host just joined, no IP yet',
+      S('起点：主机还没有 IP 地址','主机只知道自己的 MAC 地址，还没有 IP、掩码、默认网关和 DNS 服务器地址。DHCP 是应用层协议，封装在 <b>UDP</b> 中：客户端端口 <b>68</b>，服务器端口 <b>67</b>。','UDP: client 68 → server 67',
+        'Starting point: no IP address yet','The host knows only its MAC. It has no IP, mask, default gateway or DNS server. DHCP is an <b>application-layer</b> protocol carried over <b>UDP</b>: client port <b>68</b>, server port <b>67</b>.'));
+    msg('DHCP','H','ALL','DHCPDISCOVER',
+      'src 0.0.0.0:68 → 255.255.255.255:67 · 广播',
+      'src 0.0.0.0:68 → 255.255.255.255:67 · broadcast',
+      S('① Discover：广播寻找 DHCP 服务器','因为还不知道服务器在哪、自己也没有 IP，源 IP 只能写 <b>0.0.0.0</b>，目的 IP 写受限广播地址 <b>255.255.255.255</b>；以太帧目的 MAC 为全 1 广播。','src IP = 0.0.0.0 · dst IP = 255.255.255.255',
+        '① Discover: broadcast to find a DHCP server','With no IP and no idea where the server is, the source IP must be <b>0.0.0.0</b> and the destination <b>255.255.255.255</b>; the Ethernet frame uses the all-ones broadcast MAC.','src IP = 0.0.0.0 · dst IP = 255.255.255.255'),
+      true,function(){ setRows([row('客户端 IP','0.0.0.0（未配置）'),row('Discover','已广播 · 等待 Offer',true)]); });
+    msg('DHCP','D','H','DHCPOFFER',
+      'yiaddr='+off+' · mask / GW / DNS / lease='+lease+'s',
+      'yiaddr='+off+' · mask / GW / DNS / lease='+lease+'s',
+      S('② Offer：服务器提供候选配置','服务器从地址池挑一个可用地址放进 <b>yiaddr</b>，附上子网掩码、默认网关、DNS 服务器地址和租约时长。Offer 可以广播也可以单播，取决于实现与客户端标志位。','yiaddr = '+off+' · lease = '+lease+' s',
+        '② Offer: a candidate configuration','The server picks a free address and puts it in <b>yiaddr</b>, together with mask, default gateway, DNS server and lease time. An Offer may be broadcast or unicast depending on implementation and flags.','yiaddr = '+off+' · lease = '+lease+' s'),
+      false,function(){ setRows([row('客户端 IP','0.0.0.0（未配置）'),row('服务器 D 预留',off+' · offered',true),row('候选配置','mask '+MASK+' · GW '+GW+' · DNS '+DNS_SRV)]); });
+    if(multi){
+      var off2=off.replace(/\d+$/,function(m){ return String((+m+1)%254+1); });
+      msg('DHCP','D2','H','DHCPOFFER',
+        'yiaddr='+off2+' · 第二个候选','yiaddr='+off2+' · second candidate',
+        S('②′ 第二个 Offer','局域网里可能有多个 DHCP 服务器，客户端一般会采用<b>最先到达</b>的那个 Offer。这正是下一步 Request 仍要广播的原因。','server D2 offers '+off2,
+          '②′ A second Offer','There may be several DHCP servers; the client normally accepts the <b>first</b> Offer that arrives. That is exactly why the next Request must still be broadcast.','server D2 offers '+off2),
+        false,function(){ setRows([row('客户端 IP','0.0.0.0（未配置）'),row('服务器 D 预留',off+' · offered'),row('服务器 D2 预留',off2+' · offered',true),row('客户端选择',off+'（服务器 D）',true)]); });
+    }
+    note(multi?'客户端选定一个 Offer，Request 仍要广播':'客户端选定 Offer，Request 仍要广播',
+         'Client picks one Offer; Request is still broadcast',
+      S('为什么 Request 还要广播','客户端把「我选了哪台服务器、要哪个 IP」写进 <b>Server ID</b> 与 <b>Requested IP</b> 并广播出去，让<b>未被选中的服务器撤销预留</b>，避免地址浪费。','DHCPREQUEST: broadcast, not unicast',
+        'Why the Request is still broadcast','The client broadcasts <b>Server ID</b> and <b>Requested IP</b> so that <b>every other server can release its reservation</b> instead of wasting an address.','DHCPREQUEST: broadcast, not unicast'));
+    msg('DHCP','H','ALL','DHCPREQUEST',
+      'Requested IP='+off+' · Server ID=D · 广播',
+      'Requested IP='+off+' · Server ID=D · broadcast',
+      S('③ Request：广播确认选用','此时客户端<b>仍未正式拥有</b>该 IP，所以源 IP 依旧是 0.0.0.0、目的 IP 依旧是广播地址；这一步同时也是对其他服务器的「婉拒」。','src 0.0.0.0 · dst 255.255.255.255 · Server ID = D',
+        '③ Request: broadcast the choice','The client <b>does not officially own</b> the address yet, so src is still 0.0.0.0 and dst is still broadcast. The same packet politely declines the other servers.','src 0.0.0.0 · dst 255.255.255.255 · Server ID = D'),
+      true,function(){ setRows([row('客户端 IP','0.0.0.0（未配置）'),row('Requested IP',off,true),row('Server ID','D'),row('其他服务器','撤销预留',true)]); });
+    msg('DHCP','D','H','DHCPACK',
+      'ACK · 正式绑定 · 租约开始计时','ACK · bound · lease timer starts',
+      S('④ ACK：租约生效','服务器确认后客户端才正式配置 IP、掩码、默认网关与 DNS 服务器地址，并开始租约计时。记忆口诀 <b>DORA = Discover / Offer / Request / Acknowledge</b>。','T1 = 0.5 × lease = '+(lease/2)+' s · T2 = 0.875 × lease = '+(lease*0.875)+' s',
+        '④ ACK: the lease becomes active','Only now does the host actually configure IP, mask, gateway and DNS, and start the lease timer. Mnemonic: <b>DORA = Discover / Offer / Request / Acknowledge</b>.','T1 = 0.5 × lease = '+(lease/2)+' s · T2 = 0.875 × lease = '+(lease*0.875)+' s'),
+      false,function(){ setRows([row('客户端 IP',off+' · BOUND',true),row('子网掩码',MASK),row('默认网关',GW),row('DNS 服务器',DNS_SRV),row('租约',lease+' s · T1 '+(lease/2)+' s · T2 '+(lease*0.875)+' s',true)]); });
+    if(renew){
+      msg('DHCP','H','D','DHCPREQUEST (RENEW)',
+        'T1 = 50% 租期 · 单播直接找原服务器','T1 = 50% of lease · unicast to original server',
+        S('T1 续租：单播，不再广播','租期过半（<b>T1 = 0.5 × lease = '+(lease/2)+' s</b>）时，客户端已有合法 IP，于是<b>单播</b>直接向原服务器续租；若到 <b>T2 = 0.875 × lease = '+(lease*0.875)+' s</b> 还没收到 ACK，才重新广播寻找其他服务器。续租成功则跳过整个 DORA。','T1 = 0.5 × '+lease+' = '+(lease/2)+' s · T2 = '+(lease*0.875)+' s',
+          'T1 renewal: unicast, no broadcast','At half the lease (<b>T1 = 0.5 × lease = '+(lease/2)+' s</b>) the host already has a valid IP, so it renews by <b>unicast</b> straight to the original server. Only at <b>T2 = 0.875 × lease = '+(lease*0.875)+' s</b> would it broadcast again. A successful renewal skips DORA entirely.','T1 = 0.5 × '+lease+' = '+(lease/2)+' s · T2 = '+(lease*0.875)+' s'),
+        false,function(){ setRows([row('客户端 IP',off+' · BOUND'),row('租约',lease+' s'),row('T1 时刻',(lease/2)+' s · 已触发',true),row('续租方式','单播 DHCPREQUEST（非广播）',true)]); });
+      msg('DHCP','D','H','DHCPACK',
+        '续租成功 · 租期重新计时','renewed · timer restarts',
+        S('续租 ACK','服务器回 ACK，租期从当前时刻重新计算。注意续租是 <b>REQUEST → ACK 两步</b>，不是完整的四步。','renew: REQUEST → ACK (2 packets)',
+          'Renewal ACK','The server replies ACK and the lease restarts from now. Renewal is a <b>2-packet REQUEST → ACK</b> exchange, not the full four-step DORA.','renew: REQUEST → ACK (2 packets)'),
+        false,function(){ setRows([row('客户端 IP',off+' · BOUND'),row('租约','重新计时 '+lease+' s',true),row('续租状态','成功',true)]); });
+    }
+  }
+
+  /* ---------- 公共片段：ARP ---------- */
+  function arpSeq(target,responder,responderMac,withNote){
+    if(withNote) note('查 ARP 高速缓存','Check the ARP cache',
+      S('先查 ARP 高速缓存','主机要发 IP 数据报时，先在 <b>ARP 高速缓存</b>里查「目的 IP → MAC」的映射；命中就直接封装帧，未命中才发 ARP 请求。','cache lookup: IP → MAC',
+        'Look in the ARP cache first','Before sending an IP datagram the host checks its <b>ARP cache</b> for the IP → MAC mapping. A hit means the frame can be built immediately; only a miss triggers ARP.','cache lookup: IP → MAC'));
+    if(cache){
+      note('缓存命中：无需 ARP 请求','Cache hit: no ARP request needed',
+        S('缓存命中，跳过广播','缓存里已有 <b>'+target+' → '+responderMac+'</b>，直接封装以太帧发送。<b>ARP 请求一次都不会发</b>，这是缓存减少广播流量的意义。','cache hit · 0 broadcast packets',
+          'Cache hit, no broadcast','The cache already holds <b>'+target+' → '+responderMac+'</b>, so the frame is built directly. <b>No ARP request at all</b> — this is how the cache cuts broadcast traffic.','cache hit · 0 broadcast packets'),
+        function(){ setRows([row('ARP 高速缓存',target+' → '+responderMac,true),row('查询方式','缓存命中（不发广播）',true),row('广播报文','0 个',true)]); },'hit');
+      return;
+    }
+    note('未命中：准备广播请求','Miss: prepare a broadcast request',
+      S('缓存未命中','缓存中没有该映射，主机必须发 <b>ARP 请求分组</b>。注意 ARP 分组<b>直接封装在以太帧</b>里（以太类型 0x0806），它不是 IP 数据报，也不经过路由器转发。','Ethernet type = 0x0806 · broadcast frame',
+        'Cache miss','With no mapping, the host must send an <b>ARP request</b>. ARP is <b>encapsulated directly in an Ethernet frame</b> (EtherType 0x0806): it is not an IP datagram and routers never forward it.','Ethernet type = 0x0806 · broadcast frame'),
+      function(){ setRows([row('ARP 高速缓存','无 '+target+' 的映射'),row('缓存查询','未命中 · 需要广播',true)]); },'miss');
+    msg('ARP','H','ALL','ARP Request',
+      'who has '+target+'? tell '+host+' · 广播',
+      'who has '+target+'? tell '+host+' · broadcast',
+      S('① ARP 请求：广播','请求分组里写着「我的 IP 是 '+host+'、MAC 是 '+MAC.H+'，谁有 '+target+'？请告诉我」，以太帧目的 MAC 是 <b>FF-FF-FF-FF-FF-FF</b>，同一广播域所有主机都能收到。','dst MAC = FF-FF-FF-FF-FF-FF · opcode = 1 (request)',
+        '① ARP request: broadcast','The request says "I am '+host+' at '+MAC.H+'; who has '+target+'?" The frame uses destination MAC <b>FF-FF-FF-FF-FF-FF</b>, so every host on the LAN receives it.','dst MAC = FF-FF-FF-FF-FF-FF · opcode = 1 (request)'),
+      true,function(){ setRows([row('ARP 高速缓存','无 '+target+' 的映射'),row('ARP Request','已广播 · who has '+target,true),row('帧目的 MAC','FF-FF-FF-FF-FF-FF')]); });
+    note('只有 IP 匹配者回应','Only the matching host replies',
+      S('广播到达所有主机，只有一台回应','所有主机都把请求里的 <b>发送方 IP → MAC</b> 顺手写进自己的 ARP 缓存（这是常考的副作用）；但只有 IP 与目标一致的那台主机会回应，其余主机静默丢弃。','all hosts learn '+host+' → '+MAC.H,
+        'Everyone hears it, one host answers','Every host quietly records the <b>sender IP → MAC</b> mapping in its own cache (a classic exam side effect), but only the host whose IP matches replies; the rest drop the packet.','all hosts learn '+host+' → '+MAC.H),
+      function(){ setRows([row('ARP 高速缓存','无 '+target+' 的映射'),row('其他主机','已记录 '+host+' → '+MAC.H,true),row('回应者',responder+'（IP 匹配）',true)]); });
+    msg('ARP',responder,'H','ARP Reply',
+      target+' is at '+responderMac+' · 单播',
+      target+' is at '+responderMac+' · unicast',
+      S('② ARP 应答：单播','应答分组带上自己的 MAC，因为请求里已经写了请求方的 MAC，所以<b>单播</b>直接回给 H，不再广播。','opcode = 2 (reply) · dst MAC = '+MAC.H,
+        '② ARP reply: unicast','The reply carries the responder MAC. Since the request already contained the requester MAC, the answer is sent <b>unicast</b> straight back to H.','opcode = 2 (reply) · dst MAC = '+MAC.H),
+      false,function(){ setRows([row('ARP 高速缓存',target+' → '+responderMac,true),row('映射类型','动态 · TTL ≈ 20 min',true),row('广播报文','1 个',true)]); });
+    note('写入缓存并封装帧','Write the cache, build the frame',
+      S('写入 ARP 高速缓存','主机把映射写入缓存（动态项有生存期，超时自动删除），随后用该 MAC 作为<b>以太帧目的 MAC</b> 封装 IP 数据报。','IP → MAC mapping cached (dynamic)',
+        'Update the cache and build the frame','The mapping is stored as a dynamic entry with a TTL, then used as the <b>destination MAC</b> of the Ethernet frame that carries the IP datagram.','IP → MAC mapping cached (dynamic)'),
+      null,'cached');
+  }
+
+  /* ---------- 公共片段：DNS ---------- */
+  function dnsSeq(withNote,fullMode){
+    if(withNote) note('先查本地缓存与 hosts','Check local cache & hosts',
+      S('解析顺序：缓存 → hosts → 本地 DNS','浏览器 DNS 缓存 → 操作系统 DNS 缓存 → <b>hosts 文件</b> → 本地域名服务器。前几步都不产生网络报文，只有全部未命中才向本地 DNS 服务器发查询。','browser cache → OS cache → hosts → local DNS',
+        'Order: caches → hosts → local DNS','Browser cache → OS cache → <b>hosts file</b> → local DNS server. The first steps generate no network traffic; only a complete miss sends a query to the local DNS server.','browser cache → OS cache → hosts → local DNS'));
+    msg('DNS','H','L','DNS Query (recursive)',
+      dom+' A? · UDP 53 · 递归查询',dom+' A? · UDP 53 · recursive',
+      S('① 主机 → 本地 DNS：递归查询','主机把问题<b>整个交给</b>本地 DNS 服务器，只要最终答案，中间过程由本地 DNS 代劳，这就叫<b>递归查询</b>。查询报文通常很短，走 <b>UDP 53</b>。','recursive query · UDP dst port 53',
+        '① Host → local DNS: recursive','The host <b>delegates the whole problem</b> to its local DNS server and wants only the final answer — that is a <b>recursive query</b>. Queries are short, hence <b>UDP 53</b>.','recursive query · UDP dst port 53'),
+      false,function(){ setRows([row('浏览器 / OS 缓存','未命中'),row('hosts 文件','无 '+dom+' 记录'),row('发给本地 DNS',dom+' A? · 递归',true)]); });
+    if(cache){
+      note('本地 DNS 缓存命中','Local DNS cache hit',
+        S('本地 DNS 缓存命中，跳过全部迭代','本地 DNS 服务器缓存里已有 <b>'+dom+' A '+res+'</b>（TTL 未过期），于是直接回答案，<b>根 / 顶级域 / 权威一个都不用问</b>。这正是 DNS 缓存把绝大多数查询挡在局域网内的原因。','cache hit · 0 iterative queries',
+          'Local DNS cache hit: all iteration skipped','The local server already has <b>'+dom+' A '+res+'</b> with a valid TTL, so it answers immediately — <b>root, TLD and authoritative are never contacted</b>. This is why caching absorbs most DNS traffic.','cache hit · 0 iterative queries'),
+        function(){ setRows([row('浏览器 / OS 缓存','未命中'),row('本地 DNS 缓存',dom+' A '+res+' · 命中',true),row('迭代查询','0 次（已跳过）',true),row('应答',res,true)]); },'hit');
+      msg('DNS','L','H','DNS Answer',
+        'A '+dom+' → '+res+' · TTL 3600','A '+dom+' → '+res+' · TTL 3600',
+        S('递归应答：只回最终结果','本地 DNS 把最终答案返回主机，主机写入自己的 DNS 缓存。注意主机<b>只看到两条报文</b>（一问一答），并不知道服务器背后查了几层。','host sees only 1 query + 1 answer',
+          'Recursive answer: final result only','The local server returns just the final answer and the host caches it. The host <b>sees only two packets</b> and never knows how many servers were contacted behind the scenes.','host sees only 1 query + 1 answer'),
+        false,null,'hit');
+      return;
+    }
+    note('本地 DNS 未命中，开始迭代','Local DNS miss: iteration begins',
+      S('本地 DNS 也没有缓存','本地 DNS 服务器查自身缓存与区文件也未命中，于是<b>以客户端身份</b>依次向根、顶级域、权威服务器发出<b>迭代查询</b>：每次只得到「下一步去问谁」的线索（referral），而不是最终答案。','iterative = ask, get a referral, ask again',
+        'Local DNS also misses','With no cached record, the local server acts as a client and sends <b>iterative queries</b> to root, TLD and authoritative servers. Each reply is only a <b>referral</b> ("ask this server next"), never the final answer.','iterative = ask, get a referral, ask again'),
+      function(){ setRows([row('浏览器 / OS 缓存','未命中'),row('本地 DNS 缓存','未命中 · 需迭代',true),row('查询方式','主机→本地 DNS 递归；本地 DNS→外部 迭代',true)]); });
+    var a=dom.split('.'), tld=a.length>1?'.'+a[a.length-1]:'.com', zone=a.length>1?a[a.length-2]+tld:dom;
+    if(fullMode){
+      msg('DNS','L','NET','迭代查询 ① → 根','根：'+dom+' A?','root: '+dom+' A?',
+        S('② 迭代 ①：问根域名服务器','根服务器并不知道具体 IP，但知道 '+tld+' 由谁管，于是返回<b>顶级域服务器的 NS 记录与对应 IP（glue record）</b>。','iterative #1 · root returns '+tld+' NS',
+          '② Iteration #1: ask a root server','A root server does not know the IP, but knows who handles '+tld+', so it returns the <b>TLD NS record and its IP (glue record)</b>.','iterative #1 · root returns '+tld+' NS'),false,
+        function(){ setRows([row('本地 DNS 缓存','未命中'),row('迭代 ①','已询问根服务器',true)]); });
+      msg('DNS','NET','L','referral → '+tld,'返回 '+tld+' 顶级域服务器地址','returns '+tld+' TLD server address',
+        S('根的回答只是线索','根<b>没有给出</b> '+dom+' 的 IP，只给出下一步该问谁。这是「迭代」与「递归」最本质的区别。','referral, not the answer',
+          'The root only gives a lead','The root does <b>not</b> return the IP of '+dom+'; it only says whom to ask next — the essential difference between iterative and recursive.','referral, not the answer'),false,null);
+      msg('DNS','L','NET','迭代查询 ② → '+tld,tld+'：'+dom+' A?',tld+': '+dom+' A?',
+        S('③ 迭代 ②：问顶级域服务器','本地 DNS 拿着线索再去问 '+tld+' 顶级域服务器，得到 <b>'+zone+' 区权威服务器</b>的地址。','iterative #2 · '+tld+' → '+zone+' NS',
+          '③ Iteration #2: ask the TLD server','Following the lead, the local server asks the '+tld+' TLD server and receives the address of the <b>authoritative server for '+zone+'</b>.','iterative #2 · '+tld+' → '+zone+' NS'),false,
+        function(){ setRows([row('本地 DNS 缓存','未命中'),row('迭代 ②','已询问 '+tld+' TLD',true)]); });
+      msg('DNS','NET','L','referral → '+zone,'返回 '+zone+' 权威服务器地址','returns '+zone+' authoritative NS',
+        S('顶级域也只给线索','依旧不是最终答案，而是权威域名服务器的 NS 与 IP。','another referral',
+          'The TLD also gives only a lead','Again it is not the final answer, but the NS and IP of the authoritative server.','another referral'),false,null);
+      msg('DNS','L','NET','迭代查询 ③ → 权威',dom+' A?',' '+dom+' A?',
+        S('④ 迭代 ③：问权威域名服务器','权威服务器是该域名资源的<b>最终来源</b>，它查自己的区文件，返回真正的 A 记录。','iterative #3 · authoritative NS',
+          '④ Iteration #3: ask the authoritative server','The authoritative server is the <b>final source</b> for the zone and returns the real A record.','iterative #3 · authoritative NS'),false,
+        function(){ setRows([row('本地 DNS 缓存','未命中'),row('迭代 ③','已询问权威服务器',true)]); });
+      msg('DNS','NET','L','A '+dom+' → '+res,'TTL 3600 · 权威应答','TTL 3600 · authoritative answer',
+        S('权威应答：终于拿到 IP','A 记录 = <b>'+res+'</b>，并带 <b>TTL</b>（生存时间）。本地 DNS 把结果写入自己的缓存，TTL 内再有人问同一域名就直接命中。','A '+dom+' → '+res+' · TTL 3600',
+          'Authoritative answer: the IP at last','A record = <b>'+res+'</b> with a <b>TTL</b>. The local server caches it, so further queries for the same name hit the cache until the TTL expires.','A '+dom+' → '+res+' · TTL 3600'),false,
+        function(){ setRows([row('本地 DNS 缓存',dom+' A '+res+' · TTL 3600',true),row('记录来源','权威 DNS 服务器',true),row('迭代次数','3 次（根 / '+tld+' / 权威）',true)]); });
+    }else{
+      msg('DNS','L','ROOT','迭代查询 ① → 根',dom+' A?',' '+dom+' A?',
+        S('② 迭代 ①：问根域名服务器','根服务器不知道具体 IP，但知道 '+tld+' 归谁管，返回<b>顶级域服务器的 NS 与 IP（glue record）</b>。','iterative #1 · root',
+          '② Iteration #1: ask a root server','A root server does not know the IP but knows who handles '+tld+', so it returns the <b>TLD NS record and glue address</b>.','iterative #1 · root'),false,
+        function(){ setRows([row('本地 DNS 缓存','未命中'),row('迭代 ①','已询问根服务器',true)]); });
+      msg('DNS','ROOT','L','referral → '+tld,'返回 '+tld+' TLD 的 NS / IP','returns '+tld+' TLD NS / IP',
+        S('根只回答「下一步问谁」','根<b>不返回</b>最终 IP，只给线索 —— 这就是迭代查询；若根替你一路查到底，那就变成递归了。','referral, not the answer',
+          'The root says "ask this one next"','The root <b>does not</b> return the final IP, only a lead — that is iteration. If it chased the answer all the way, it would be recursion.','referral, not the answer'),false,null);
+      msg('DNS','L','TLD','迭代查询 ② → '+tld,dom+' A?',' '+dom+' A?',
+        S('③ 迭代 ②：问顶级域服务器','本地 DNS 拿线索去问 '+tld+' 顶级域服务器，得到 <b>'+zone+' 的权威服务器</b>地址。','iterative #2 · '+tld,
+          '③ Iteration #2: ask the TLD server','Following the lead, the local server asks the '+tld+' TLD server and gets the <b>authoritative server for '+zone+'</b>.','iterative #2 · '+tld),false,
+        function(){ setRows([row('本地 DNS 缓存','未命中'),row('迭代 ②','已询问 '+tld+' TLD',true)]); });
+      msg('DNS','TLD','L','referral → '+zone,'返回 '+zone+' 权威 NS / IP','returns '+zone+' authoritative NS / IP',
+        S('顶级域也只给线索','仍是 referral，不是最终答案。','another referral',
+          'The TLD gives only a lead','Still a referral, not the answer.','another referral'),false,null);
+      msg('DNS','L','AUTH','迭代查询 ③ → 权威',dom+' A?',' '+dom+' A?',
+        S('④ 迭代 ③：问权威域名服务器','权威服务器是该域名区文件的<b>最终来源</b>，只有它能给出真正的 A 记录。','iterative #3 · authoritative',
+          '④ Iteration #3: ask the authoritative server','The authoritative server is the <b>final source</b> for the zone; only it can supply the real A record.','iterative #3 · authoritative'),false,
+        function(){ setRows([row('本地 DNS 缓存','未命中'),row('迭代 ③','已询问权威服务器',true)]); });
+      msg('DNS','AUTH','L','A '+dom+' → '+res,'TTL 3600 · 权威应答','TTL 3600 · authoritative answer',
+        S('权威应答：拿到 IP','A 记录 = <b>'+res+'</b>，附带 <b>TTL 3600 s</b>。资源记录常见类型还有 AAAA(IPv6)、CNAME(别名)、MX(邮件)、NS、PTR(反向)。','A '+dom+' → '+res+' · TTL 3600',
+          'Authoritative answer: the IP','A record = <b>'+res+'</b> with <b>TTL 3600 s</b>. Other record types: AAAA (IPv6), CNAME (alias), MX (mail), NS, PTR (reverse).','A '+dom+' → '+res+' · TTL 3600'),false,
+        function(){ setRows([row('本地 DNS 缓存',dom+' A '+res+' · TTL 3600',true),row('记录来源','权威 DNS 服务器',true),row('迭代次数','3 次（根 / '+tld+' / 权威）',true)]); });
+    }
+    msg('DNS','L','H','DNS Answer (recursive)',
+      'A '+dom+' → '+res+' · 递归应答','A '+dom+' → '+res+' · recursive answer',
+      S('⑤ 递归应答：把最终答案交回主机','本地 DNS 把最终结果返回主机，完成它承诺的递归查询。主机随后把 <b>'+dom+' → '+res+'</b> 写入本地缓存。整个过程主机只发 1 个查询、收 1 个应答。','host: 1 query + 1 answer · server: 3 iterative pairs',
+        '⑤ Recursive answer: final result back to the host','The local server delivers the final answer, fulfilling its recursive promise. The host then caches <b>'+dom+' → '+res+'</b>. The host sends only 1 query and receives 1 answer.','host: 1 query + 1 answer · server: 3 iterative pairs'),false,
+      function(){ setRows([row('浏览器 / OS 缓存',dom+' → '+res+' · 已写入',true),row('本地 DNS 缓存',dom+' A '+res+' · TTL 3600',true),row('最终结果',res,true)]); });
+  }
+
+  /* ================= 场景装配 ================= */
+  if(scn==='arp'){
+    roles=['H','B','R'];
+    setRows([row('ARP 高速缓存','空'),row('本机 IP',host+' / '+MASK),row('默认网关',GW)]);
+    var isCross=cross||!sameNet(host,tgt,MASK);
+    if(isCross){
+      note('目标不在同一网段','Target is on another subnet',
+        S('关键判断：目的 IP 是否同网段','主机用<b>子网掩码</b>与运算判断：'+tgt+' 与 '+host+' 不在同一网段，数据报必须先交给<b>默认网关 '+GW+'</b>。因此 ARP 要解析的是<b>网关的 MAC</b>，不是远端主机的 MAC —— 这是流程题最深的坑。','( '+tgt+' AND '+MASK+' ) ≠ ( '+host+' AND '+MASK+' )',
+          'Key decision: is the destination local?','The host ANDs with the mask: '+tgt+' and '+host+' are on different subnets, so the datagram must go to the <b>default gateway '+GW+'</b> first. ARP therefore resolves the <b>gateway MAC</b>, not the remote host MAC — the deepest trap in flowchart questions.','( '+tgt+' AND '+MASK+' ) ≠ ( '+host+' AND '+MASK+' )'),
+        function(){ setRows([row('ARP 高速缓存','空'),row('目标 IP',tgt+'（远端）'),row('判断结果','不同网段 → 交给默认网关 '+GW,true),row('ARP 实际查询',GW+' → MAC_R',true)]); });
+      arpSeq(GW,'R',MAC.R,true);
+    }else{
+      note('目标在同一网段','Target is on the same subnet',
+        S('判断：目的 IP 在同一网段','与掩码相与后网络号相同，主机可以<b>直接</b>把帧发给目标主机，于是 ARP 解析 <b>'+tgt+'</b> 的 MAC。','( '+tgt+' AND '+MASK+' ) = ( '+host+' AND '+MASK+' )',
+          'Decision: destination is local','The masked network numbers match, so the frame can go <b>directly</b> to the target. ARP resolves the MAC of <b>'+tgt+'</b>.','( '+tgt+' AND '+MASK+' ) = ( '+host+' AND '+MASK+' )'),
+        function(){ setRows([row('ARP 高速缓存','空'),row('目标 IP',tgt+'（同网段）'),row('判断结果','同网段 → 直接交付',true),row('ARP 实际查询',tgt+' → MAC_B',true)]); });
+      arpSeq(tgt,'B',MAC.B,true);
+    }
+  }else if(scn==='dhcp'){
+    roles=multi?['H','D','D2']:['H','D'];
+    setRows([row('客户端 IP','0.0.0.0（未配置）'),row('客户端 MAC',MAC.H),row('地址池',off+' ~ ')]);
+    rows[2]=row('地址池候选',off);
+    dhcpSeq(true);
+  }else if(scn==='dns'){
+    roles=['H','L','ROOT','TLD','AUTH'];
+    setRows([row('浏览器 / OS 缓存','空'),row('hosts 文件','无记录'),row('本地 DNS 服务器',DNS_SRV)]);
+    dnsSeq(true,false);
+  }else{
+    roles=['H','D','R','L','NET','W'];
+    MERGE=true;
+    setRows([row('客户端 IP','0.0.0.0（未配置）'),row('默认网关','未知'),row('DNS 服务器','未知'),row('ARP 缓存','空'),row('DNS 缓存','空')]);
+    dhcpSeq(true);
+    note('配置生效：可以开始通信','Configuration active',
+      S('DHCP 结束：主机拿到了四样东西','IP = <b>'+host+'</b>、掩码 = '+MASK+'、默认网关 = '+GW+'、DNS 服务器 = '+DNS_SRV+'。接下来访问 '+dom+'，先要 ARP 找下一跳 MAC，再 DNS 查目的 IP。','IP / mask / gateway / DNS all configured',
+        'DHCP done: four things acquired','IP = <b>'+host+'</b>, mask = '+MASK+', default gateway = '+GW+', DNS server = '+DNS_SRV+'. To reach '+dom+' the host now needs the next-hop MAC via ARP and the destination IP via DNS.','IP / mask / gateway / DNS all configured'),
+      function(){ setRows([row('客户端 IP',host,true),row('默认网关',GW),row('DNS 服务器',DNS_SRV),row('ARP 缓存','空'),row('DNS 缓存','空')]); });
+    arpSeq(GW,'R',MAC.R,false);
+    note('ARP 完成：拿到网关 MAC','ARP done: gateway MAC known',
+      S('帧要发给网关，而不是远端主机','因为 '+res+' 不在本网段，IP 数据报的目的 IP 是远端地址，但<b>以太帧的目的 MAC 是网关 '+MAC.R+'</b>。MAC 地址只在局域网内有效，每经过一台路由器都会被重新封装。','IP dst = '+res+' (unchanged) · MAC dst = '+MAC.R+' (hop by hop)',
+        'The frame goes to the gateway, not the remote host','Since '+res+' is remote, the IP destination is the remote address while the <b>Ethernet destination MAC is the gateway '+MAC.R+'</b>. MAC addresses only matter within one LAN and are rewritten at every router.','IP dst = '+res+' (unchanged) · MAC dst = '+MAC.R+' (hop by hop)'),
+      function(){ setRows([row('客户端 IP',host),row('默认网关',GW),row('ARP 缓存',GW+' → '+MAC.R,true),row('DNS 服务器',DNS_SRV),row('DNS 缓存','空')]); });
+    dnsSeq(false,true);
+    msg('HTTP','H','R','IP 数据报 → 以太帧',
+      'dst IP='+res+' · dst MAC='+MAC.R,'dst IP='+res+' · dst MAC='+MAC.R,
+      S('数据终于发出：先交给网关','主机用 DNS 得到的 <b>'+res+'</b> 作目的 IP，用 ARP 得到的 <b>'+MAC.R+'</b> 作目的 MAC，封装成帧发给网关。三个协议的分工到此闭环：<b>DHCP 给地址、ARP 找下一跳、DNS 找目的 IP</b>。','dst IP = '+res+' · dst MAC = '+MAC.R,
+        'Data at last: hand it to the gateway','The host uses <b>'+res+'</b> from DNS as destination IP and <b>'+MAC.R+'</b> from ARP as destination MAC. The loop closes: <b>DHCP gives an address, ARP finds the next hop, DNS finds the destination IP</b>.','dst IP = '+res+' · dst MAC = '+MAC.R),false,
+      function(){ setRows([row('客户端 IP',host),row('ARP 缓存',GW+' → '+MAC.R),row('DNS 缓存',dom+' → '+res,true),row('目的 IP',res,true),row('帧目的 MAC',MAC.R,true)]); });
+    msg('HTTP','R','W','网关转发（重新封装）',
+      'dst IP='+res+' 不变 · dst MAC='+MAC.W,'dst IP='+res+' unchanged · dst MAC='+MAC.W,
+      S('路由器转发：MAC 逐跳变，IP 始终不变','网关去掉以太帧首部、查路由表，再用新的源 / 目的 MAC 重新封装。<b>IP 源、目的地址在整个端到端路径上保持不变</b>（不考虑 NAT）。','MAC changes per hop · IP src/dst stay end-to-end',
+        'Router forwarding: MAC changes, IP does not','The gateway strips the Ethernet header, looks up its routing table and re-encapsulates with new source/destination MACs. <b>IP source and destination stay unchanged end to end</b> (ignoring NAT).','MAC changes per hop · IP src/dst stay end-to-end'),false,null);
+    msg('HTTP','W','H','HTTP 200 OK',
+      '经网关回传 · 网页数据','via gateway · web page data',
+      S('响应沿原路返回，全过程完成','Web 服务器的响应经网关回到主机，浏览器渲染页面。回头看：一次「打开网页」背后，<b>DHCP 四步 + ARP 两步 + DNS 一问一答（服务器侧 3 轮迭代）+ HTTP</b>，且每一步的广播 / 单播口径都可能成为考点。','DHCP 4 + ARP 2 + DNS 2 (host side) + iterative 6 + HTTP 2',
+        'The response returns; the chain is complete','The reply travels back through the gateway and the browser renders the page. One page load hides <b>DHCP ×4, ARP ×2, DNS 1+1 on the host side (6 iterative packets server side) and HTTP</b> — every broadcast/unicast detail is exam material.','DHCP 4 + ARP 2 + DNS 2 (host side) + iterative 6 + HTTP 2'),false,
+      function(){ setRows([row('客户端 IP',host),row('ARP 缓存',GW+' → '+MAC.R),row('DNS 缓存',dom+' → '+res),row('连接结果','HTTP 200 OK',true),row('全过程','完成',true)]); });
+  }
+
+  return {scn:scn,roles:roles,steps:out,total:out.length,
+    msgCount:msgs,bcastCount:bcast,cross:scn==='arp'?(cross||!sameNet(host,tgt,MASK)):false,
+    cacheHit:cache,initialRows:initialRows(scn,C)};
+}
+function initialRows(scn,C){
+  if(scn==='arp') return [{k:'ARP 高速缓存',v:'空',hot:false},{k:'本机 IP',v:C.hostIp+' / '+MASK,hot:false},{k:'默认网关',v:GW,hot:false}];
+  if(scn==='dhcp') return [{k:'客户端 IP',v:'0.0.0.0（未配置）',hot:false},{k:'客户端 MAC',v:MAC.H,hot:false},{k:'地址池候选',v:C.offer,hot:false}];
+  if(scn==='dns') return [{k:'浏览器 / OS 缓存',v:'空',hot:false},{k:'hosts 文件',v:'无记录',hot:false},{k:'本地 DNS 服务器',v:DNS_SRV,hot:false}];
+  return [{k:'客户端 IP',v:'0.0.0.0（未配置）',hot:false},{k:'默认网关',v:'未知',hot:false},{k:'DNS 服务器',v:'未知',hot:false},{k:'ARP 缓存',v:'空',hot:false},{k:'DNS 缓存',v:'空',hot:false}];
+}
+/*TEST-END*/
+
+/* ===================== 时序图渲染（滚动窗口） ===================== */
+var STEP_H=58, TOP=72;
+
+function svgEl(tag,attrs,parent){
+  var e=document.createElementNS(NS,tag);
+  if(attrs) for(var k in attrs) e.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+function str(v){ return (v&&typeof v==='object')?(v[LANG]||v.zh||''):(v||''); }
+
+function renderSeq(){
+  var svg=$('seqSvg'), box=svg.parentNode;
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  var W=Math.max(280,box.clientWidth||700), H=Math.max(160,box.clientHeight||260);
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+
+  var roles=PLAN.roles, n=roles.length;
+  var pad=Math.max(26,W/(n*2.2));
+  var gap=(W-2*pad)/(n-1||1);
+  var xs={};
+  for(var i=0;i<n;i++) xs[roles[i]]=pad+i*gap;
+  var narrow=(W<560);
+
+  var defs=svgEl('defs',null,svg);
+  for(var pk in PCOLOR){
+    var m=svgEl('marker',{id:'arw-'+pk,markerWidth:'8',markerHeight:'8',refX:'6.5',refY:'3',orient:'auto',markerUnits:'strokeWidth'},defs);
+    svgEl('path',{d:'M0,0 L6.5,3 L0,6 z',fill:PCOLOR[pk]},m);
+  }
+
+  /* 时间轴 */
+  svgEl('line',{x1:Math.max(12,pad-14),y1:'54',x2:Math.max(12,pad-14),y2:H-8,stroke:'#c7d7e3','stroke-width':'1.5','stroke-dasharray':'4 5'},svg);
+  var at=svgEl('text',{x:Math.max(12,pad-14),y:H-1,'text-anchor':'middle',class:'axis-txt'},svg);
+  at.textContent=(LANG==='zh')?'时间':'time';
+
+  /* 生命线 */
+  for(i=0;i<n;i++) svgEl('line',{x1:xs[roles[i]],y1:'52',x2:xs[roles[i]],y2:H-8,class:'life'},svg);
+
+  /* 角色头（固定不滚动） */
+  var hw=Math.max(38,Math.min(narrow?58:118,gap-6));
+  for(i=0;i<n;i++){
+    var r=ROLES[roles[i]], x=xs[roles[i]];
+    svgEl('rect',{x:fx(x-hw/2),y:6,width:fx(hw),height:42,rx:9,class:'hdr h-'+r.cls},svg);
+    var nm=svgEl('text',{x:fx(x),y:23,class:'hdr-short',fill:r.color},svg);
+    nm.textContent=r.short;
+    if(!narrow){
+      var sub=svgEl('text',{x:fx(x),y:39,class:'hdr-name'},svg);
+      sub.textContent=(r[LANG]||r.zh).slice(0,12);
+    }
+  }
+
+  /* 计算滚动窗口：让当前步尽量落在可视区偏下 */
+  var total=steps.length, idx=Math.max(0,cur-1);
+  var off=0;
+  if(total>0){
+    var avail=H-TOP-14;
+    off=Math.max(0,idx*STEP_H-avail+46);
+  }
+  var list=steps.slice(0,cur);
+  for(i=0;i<total;i++){
+    /* 只画已经发出的报文；不预览未来步骤，避免半透明标签互相叠压 */
+    if(i>=cur) continue;
+    var st=steps[i], y=TOP+i*STEP_H-off;
+    if(y<TOP-26||y>H+16) continue;
+    var isNow=(i===cur-1);
+    var col=PCOLOR[st.proto]||PCOLOR.NOTE;
+    var op=1;
+    if(st.kind==='msg'){
+      var sx=xs[st.from], ex, bc=!!st.bc;
+      if(st.to==='ALL'||st.to==null) ex=W-pad; else ex=xs[st.to]!=null?xs[st.to]:W-pad;
+      var dir=(ex>=sx)?1:-1;
+      var lineAttrs={d:'M'+fx(sx)+','+fx(y)+' L'+fx(ex-dir*9)+','+fx(y),
+        class:'msg-line'+(bc?' bc':''),stroke:col,opacity:String(op)};
+      if(!bc) lineAttrs['marker-end']='url(#arw-'+st.proto+')';
+      var line=svgEl('path',lineAttrs,svg);
+      if(isNow) line.setAttribute('style','animation:pin .38s ease both');
+      /* 广播：每个其他角色画一个接收点 */
+      if(bc){
+        for(var j=0;j<n;j++){
+          var rid=roles[j]; if(rid===st.from) continue;
+          svgEl('circle',{cx:fx(xs[rid]),cy:fx(y),r:4,class:'bc-dot',stroke:col,opacity:String(op)},svg);
+        }
+      }
+      /* 报文标签 */
+      var mid=(sx+ex)/2;
+      var lab=String(st.lab), sb=str(st.sub);
+      var maxw=narrow?Math.min(W-16,190):Math.min(W-16,300);
+      /* 按等宽字体实际字宽估算，保证两行文字都不溢出白底标签框 */
+      var lw=Math.max(narrow?92:118,Math.min(maxw,Math.max(lab.length*8,sb.length*6.8)+24));
+      var nameMax=Math.max(4,Math.floor((lw-12)/8));
+      var subMax=Math.max(6,Math.floor((lw-12)/6.8));
+      var lx=Math.min(W-lw/2-5,Math.max(lw/2+5,mid));
+      var g=svgEl('g',{opacity:'1'},svg);
+      svgEl('rect',{x:fx(lx-lw/2),y:fx(y-32),width:fx(lw),height:28,rx:7,class:'msg-lbl'+(isNow?'':' ')},g);
+      if(isNow) g.querySelector('rect').setAttribute('stroke',col);
+      var t1=svgEl('text',{x:fx(lx),y:fx(y-20),class:'msg-name',fill:col},g);
+      t1.textContent=lab.slice(0,Math.min(narrow?26:40,nameMax));
+      var t2=svgEl('text',{x:fx(lx),y:fx(y-8),class:'msg-sub'},g);
+      t2.textContent=sb.slice(0,Math.min(narrow?30:52,subMax));
+    }else{
+      var nw=Math.max(120,Math.min(W-16,Math.max(210,(str(st.short).length*(narrow?7:9)+34))));
+      var nx=W/2;
+      var g2=svgEl('g',{opacity:'1'},svg);
+      svgEl('rect',{x:fx(nx-nw/2),y:fx(y-16),width:fx(nw),height:30,rx:9,class:'note-box'},g2);
+      var nt=svgEl('text',{x:fx(nx),y:fx(y+3),class:'note-txt'},g2);
+      nt.textContent='• '+str(st.short).slice(0,narrow?24:44);
+    }
+  }
+  if(!list.length){
+    var hint=svgEl('text',{x:fx(W/2),y:fx(H/2),'text-anchor':'middle',fill:'#9db2c2','font-size':'13','font-weight':'700'},svg);
+    hint.textContent=(LANG==='zh')?'点「下一步」发出第一个报文':'Press "Next" to send the first packet';
+  }
+}
+
+/* ===================== 状态表 / 统计 / 旁白 ===================== */
+/* 状态表内容由纯算法层以中文生成；英文界面按「长词优先」逐片段翻译，
+   这样算法层保持语言无关、便于独立测试，同时界面不残留中文。 */
+var ROWMAP=[
+  ['已询问权威服务器','asked authoritative NS'],['已询问根服务器','asked root NS'],
+  ['交给默认网关','via default gateway'],['主机→本地','host→local'],['本地 DNS→外部','local DNS→outside'],
+  ['地址池候选','Address pool'],['其他服务器','Other servers'],['客户端选择','Client choice'],
+  ['高速缓存','cache'],['默认网关','Default gateway'],['判断结果','Decision'],
+  ['直接交付','deliver directly'],['实际查询','lookup for'],['缓存查询','Cache lookup'],
+  ['需要广播','needs broadcast'],['其他主机','Other hosts'],['映射类型','Entry type'],
+  ['广播报文','Broadcast packets'],['不同网段','different subnet'],['查询方式','Lookup mode'],
+  ['缓存命中','cache hit'],['不发广播','no broadcast'],['候选配置','Offered options'],
+  ['撤销预留','reservation released'],['子网掩码','Subnet mask'],['续租方式','Renewal mode'],
+  ['重新计时','restarted'],['续租状态','Renewal'],['发给本地','To local'],
+  ['记录来源','Record source'],['迭代次数','Iterations'],['最终结果','Final answer'],
+  ['迭代查询','Iterative lookups'],['连接结果','Result'],['同网段','same subnet'],
+  ['的映射',' mapping'],['未命中','MISS'],['已广播','broadcast sent'],['帧目的','Frame dst'],
+  ['已记录','learned'],['回应者','Responder'],['客户端','Host'],['未配置','not configured'],
+  ['服务器','server'],['已触发','triggered'],['非广播','no broadcast'],['浏览器','Browser'],
+  ['无记录','no record'],['需迭代','needs iteration'],['已询问','asked'],['已写入','cached'],
+  ['已跳过','skipped'],['全过程','Full chain'],['本机','Host'],['目标','Target'],
+  ['匹配','matches'],['动态','dynamic'],['远端','remote'],['等待','waiting'],
+  ['预留','reserved'],['租约','Lease'],['时刻','time'],['单播','unicast'],
+  ['成功','OK'],['缓存','cache'],['文件','file'],['本地','local'],['记录','record'],
+  ['递归','recursive'],['主机','host'],['外部','outside'],['迭代','iterative'],
+  ['权威','authoritative'],['命中','hit'],['应答','Answer'],['未知','unknown'],
+  ['目的','Destination'],['完成','done'],['空','empty'],['无','no'],
+  ['个',' packet'],['次',''],['根','root'],
+  ['（',' ('],['）',')'],['；','; ']
+];
+ROWMAP.sort(function(a,b){ return b[0].length-a[0].length; });
+function rowI18n(s){
+  if(LANG==='zh') return s;
+  var out=String(s);
+  for(var i=0;i<ROWMAP.length;i++) out=out.split(ROWMAP[i][0]).join(ROWMAP[i][1]);
+  return out;
+}
+
+function renderTable(){
+  var tb=$('stateBody'), rows=(cur>0?steps[cur-1].rows:PLAN.initialRows);
+  tb.innerHTML='';
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i], tr=document.createElement('tr');
+    if(r.hot) tr.className='hot';
+    tr.innerHTML='<td class="k">'+esc(rowI18n(r.k))+'</td><td>'+esc(rowI18n(r.v))+'</td>';
+    tb.appendChild(tr);
+  }
+  var key={arp:'st.arp',dhcp:'st.dhcp',dns:'st.dns',full:'st.full'}[CFG.scn];
+  $('stateTitle').textContent=t(key+'T');
+  $('stateNote').textContent=t(key+'N');
+}
+
+function stageNote(){
+  var names={arp:(LANG==='zh'?'ARP 地址解析':'ARP resolution'),dhcp:(LANG==='zh'?'DHCP DORA':'DHCP DORA'),
+    dns:(LANG==='zh'?'DNS 域名解析':'DNS resolution'),full:(LANG==='zh'?'完整链路':'Full chain')};
+  var s=names[CFG.scn];
+  if(CFG.cross&&CFG.scn==='arp') s+=(LANG==='zh'?' · 跨网段 → 网关 MAC':' · cross-subnet → gateway MAC');
+  if(CFG.cache) s+=(LANG==='zh'?' · 缓存命中':' · cache hit');
+  return s+(LANG==='zh'?'　共 ':' · ')+PLAN.total+(LANG==='zh'?' 步':' steps');
+}
+
+function renderStats(){
+  var last=cur>0?steps[cur-1]:null;
+  $('statMsg').textContent=last?last.msgSum:0;
+  $('statBcast').textContent=last?last.bcastSum:0;
+  var proto='';
+  for(var i=cur-1;i>=0;i--) if(steps[i].kind==='msg'){ proto=steps[i].proto; break; }
+  var cls={DHCP:'b-sky',ARP:'b-violet',DNS:'b-violet',HTTP:'b-amber'}[proto]||'b-gray';
+  $('statProto').className='badge '+cls;
+  $('statProto').textContent=proto||'—';
+  var cstate=(last&&last.cacheState)||'none';
+  var cmap={hit:['b-green','cache.hit'],miss:['b-amber','cache.miss'],cached:['b-green','cache.cached'],none:['b-gray','cache.none']};
+  var cc=cmap[cstate]||cmap.none;
+  $('statCache').className='badge '+cc[0];
+  $('statCache').textContent=t(cc[1]);
+}
+
+function renderNarr(){
+  var last=cur>0?steps[cur-1]:null;
+  if(!last){
+    $('narrBadge').textContent='—';
+    $('narrTitle').textContent=t('narr.readyT');
+    $('narrBody').innerHTML=t('narr.readyB');
+    $('narrFormula').textContent='';
+    return;
+  }
+  var n=last.narr[LANG]||last.narr.zh;
+  $('narrBadge').textContent=String(cur);
+  $('narrTitle').textContent=n.t;
+  $('narrBody').innerHTML=n.b;
+  $('narrFormula').textContent=last.narr.f||'';
+}
+
+function render(){
+  renderSeq(); renderStats(); renderTable(); renderNarr();
+  $('stepNow').textContent=cur;
+  $('stepTotal').textContent=steps.length;
+  $('progressBar').style.width=(steps.length?(cur/steps.length*100):0)+'%';
+  $('btnPrev').disabled=(cur<=0);
+  $('btnNext').disabled=(cur>=steps.length);
+  $('btnAuto').disabled=(cur>=steps.length);
+  $('btnAuto').textContent=playing?t('ctrl.pause'):t('ctrl.auto');
+  $('stageNote').textContent=stageNote();
+}
+
+/* ===================== 速查表 / 考点 ===================== */
+var REF_ROWS=[
+  {p:'ARP',zh:['网络层辅助，直接封装在以太帧（类型 0x0806）','无端口；opcode 1 请求 / 2 应答','请求广播 / 应答单播','ARP 高速缓存，动态项有 TTL（约 20 min）','跨网段时解析的是默认网关的 MAC，不是远端主机'],
+        en:['Network-layer helper, directly in Ethernet (0x0806)','No port; opcode 1 request / 2 reply','Broadcast request / unicast reply','ARP cache; dynamic entries have a TTL (~20 min)','Across subnets it resolves the gateway MAC, not the remote host']},
+  {p:'DHCP',zh:['应用层，封装在 UDP 数据报','客户端 UDP 68 / 服务器 UDP 67','Discover、Request 广播；Offer / ACK 可广播可单播','租约 lease，T1=50%、T2=87.5% 续租','源 IP 0.0.0.0；Request 仍要广播；跨网段靠 DHCP 中继'],
+        en:['Application layer, carried over UDP','Client UDP 68 / server UDP 67','Discover & Request broadcast; Offer / ACK either','Lease with T1=50%, T2=87.5% renewal','src 0.0.0.0; Request still broadcasts; relays cross subnets']},
+  {p:'DNS',zh:['应用层，通常封装在 UDP','查询 / 应答 UDP 53；区域传送 TCP 53','主机→本地 DNS 递归；本地 DNS→根/TLD/权威 迭代','本地 DNS 缓存 + 主机缓存，受 TTL 控制','递归是「替你查到底」，迭代是「只给下一步线索」'],
+        en:['Application layer, usually over UDP','Queries UDP 53; zone transfers TCP 53','Host→local DNS recursive; local DNS→root/TLD/auth iterative','Local DNS cache + host cache, governed by TTL','Recursion = fetch it for you; iteration = give the next lead']}
+];
+
+function buildRef(){
+  /* 右栏较窄：用「协议 | 逐项要点」两列表格，避免 6 列表格被挤成竖排文字 */
+  var h=$('refHead'), b=$('refBody');
+  h.innerHTML='<th data-i18n="ref.h1">'+t('ref.h1')+'</th><th data-i18n="ref.h7">'+t('ref.h7')+'</th>';
+  var labels=[t('ref.h2'),t('ref.h3'),t('ref.h4'),t('ref.h5'),t('ref.h6')];
+  var sep=(LANG==='zh')?'：':': ';
+  b.innerHTML='';
+  for(var i=0;i<REF_ROWS.length;i++){
+    var r=REF_ROWS[i], tr=document.createElement('tr'), arr=r[LANG]||r.zh;
+    var td=document.createElement('td');
+    td.className='proto-cell';
+    td.style.color=(r.p==='DHCP'?'#0284c7':(r.p==='ARP'?'#0891b2':'#7c3aed'));
+    td.textContent=r.p; tr.appendChild(td);
+    var c=document.createElement('td'), html='';
+    for(var j=0;j<5;j++) html+='<div class="ref-line"><b>'+esc(labels[j])+sep+'</b>'+esc(arr[j])+'</div>';
+    c.innerHTML=html; tr.appendChild(c);
+    b.appendChild(tr);
+  }
+}
+
+var NOTES=[
+  {zh:'<b>ARP 请求广播、应答单播</b>：请求帧目的 MAC 全 1；应答已知请求方 MAC，所以单播。所有主机都会顺手把请求方的 IP→MAC 写入自己的缓存。',en:'<b>ARP requests are broadcast, replies unicast</b>: the request uses the all-ones MAC; the reply already knows the requester MAC. Every host also caches the sender IP→MAC.'},
+  {zh:'<b>跨网段时 ARP 解析默认网关的 MAC</b>，不是远端主机的 MAC；IP 数据报目的 IP 始终不变，但以太帧目的 MAC 每跳都重新封装。',en:'<b>Across subnets ARP resolves the default gateway MAC</b>, never the remote host MAC. The IP destination stays fixed while the frame MAC is rewritten at each hop.'},
+  {zh:'<b>DORA 四步</b>：Discover → Offer → Request → ACK。客户端 UDP <b>68</b>、服务器 UDP <b>67</b>；Discover 与 Request 的源 IP 都是 <b>0.0.0.0</b>、目的 IP 都是广播。',en:'<b>DORA</b>: Discover → Offer → Request → ACK. Client UDP <b>68</b>, server UDP <b>67</b>; both Discover and Request use src <b>0.0.0.0</b> and a broadcast destination.'},
+  {zh:'<b>Request 为什么仍广播</b>：为了告诉所有未被选中的 DHCP 服务器「释放预留地址」。若局域网有多台服务器，这点直接决定答案。',en:'<b>Why Request is still broadcast</b>: to tell every unselected DHCP server to release its reservation. With multiple servers this decides the answer.'},
+  {zh:'<b>租约续租</b>：T1 = 0.5×lease 时客户端<b>单播</b>向原服务器发 DHCPREQUEST，成功则跳过 DORA；T2 = 0.875×lease 仍无应答才重新广播。',en:'<b>Lease renewal</b>: at T1 = 0.5×lease the client sends a <b>unicast</b> DHCPREQUEST to the original server, skipping DORA on success; only at T2 = 0.875×lease does it broadcast again.'},
+  {zh:'<b>递归 vs 迭代</b>：主机→本地 DNS 是递归（只要最终结果）；本地 DNS→根 / 顶级域 / 权威是迭代（每次只给 referral）。主机侧永远只看到 1 问 1 答。',en:'<b>Recursive vs iterative</b>: host→local DNS is recursive (wants the final answer); local DNS→root / TLD / authoritative is iterative (referrals only). The host always sees just 1 query and 1 answer.'},
+  {zh:'<b>DNS 端口</b>：查询 / 应答用 <b>UDP 53</b>（短、快）；主从服务器<b>区域传送</b>用 <b>TCP 53</b>（要可靠）。同一端口两种传输层协议是经典考点。',en:'<b>DNS ports</b>: queries use <b>UDP 53</b> (short, fast); <b>zone transfers</b> use <b>TCP 53</b> (reliable). One port, two transport protocols — a classic exam point.'},
+  {zh:'<b>解析顺序</b>：浏览器缓存 → OS 缓存 → hosts 文件 → 本地 DNS 服务器 → 根 → 顶级域 → 权威。命中缓存时根 / 顶级域 / 权威一次都不用问。',en:'<b>Lookup order</b>: browser cache → OS cache → hosts → local DNS → root → TLD → authoritative. On a cache hit, root / TLD / authoritative are never contacted.'},
+  {zh:'<b>记录类型</b>：A(IPv4)、AAAA(IPv6)、CNAME(别名)、MX(邮件)、NS(权威服务器)、PTR(反向解析)；缓存有效期由 <b>TTL</b> 决定。',en:'<b>Record types</b>: A (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), NS (authoritative), PTR (reverse); cache lifetime is set by <b>TTL</b>.'}
+];
+function buildNotes(){
+  var ul=$('notesList'); ul.innerHTML='';
+  for(var i=0;i<NOTES.length;i++){
+    var li=document.createElement('li');
+    li.innerHTML=NOTES[i][LANG]||NOTES[i].zh;
+    ul.appendChild(li);
+  }
+}
+
+/* ===================== 语言切换 ===================== */
+function applyLang(){
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  var nodes=document.querySelectorAll('[data-i18n]');
+  for(var i=0;i<nodes.length;i++) nodes[i].textContent=t(nodes[i].getAttribute('data-i18n'));
+  buildRef(); buildNotes(); render();
+  try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
+}
+
+/* ===================== 控制 / 配置 ===================== */
+function rebuild(){ PLAN=buildPlan(CFG); steps=PLAN.steps; }
+function go(n){ if(n<0)n=0; if(n>steps.length)n=steps.length; cur=n; render(); }
+function stopPlay(){ playing=false; if(timer){clearInterval(timer);timer=null;} $('btnAuto').textContent=t('ctrl.auto'); }
+function startPlay(){
+  if(cur>=steps.length) return;
+  playing=true; $('btnAuto').textContent=t('ctrl.pause');
+  var delay=780-(parseInt($('speed').value,10)-1)*130;
+  timer=setInterval(function(){
+    if(cur>=steps.length){ stopPlay(); return; }
+    go(cur+1);
+    if(cur>=steps.length) stopPlay();
+  },delay);
+}
+
+function readCfg(){
+  var v=function(id,def){ var x=$(id).value.trim(); return x||def; };
+  CFG.hostIp=validIp(v('cfgHost','192.168.1.10'))?v('cfgHost','192.168.1.10'):'192.168.1.10';
+  CFG.targetIp=validIp(v('cfgTarget','192.168.1.20'))?v('cfgTarget','192.168.1.20'):'192.168.1.20';
+  CFG.resolved=validIp(v('cfgResolved','93.184.216.34'))?v('cfgResolved','93.184.216.34'):'93.184.216.34';
+  CFG.offer=validIp(v('cfgOffer','192.168.1.100'))?v('cfgOffer','192.168.1.100'):'192.168.1.100';
+  CFG.domain=v('cfgDomain','www.example.com').replace(/[^A-Za-z0-9.\-]/g,'').slice(0,40)||'www.example.com';
+  var l=parseInt($('cfgLease').value,10); CFG.lease=(isNaN(l)||l<60||l>86400)?3600:l;
+  CFG.cross=$('chkCross').checked;
+  CFG.cache=$('chkCache').checked;
+  CFG.multi=$('chkMulti').checked;
+  CFG.renew=$('chkRenew').checked;
+}
+function syncChkState(){
+  var s=CFG.scn;
+  /* 缓存命中在「完整链路」里也有意义：模拟第二次访问同一网页的快速路径 */
+  var en={cross:(s==='arp'),cache:true,multi:(s==='dhcp'),renew:(s==='dhcp')};
+  [['cross','wrapCross','chkCross'],['cache','wrapCache','chkCache'],['multi','wrapMulti','chkMulti'],['renew','wrapRenew','chkRenew']].forEach(function(a){
+    var on=en[a[0]];
+    $(a[2]).disabled=!on; $(a[1]).classList.toggle('off',!on);
+    if(!on) CFG[a[0]]=false;
+  });
+  $('cfgTarget').disabled=CFG.cross;
+}
+function setPreset(id){ document.querySelectorAll('.preset-row .btn-sm').forEach(function(b){ b.classList.toggle('active',b.id===id); }); }
+function resetAll(){ readCfg(); rebuild(); stopPlay(); go(0); }
+
+$('btnNext').addEventListener('click',function(){ stopPlay(); go(cur+1); });
+$('btnPrev').addEventListener('click',function(){ stopPlay(); go(cur-1); });
+$('btnReset').addEventListener('click',function(){ stopPlay(); go(0); });
+$('btnAuto').addEventListener('click',function(){ if(playing) stopPlay(); else startPlay(); });
+$('speed').addEventListener('input',function(){ if(playing){ stopPlay(); startPlay(); } });
+
+var scnBtns=document.querySelectorAll('[data-scn]');
+for(var si=0;si<scnBtns.length;si++){
+  scnBtns[si].addEventListener('click',function(){
+    CFG.scn=this.getAttribute('data-scn');
+    for(var k=0;k<scnBtns.length;k++) scnBtns[k].classList.toggle('active',scnBtns[k]===this);
+    readCfg(); syncChkState(); rebuild(); stopPlay(); go(0);
+  });
+}
+['chkCross','chkCache','chkMulti','chkRenew'].forEach(function(id){
+  $(id).addEventListener('change',function(){ readCfg(); syncChkState(); rebuild(); stopPlay(); go(0); });
+});
+['cfgHost','cfgTarget','cfgDomain','cfgResolved','cfgOffer','cfgLease'].forEach(function(id){
+  $(id).addEventListener('change',function(){ readCfg(); rebuild(); stopPlay(); go(0); });
+});
+
+$('btnClassic').addEventListener('click',function(){
+  $('cfgHost').value='192.168.1.10'; $('cfgTarget').value='192.168.1.20';
+  $('cfgDomain').value='www.example.com'; $('cfgResolved').value='93.184.216.34';
+  $('cfgOffer').value='192.168.1.100'; $('cfgLease').value='3600';
+  $('chkCross').checked=false; $('chkCache').checked=false; $('chkMulti').checked=false; $('chkRenew').checked=false;
+  setPreset('btnClassic'); resetAll(); syncChkState();
+});
+$('btnCache').addEventListener('click',function(){
+  $('chkCache').checked=true; $('chkCross').checked=false; $('chkMulti').checked=false; $('chkRenew').checked=false;
+  setPreset('btnCache'); resetAll(); syncChkState();
+});
+$('btnMulti').addEventListener('click',function(){
+  CFG.scn='dhcp';
+  document.querySelectorAll('[data-scn]').forEach(function(b){ b.classList.toggle('active',b.getAttribute('data-scn')==='dhcp'); });
+  $('chkMulti').checked=true; $('chkRenew').checked=true; $('chkCache').checked=false; $('chkCross').checked=false;
+  setPreset('btnMulti'); resetAll(); syncChkState();
+});
+$('btnRandom').addEventListener('click',function(){
+  var r=function(n){ return Math.floor(Math.random()*n); };
+  $('cfgHost').value='192.168.1.'+(10+r(80));
+  $('cfgTarget').value='192.168.1.'+(100+r(80));
+  $('cfgDomain').value=['www.example.com','mail.cs.net','code.zzuli.edu.cn','api.demo.org'][r(4)];
+  $('cfgResolved').value=(10+r(200))+'.'+(r(255))+'.'+(r(255))+'.'+(1+r(254));
+  $('cfgOffer').value='192.168.1.'+(150+r(90));
+  $('cfgLease').value=String([600,1800,3600,7200][r(4)]);
+  $('chkCross').checked=(r(2)===0); $('chkCache').checked=false;
+  $('chkMulti').checked=(r(2)===0); $('chkRenew').checked=(r(2)===0);
+  setPreset('btnRandom'); resetAll(); syncChkState();
+});
+
+$('langZh').addEventListener('click',function(){
+  if(LANG!=='zh'){ LANG='zh'; $('langZh').classList.add('active'); $('langEn').classList.remove('active'); applyLang(); }
+});
+$('langEn').addEventListener('click',function(){
+  if(LANG!=='en'){ LANG='en'; $('langEn').classList.add('active'); $('langZh').classList.remove('active'); applyLang(); }
+});
+document.addEventListener('keydown',function(e){
+  if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); stopPlay(); go(cur+1); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); stopPlay(); go(cur-1); }
+  else if(e.key===' '){ e.preventDefault(); if(playing) stopPlay(); else startPlay(); }
+});
+window.addEventListener('resize',function(){ if(PLAN) renderSeq(); });
+
+/* ===================== 启动 ===================== */
+(function init(){
+  if(LANG==='en'){ $('langZh').classList.remove('active'); $('langEn').classList.add('active'); }
+  readCfg(); syncChkState(); rebuild(); applyLang(); go(0);
+})();
+</script>
+</body>
+</html>
