@@ -170,28 +170,13 @@
   .empty h3{font-size:18px;color:var(--ink);margin-bottom:6px}
   .empty button{margin-top:16px;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 18px;font-size:14px;font-weight:800;color:var(--ds);cursor:pointer;font-family:inherit}
 
-  /* ---------- 贡献说明 / 页脚 ---------- */
-  .panel{background:var(--card);border:1.5px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:24px 26px;margin-top:12px}
-  .panel h2{font-size:20px;font-weight:800;margin-bottom:9px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  .panel h2 .note{font-size:13.5px;font-weight:600;color:var(--faint)}
-  .panel p{font-size:14.8px;color:var(--muted);line-height:1.8}
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
-  .step{background:#fbfcff;border:1.5px solid var(--line);border-radius:13px;padding:13px 15px}
-  .step .n{font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ds);letter-spacing:1px}
-  .step b{display:block;font-size:15px;font-weight:800;margin:3px 0 4px}
-  .step span{font-size:13.3px;color:var(--muted);line-height:1.65}
-  pre{
-    background:#f7f9fe;border:1.5px solid var(--line);border-radius:13px;padding:15px 17px;overflow:auto;
-    font-family:var(--mono);font-size:13px;line-height:1.7;color:#334155;margin-top:14px;
-  }
-  pre .c{color:#94a3b8} pre .k{color:#4f46e5;font-weight:700} pre .s{color:#0d9488}
+  /* ---------- 页脚 ---------- */
   footer{margin-top:26px;padding:18px 4px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13.5px;color:var(--faint);font-weight:600}
   footer a{color:var(--ds);font-weight:800}
   footer a:hover{text-decoration:underline}
 
   @media (max-width:820px){
     .stat-row{grid-template-columns:repeat(2,1fr)}
-    .steps{grid-template-columns:1fr}
     .group-hex{margin-left:0}
   }
   @media (max-width:560px){
@@ -200,7 +185,7 @@
     .hero .sub{font-size:15.5px}
     .grid{grid-template-columns:1fr}
     .stat-v{font-size:25px}
-    .panel,.toolbar{padding:17px 16px}
+    .toolbar{padding:17px 16px}
   }
   /* ===== 宽屏一屏式仪表盘（WIDE-DASHBOARD-BEGIN） ===== */
   @media (min-width:1280px){
@@ -252,7 +237,6 @@
     <div class="hero-links">
       <a class="btn-main" href="#groups" data-i18n="hero.browse">浏览全部演示 <span aria-hidden="true">↓</span></a>
       <a class="btn-ghost" href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener" data-i18n="hero.repo">GitHub 仓库 <span aria-hidden="true">↗</span></a>
-      <a class="btn-ghost" href="#howto" data-i18n="hero.add">添加一个演示 <span aria-hidden="true">＋</span></a>
     </div>
 
     <div class="stat-row" id="statRow"></div>
@@ -271,42 +255,6 @@
 
   <main id="groups"></main>
 
-  <section class="panel" id="howto">
-    <h2><span data-i18n="how.h2">添加新演示，只需往数组里加一条</span> <span class="note" data-i18n="how.note">DEMOS · 位于本页 &lt;script&gt; 顶部</span></h2>
-    <p data-i18n="how.p">首页不维护任何手工卡片：分组、计数、搜索、筛选、缩略图配色全部由 <code>DEMOS</code> 数组自动生成。做完新的 HTML 后按下图加一个对象，push 到 main 即会自动出现在首页并部署上线。</p>
-    <div class="steps">
-      <div class="step"><span class="n">01</span><b data-i18n="how.s1">放进对应科目目录</b><span data-i18n="how.s1d">按四科配色规范选主色，沿用现有页面的样式基座与 i18n 写法，保持单文件、零外部依赖。</span></div>
-      <div class="step"><span class="n">02</span><b data-i18n="how.s2">在 DEMOS 加一条</b><span data-i18n="how.s2d">填科目、相对路径、中英标题与一句话说明、关键词标签，再选一个缩略图类型。</span></div>
-      <div class="step"><span class="n">03</span><b data-i18n="how.s3">push 到 main</b><span data-i18n="how.s3d">GitHub Actions 会自动部署全站；README 的演示表也建议同步补一行。</span></div>
-    </div>
-    <pre id="howZh"><span class="c">/* ▼▼▼ 在 DEMOS 数组末尾加一条即可 ▼▼▼ */</span>
-{
-  <span class="k">id</span>: <span class="s">'page-replacement'</span>,
-  <span class="k">subject</span>: <span class="s">'os'</span>,                       <span class="c">// 科目：ds / os / co / cn</span>
-  <span class="k">path</span>: <span class="s">'operating-system/page-replacement.html'</span>,
-  <span class="k">kind</span>: <span class="s">'topic'</span>,                       <span class="c">// 'topic' 知识点 | 'exam' 真题</span>
-  <span class="k">thumb</span>: <span class="s">'frames'</span>,                      <span class="c">// 缩略图：ring/bars/tree/graph/handshake/bits/frames</span>
-  <span class="k">date</span>: <span class="s">'2026-11-10'</span>,                   <span class="c">// 最新的一个会自动获得 NEW 徽章</span>
-  <span class="k">title</span>: { zh: <span class="s">'页面置换算法'</span>, en: <span class="s">'Page Replacement'</span> },
-  <span class="k">desc</span>:  { zh: <span class="s">'一句话说明'</span>,   en: <span class="s">'One-line description'</span> },
-  <span class="k">tags</span>:  { zh: [<span class="s">'FIFO'</span>,<span class="s">'LRU'</span>], en: [<span class="s">'FIFO'</span>,<span class="s">'LRU'</span>] },
-  <span class="k">keys</span>:  <span class="s">'page replacement FIFO LRU 页面置换 缺页'</span>
-}</pre>
-    <pre id="howEn" style="display:none"><span class="c">/* ▼▼▼ Append one object to the DEMOS array ▼▼▼ */</span>
-{
-  <span class="k">id</span>: <span class="s">'page-replacement'</span>,
-  <span class="k">subject</span>: <span class="s">'os'</span>,                       <span class="c">// subject: ds / os / co / cn</span>
-  <span class="k">path</span>: <span class="s">'operating-system/page-replacement.html'</span>,
-  <span class="k">kind</span>: <span class="s">'topic'</span>,                       <span class="c">// 'topic' | 'exam'</span>
-  <span class="k">thumb</span>: <span class="s">'frames'</span>,                      <span class="c">// thumb: ring/bars/tree/graph/handshake/bits/frames</span>
-  <span class="k">date</span>: <span class="s">'2026-11-10'</span>,                   <span class="c">// newest date gets the NEW badge</span>
-  <span class="k">title</span>: { zh: <span class="s">'页面置换算法'</span>, en: <span class="s">'Page Replacement'</span> },
-  <span class="k">desc</span>:  { zh: <span class="s">'一句话说明'</span>,   en: <span class="s">'One-line description'</span> },
-  <span class="k">tags</span>:  { zh: [<span class="s">'FIFO'</span>,<span class="s">'LRU'</span>], en: [<span class="s">'FIFO'</span>,<span class="s">'LRU'</span>] },
-  <span class="k">keys</span>:  <span class="s">'page replacement FIFO LRU 页面置换 缺页'</span>
-}</pre>
-  </section>
-
   <footer>
     <span data-i18n="foot.left">408 Visual Lab · 交互式动画演示合集 · MIT License</span>
     <span><a href="https://github.com/zzuli-ljz/408-visual-lab" target="_blank" rel="noopener" data-i18n="foot.repo">仓库源码</a> · <a href="https://github.com/zzuli-ljz/408-visual-lab/blob/main/README.md" target="_blank" rel="noopener" data-i18n="foot.readme">README</a> · <span id="footUpdated"></span></span>
@@ -316,7 +264,7 @@
 <script>
 /* =========================================================================
    408 Visual Lab · 首页数据
-   新增演示：只需在 DEMOS 数组末尾加一条（字段示例见页面「添加新演示」区块）。
+   新增演示：只需在 DEMOS 数组末尾加一条（字段见下方各条对象）。
    四科主色取自 README「四科配色规范」，与各科演示页保持一致。
    ========================================================================= */
 
@@ -421,7 +369,6 @@ var T = {
                       en:'Every demo is a standalone page: feed in your own data, generate random cases, step forward or back frame by frame, with bilingual narration and live formulas. Just open a card — nothing to install.'},
   'hero.browse':     {zh:'浏览全部演示 ↓', en:'Browse all demos ↓'},
   'hero.repo':       {zh:'GitHub 仓库 ↗', en:'GitHub repo ↗'},
-  'hero.add':        {zh:'添加一个演示 ＋', en:'Add a demo ＋'},
   'stat.demos':      {zh:'交互式演示', en:'Interactive demos'},
   'stat.demos.n':    {zh:'每个都是独立 HTML 文件', en:'Each a standalone HTML file'},
   'stat.subjects':   {zh:'已覆盖科目', en:'Subjects covered'},
@@ -449,19 +396,6 @@ var T = {
   'empty.h':         {zh:'没有找到匹配的演示', en:'No demos matched your search'},
   'empty.p':         {zh:'换个关键词，或者清空筛选条件再试一次。', en:'Try another keyword or clear the filters.'},
   'empty.btn':       {zh:'清空筛选', en:'Clear filters'},
-  'how.h2':          {zh:'添加新演示，只需往数组里加一条', en:'Add a demo by appending one object'},
-  'how.note':        {zh:'DEMOS · 位于本页 <script> 顶部', en:'DEMOS · top of this page\'s <script>'},
-  'how.p':           {zh:'首页不维护任何手工卡片：分组、计数、搜索、筛选、缩略图配色全部由 DEMOS 数组自动生成。做完新的 HTML 后按下图加一个对象，push 到 main 即会自动出现在首页并部署上线。',
-                      en:'No hand-written cards here: groups, counts, search, filters and thumbnail colors are all generated from the DEMOS array. Append one object after building a new HTML file, push to main, and it appears here automatically.'},
-  'how.s1':          {zh:'放进对应科目目录', en:'Put it in the subject folder'},
-  'how.s1d':         {zh:'按四科配色规范选主色，沿用现有页面的样式基座与 i18n 写法，保持单文件、零外部依赖。',
-                      en:'Follow the subject color scheme and the existing page template; keep it a single file with zero external dependencies.'},
-  'how.s2':          {zh:'在 DEMOS 加一条', en:'Append to DEMOS'},
-  'how.s2d':         {zh:'填科目、相对路径、中英标题与一句话说明、关键词标签，再选一个缩略图类型。',
-                      en:'Fill in the subject, relative path, bilingual title and one-line description, tags, and pick a thumbnail type.'},
-  'how.s3':          {zh:'push 到 main', en:'Push to main'},
-  'how.s3d':         {zh:'GitHub Actions 会自动部署全站；README 的演示表也建议同步补一行。',
-                      en:'GitHub Actions deploys the site automatically; also add a row to the README table.'},
   'foot.left':       {zh:'408 Visual Lab · 交互式动画演示合集 · MIT License', en:'408 Visual Lab · Interactive animated demos · MIT License'},
   'foot.repo':       {zh:'仓库源码', en:'Source'},
   'foot.readme':     {zh:'README', en:'README'},
@@ -776,8 +710,6 @@ function applyLang(){
   if(ph) ph.placeholder=t(ph.getAttribute('data-i18n-ph'));
   document.getElementById('langZh').classList.toggle('active',LANG==='zh');
   document.getElementById('langEn').classList.toggle('active',LANG==='en');
-  document.getElementById('howZh').style.display=(LANG==='zh'?'block':'none');
-  document.getElementById('howEn').style.display=(LANG==='en'?'block':'none');
   try{ localStorage.setItem('408lab-lang',LANG); }catch(e){}
   render();
 }

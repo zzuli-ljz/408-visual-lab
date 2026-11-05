@@ -92,7 +92,7 @@ File naming: `year-qN-topic.html`.
 1. 在对应科目目录下新建 `年份-题号-主题.html`；
 2. 保持**单文件、零外部依赖**（CSS / JS 全部内联），保证离线可用；
 3. 页面默认中文，并提供中英切换（参考现有演示的 `data-i18n` 写法）；
-4. 在 `index.html` 的 `DEMOS` 数组末尾加一条（字段示例见首页「添加新演示」区块），首页卡片、分组计数、搜索与筛选会自动更新；
+4. 在 `index.html` 的 `DEMOS` 数组末尾加一条（字段照抄已有条目即可），首页卡片、分组计数、搜索与筛选会自动更新；
 5. 把新演示补进上面的中英文演示表，然后提交 Pull Request，或直接 push 到 `main`。
 
 ### 致谢 / Acknowledgements
@@ -160,7 +160,7 @@ See the tree above. `index.html` is the site home page (data-driven card navigat
 1. Create `year-qN-topic.html` under the subject folder;
 2. Keep it a **single file with zero external dependencies** so it works offline;
 3. Default to Chinese, with a Chinese/English toggle (follow the `data-i18n` pattern of the existing demo);
-4. Append one object to the `DEMOS` array in `index.html` (the home page shows a field template) — cards, counts, search and filters update automatically;
+4. Append one object to the `DEMOS` array in `index.html` (copy the fields from an existing entry) — cards, counts, search and filters update automatically;
 5. Add a row to the bilingual demo tables above, then open a Pull Request or push directly to `main`.
 
 ### License
